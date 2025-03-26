@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import yaml
 from sklearn.model_selection import train_test_split
@@ -6,10 +7,12 @@ from sklearn.metrics import mean_absolute_error, r2_score
 from nfl_stadiums import NFLStadiums
 
 # Data sourced from Pro Football Reference: https://www.pro-football-reference.com
-path = "/Users/whansen/Desktop/Data Science/nfl_stats/season_24_25"
+
+# Define local data folder path
+path = os.path.join(os.path.dirname(__file__), "data")
 
 # Load YAML file
-with open("nfl_properties_test.yaml", "r") as file:
+with open(os.path.join(path, "nfl_properties_test.yaml"), "r") as file:
     nfl_properties = yaml.safe_load(file)
 
 team_abbreviations = nfl_properties["team_abbreviations"]
@@ -156,7 +159,7 @@ for _ in range(num_games):
     away_team_pred = round(model.predict(away_team_stats)[0])
 
     # Adjust for injuries
-    injury_file_path = f"{path}/nfl_injuries_test.csv"
+    injury_file_path = os.path.join(path, "nfl_injuries_test.csv")
     injury_home_adjust, injury_away_adjust = get_injuries_adjustment(injury_file_path, home_team, away_team)
     home_team_pred += injury_home_adjust
     away_team_pred += injury_away_adjust
@@ -178,5 +181,5 @@ for _ in range(num_games):
 
 # Save to CSV
 results_df = pd.DataFrame(matchup_results, columns=["Home Team", "Home Score", "Away Team", "Away Score", "Result", "Over/Under"])
-results_df.to_csv(f"{path}/predicted_matchups_test.csv", index=False)
+results_df.to_csv(os.path.join(path, "predicted_matchups_test.csv"), index=False)
 print("Matchups saved to predicted_matchups_test.csv")
