@@ -18,46 +18,68 @@ This project combines machine learning with context-aware adjustments to generat
 
 ## 📁 Project Structure
 
-```
 nfl-score-predictor/
 │
-├── .gitignore
-├── LICENSE
-├── README.md
+├── .gitignore                # Git ignore file for excluding unwanted files
+├── Dockerfile                # Dockerfile to build the image for the application
+├── LICENSE                   # License file
+├── README.md                 # Project documentation and instructions
+├── docker-compose.yml        # Docker Compose configuration file for container orchestration
+├── .env                      # Environment variable configuration for local development (currently ignored)
 │
 └── nfl_predictor/
-    ├── nfl_ai_scores.py
-    ├── requirements.txt
-    ├── data/
+    ├── nfl_ai_scores.py      # Main Python script for NFL score prediction
+    ├── requirements.txt      # List of dependencies for the Python application
+    ├── data/                 # Folder containing the data files for predictions
     │   ├── nfl_injuries_test.csv
     │   ├── nfl_properties_test.yaml
     │   ├── nfl_conversions_thru_week_X.csv
     │   └── ...etc.
-```
+    └── ...other files
 
 ---
 
 ## ⚙️ Setup
 
-```bash
-python3 -m venv nfl_env
-source nfl_env/bin/activate
-pip install -r nfl_predictor/requirements.txt
-```
+### Local (virtual environment)
+
+1. Create a virtual environment:
+
+`python3 -m venv nfl_env`
+`source nfl_env/bin/activate`
+
+2. Install dependencies:
+
+`pip install -r nfl_predictor/requirements.txt`
+
+3. Set your environment variables in the `.env` file:
+
+WEEK_NUMBER=18
+NUM_GAMES=1
+GAME_DATE=2025-02-09
+HOME_TEAM=Philadelphia Eagles
+AWAY_TEAM=Kansas City Chiefs
+
+### Local (Docker)
+1. Build the Docker container:
+
+`docker-compose build`
+
+2. Run the container:
+
+`docker-compose up`
+
+The container will automatically execute the script and print the predicted scores to the console. Output is saved to a CSV inside the nfl_predictor/data/ directory.
 
 ---
 
 ## 🚀 Usage
 
-```bash
-python nfl_predictor/nfl_ai_scores.py
-```
+Run the script locally (after activating your virtual environment):
 
-You’ll be prompted to enter:
-- Week number
-- Number of games
-- Game date
-- Home and away teams
+`python nfl_predictor/nfl_ai_scores.py`
+
+Matchups will be predicted based on your environment variables — no manual inputs required.
 
 ---
 
