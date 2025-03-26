@@ -1,0 +1,23 @@
+# Use official Python image from Docker Hub
+FROM python:3.10-slim
+
+# Set environment variables to prevent Python from writing .pyc files to disk
+ENV PYTHONUNBUFFERED 1
+
+# Create and set the working directory inside the container
+WORKDIR /app
+
+# Copy the requirements.txt to the container
+COPY nfl_predictor/requirements.txt /app/
+
+# Install the Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the rest of your application code into the container
+COPY nfl_predictor /app/
+
+# Make sure the .env file is available
+COPY .env /app/
+
+# Set the entrypoint to run the script
+ENTRYPOINT ["python", "nfl_ai_scores.py"]
