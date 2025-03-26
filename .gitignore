@@ -12,17 +12,16 @@ venv/
 # VS Code
 .vscode/
 
-# Local data and results
-predicted_matchups.csv
-*.log
-
 # OS files
 .DS_Store
+
+# Logs (if used)
+*.log
 
 # Testing / coverage (if added later)
 .pytest_cache/
 .cache
 .coverage
 
-# Ruff (optional, if used)
-.ruff_cache/
+# Output files (keep raw input CSVs, ignore generated ones)
+nfl_predictor/data/predicted_matchups_test.csv
