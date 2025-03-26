@@ -75,6 +75,30 @@ The container will automatically execute the script and print the predicted scor
 
 ---
 
+## 🛠️ Makefile Commands
+This project includes a Makefile to streamline local development and Docker usage.
+
+### Local (virtual environment)
+
+```
+make venv         # Create a virtual environment (nfl_env)
+make install      # Install dependencies inside the virtual environment
+make run          # Run the prediction script locally using your .env config
+make test         # Run all tests (requires pytest)
+make clean        # Clean up Python cache (__pycache__ directories)
+```
+
+### Local (Docker)
+
+```
+make docker-up    # Build and run the Docker container
+make docker-down  # Stop the running Docker container and network
+```
+
+Make sure your `.env` file is properly configured before using `make run` or `make docker-up`.
+
+---
+
 ## 🚀 Usage
 
 Run the script locally (after activating your virtual environment):
