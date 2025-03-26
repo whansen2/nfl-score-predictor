@@ -56,7 +56,23 @@ def test_injury_adjustment_output_type():
     home_team = "Philadelphia Eagles"
     away_team = "Kansas City Chiefs"
 
-    adjust_home, adjust_away = get_injuries_adjustment("test_injuries.csv", home_team, away_team)
+    # Minimal config for test (mocking the YAML contents)
+    team_abbreviations = {
+        "Philadelphia Eagles": "PHI",
+        "Kansas City Chiefs": "KAN"
+    }
+    qb_tiers = {
+        "elite": 3,
+        "average": 1
+    }
+    team_qbs = {
+        "Philadelphia Eagles": ["Jalen Hurts", "elite"],
+        "Kansas City Chiefs": ["Patrick Mahomes", "elite"]
+    }
+
+    adjust_home, adjust_away = get_injuries_adjustment(
+        "test_injuries.csv", home_team, away_team, team_abbreviations, qb_tiers, team_qbs
+    )
 
     assert isinstance(adjust_home, int)
     assert isinstance(adjust_away, int)

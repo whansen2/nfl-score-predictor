@@ -58,11 +58,14 @@ nfl-score-predictor/
 
 3. Set your environment variables in the `.env` file:
 
+```
 WEEK_NUMBER=18
+YEAR_ABBR=24
 NUM_GAMES=1
 GAME_DATE=2025-02-09
 HOME_TEAM=Philadelphia Eagles
 AWAY_TEAM=Kansas City Chiefs
+```
 
 ### Local (Docker)
 1. Build the Docker container:
