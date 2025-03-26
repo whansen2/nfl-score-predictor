@@ -1,0 +1,30 @@
+# Byte-compiled / optimized / cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environments
+nfl_env/
+.venv/
+env/
+venv/
+
+# Local environment settings
+.env
+
+# VS Code / Editor settings
+.vscode/
+
+# Git metadata
+.git
+.gitignore
+
+# Logs & output
+*.log
+nfl_predictor/data/predicted_matchups_test.csv
+
+# Tests (not needed in Lambda image)
+tests/
+
+# Mac OS
+.DS_Store

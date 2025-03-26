@@ -23,22 +23,22 @@ This project combines machine learning with context-aware adjustments to generat
 ```
 nfl-score-predictor/
 │
-├── .gitignore                # Git ignore file for excluding unwanted files
-├── Dockerfile                # Dockerfile to build the image for the application
-├── LICENSE                   # License file
-├── README.md                 # Project documentation and instructions
-├── docker-compose.yml        # Docker Compose configuration file for container orchestration
-├── .env                      # Environment variable configuration for local development (currently ignored)
+├── .dockerignore
+├── .gitignore
+├── .env
+├── Dockerfile.local
+├── Dockerfile.lambda
+├── docker-compose.yml
+├── Makefile
+├── README.md
 │
 └── nfl_predictor/
-    ├── nfl_ai_scores.py      # Main Python script for NFL score prediction
-    ├── requirements.txt      # List of dependencies for the Python application
-    ├── data/                 # Folder containing the data files for predictions
-    │   ├── nfl_injuries_test.csv
-    │   ├── nfl_properties_test.yaml
-    │   ├── nfl_conversions_thru_week_X.csv
-    │   └── ...etc.
-    └── ...other files
+    ├── nfl_ai_scores.py
+    ├── lambda_handler.py
+    ├── requirements.txt
+    ├── data/
+    └── ...
+
 ```
 
 ---
