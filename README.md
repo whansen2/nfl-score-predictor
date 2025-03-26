@@ -1,6 +1,6 @@
 # NFL Score Predictor
 
-![CI](https://github.com/whansen2/nfl-score-predictor/actions/workflows/ci.yml/badge.svg)
+![CI](https://github.com/whansen2/nfl-score-predictor/actions/workflows/python-app.yml/badge.svg)
 
 Predict NFL game scores using real team performance data, injury reports, and weather conditions.
 
