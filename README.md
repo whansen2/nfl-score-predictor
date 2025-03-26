@@ -71,7 +71,7 @@ AWAY_TEAM=Kansas City Chiefs
 
 `docker-compose up`
 
-The container will automatically execute the script and print the predicted scores to the console. Output is saved to a CSV inside the nfl_predictor/data/ directory.
+The container will automatically execute the script and print the predicted scores to the console. Output is saved to a CSV inside the `nfl_predictor/data/` directory.
 
 ---
 
