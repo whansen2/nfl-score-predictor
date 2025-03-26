@@ -16,8 +16,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of your application code into the container
 COPY nfl_predictor /app/
 
-# Make sure the .env file is available
-COPY .env /app/
-
 # Set the entrypoint to run the script
 ENTRYPOINT ["python", "nfl_ai_scores.py"]
