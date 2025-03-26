@@ -18,6 +18,7 @@ This project combines machine learning with context-aware adjustments to generat
 
 ## 📁 Project Structure
 
+```
 nfl-score-predictor/
 │
 ├── .gitignore                # Git ignore file for excluding unwanted files
@@ -36,6 +37,7 @@ nfl-score-predictor/
     │   ├── nfl_conversions_thru_week_X.csv
     │   └── ...etc.
     └── ...other files
+```
 
 ---
 
