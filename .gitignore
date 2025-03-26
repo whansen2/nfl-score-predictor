@@ -24,7 +24,7 @@ venv/
 .coverage
 
 # Ignore generated nfl stadium files
-nfl_stadium_resources/*
+nfl_stadium_resources/
 
 # Output files (keep raw input CSVs, ignore generated files)
 nfl_predictor/data/predicted_matchups_test.csv
