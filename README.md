@@ -27,9 +27,12 @@ nfl-score-predictor/
 │
 └── nfl_predictor/
     ├── nfl_ai_scores.py
-    ├── nfl_properties_test.yaml
-    ├── nfl_injuries_test.csv
-    └── requirements.txt
+    ├── requirements.txt
+    ├── data/
+    │   ├── nfl_injuries_test.csv
+    │   ├── nfl_properties_test.yaml
+    │   ├── nfl_conversions_thru_week_X.csv
+    │   └── ...etc.
 ```
 
 ---
