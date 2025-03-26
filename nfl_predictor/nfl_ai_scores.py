@@ -2,8 +2,9 @@ import os
 import tempfile
 
 # Patch for AWS Lambda: use writable /tmp directory
-# Must be set before importing anything from nfl_stadiums
-os.environ["NFL_STADIUM_RESOURCES"] = os.path.join(tempfile.gettempdir(), "nfl_stadium_resources")
+nfl_resource_path = os.path.join(tempfile.gettempdir(), "nfl_stadium_resources")
+os.environ["NFL_STADIUM_RESOURCES"] = nfl_resource_path
+print(f"[INFO] NFL_STADIUM_RESOURCES set to: {nfl_resource_path}")
 
 import pandas as pd
 import yaml
