@@ -36,7 +36,7 @@ docker-down:
 
 # Run tests (you can expand this later)
 test:
-	$(ACTIVATE) && pytest $(TEST_DIR)
+	. $(VENV)/bin/activate && pytest $(TEST_DIR)
 
 # Clean Python cache
 clean:
