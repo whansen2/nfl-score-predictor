@@ -12,38 +12,38 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
 
-    - name: Cache pip
-      uses: actions/cache@v3
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
+      - name: Cache pip
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
-    - name: Install dependencies
-      run: |
-        python -m venv nfl_env
-        source nfl_env/bin/activate
-        pip install --upgrade pip
-        pip install -r nfl_predictor/requirements.txt
+      - name: Install dependencies
+        run: |
+          python -m venv nfl_env
+          source nfl_env/bin/activate
+          pip install --upgrade pip
+          pip install -r nfl_predictor/requirements.txt
 
-    - name: Run tests
-      run: |
-        source nfl_env/bin/activate
-        export WEEK_NUMBER=18
-        export NUM_GAMES=1
-        export GAME_DATE=2025-02-09
-        export HOME_TEAM="Philadelphia Eagles"
-        export AWAY_TEAM="Kansas City Chiefs"
-        make test
+      - name: Run tests
+        run: |
+          source nfl_env/bin/activate
+          export WEEK_NUMBER=18
+          export NUM_GAMES=1
+          export GAME_DATE=2025-02-09
+          export HOME_TEAM="Philadelphia Eagles"
+          export AWAY_TEAM="Kansas City Chiefs"
+          make test
 
   docker-test:
     name: Docker Build & Run
@@ -51,14 +51,14 @@ jobs:
     needs: test-python
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-    - name: Build Docker image
-      run: docker-compose build
+      - name: Build Docker image
+        run: docker compose build
 
-    - name: Run container to test
-      run: docker-compose up --abort-on-container-exit --exit-code-from nfl_score_predictor
+      - name: Run container to test
+        run: docker compose up --abort-on-container-exit --exit-code-from nfl_score_predictor
