@@ -5,10 +5,19 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, r2_score
 from nfl_stadiums import NFLStadiums
+from dotenv import load_dotenv  # Import for loading environment variables from .env locally
+
+# If running locally, load environment variables from the .env file
+load_dotenv()  # This will load variables from .env for local development
+
+# Fetch environment variables or use fallback values
+week_number = int(os.getenv("WEEK_NUMBER", 18))  # Default to 18 if not set
+num_games = int(os.getenv("NUM_GAMES", 1))  # Default to 1 game if not set
+game_date = os.getenv("GAME_DATE", "2025-02-09")  # Default to a placeholder date if not set
+home_team = os.getenv("HOME_TEAM", "Philadelphia Eagles")  # Default home team if not set
+away_team = os.getenv("AWAY_TEAM", "Kansas City Chiefs")  # Default away team if not set
 
 # Data sourced from Pro Football Reference: https://www.pro-football-reference.com
-
-# Define local data folder path
 path = os.path.join(os.path.dirname(__file__), "data")
 
 # Load YAML file
@@ -90,9 +99,6 @@ def get_weather_adjustment(team_name, game_date):
         return 0
 
 # Load offense datasets
-week_number = input("Enter the week number: ").strip()
-if not week_number.isdigit():
-    raise ValueError("Invalid input! Please enter a numerical week number.")
 conversions_file_path = f"{path}/nfl_conversions_thru_week_{week_number}_24.csv"
 offense_file_path = f"{path}/nfl_team_offense_thru_week_{week_number}_24.csv"
 try:
@@ -140,14 +146,11 @@ print(f"R² Score: {r2}")
 
 # Matchup predictions
 matchup_results = []
-num_games = input("Enter the number of games this week: ").strip()
-if not num_games.isdigit():
-    raise ValueError("Invalid input! Please enter a numerical number of games.")
-num_games = int(num_games)
 for _ in range(num_games):
-    game_date = input("Enter Game Date for this matchup (YYYY-MM-DD): ").strip()
-    home_team = input("Enter Home Team: ").strip()
-    away_team = input("Enter Away Team: ").strip()
+    # Use environment variables or default values for matchups
+    game_date = game_date
+    home_team = home_team
+    away_team = away_team
 
     if home_team not in df_merged['Tm'].values or away_team not in df_merged['Tm'].values:
         raise ValueError("One or both team names are invalid. Please check spelling.")
