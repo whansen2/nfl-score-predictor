@@ -1,11 +1,15 @@
 import os
 import tempfile
 
-# Patch for AWS Lambda: use writable /tmp directory
-nfl_resource_path = os.path.join(tempfile.gettempdir(), "nfl_stadium_resources")
-os.environ["NFL_STADIUM_RESOURCES"] = nfl_resource_path
-print(f"[INFO] NFL_STADIUM_RESOURCES set to: {nfl_resource_path}")
+# Patch the internal path BEFORE importing anything from the submodules
+lambda_tmp_path = os.path.join(tempfile.gettempdir(), "nfl_stadium_resources")
+import nfl_stadiums  # Import root first
+nfl_stadiums.RESOURCE_DIR = lambda_tmp_path  # Override internal path manually
 
+# Log for sanity check
+print(f"[INFO] NFL_STADIUM_RESOURCES pt 1 set to: {nfl_stadiums.RESOURCE_DIR}")
+
+# Now it's safe to import other things
 import pandas as pd
 import yaml
 from sklearn.model_selection import train_test_split
@@ -17,8 +21,15 @@ load_dotenv()
 
 from nfl_stadiums import NFLStadiums
 
+# Log for sanity check
+print(f"[INFO] NFL_STADIUM_RESOURCES pt 2 set to: {nfl_stadiums.RESOURCE_DIR}")
+
 # Global constants
 stad = NFLStadiums()
+
+# Log for sanity check
+print(f"[INFO] NFL_STADIUM_RESOURCES pt 3 set to: {nfl_stadiums.RESOURCE_DIR}")
+
 path = os.path.join(os.path.dirname(__file__), "data")
 
 # Helper: Injury adjustment
