@@ -1,13 +1,10 @@
 import os
 import tempfile
 
-# Must set this BEFORE importing anything from nfl_stadiums
-lambda_tmp_path = os.path.join(tempfile.gettempdir(), "nfl_stadium_resources")
+# Patch for AWS Lambda: use writable /tmp directory
+# Must be set before importing anything from nfl_stadiums
+os.environ["NFL_STADIUM_RESOURCES"] = os.path.join(tempfile.gettempdir(), "nfl_stadium_resources")
 
-import nfl_stadiums  # must import the root before the class
-nfl_stadiums.RESOURCE_DIR = lambda_tmp_path  # override the internal path manually
-
-# Now safe to import other modules
 import pandas as pd
 import yaml
 from sklearn.model_selection import train_test_split
@@ -19,7 +16,7 @@ load_dotenv()
 
 from nfl_stadiums import NFLStadiums
 
-# Works locally and inside AWS Lambda
+# Global constants
 stad = NFLStadiums()
 path = os.path.join(os.path.dirname(__file__), "data")
 
