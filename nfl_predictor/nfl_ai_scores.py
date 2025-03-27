@@ -6,14 +6,24 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, r2_score
 from dotenv import load_dotenv
 
-# Load .env variables for local use
+# Load .env variables for local use (if needed)
 load_dotenv()
 
-# The env var was already set at the OS level
+# Import the custom subclass of NFLStadiums
 from nfl_stadiums import NFLStadiums
 
-# Initialize global resources
-stad = NFLStadiums()
+# Define CustomNFLStadiums class to override the default _resources_dir
+class CustomNFLStadiums(NFLStadiums):
+    def __init__(self, *args, **kwargs):
+        # Access the environment variable
+        self._resources_dir = os.getenv('NFL_STADIUM_RESOURCES', '/tmp/nfl_stadium_resources')  # Default to /tmp if not set
+        print(f"Using resources directory: {self._resources_dir}")
+        super().__init__(*args, **kwargs)
+
+# Initialize global resources with the custom class
+stad = CustomNFLStadiums()
+
+# Define the path for Lambda execution
 path = os.path.join(os.path.dirname(__file__), "data")
 
 # Helper: Injury adjustment
