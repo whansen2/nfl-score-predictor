@@ -1,93 +1,26 @@
 import os
 import pandas as pd
 import yaml
+from dotenv import load_dotenv
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, r2_score
-
-# Load local .env if running locally
-from dotenv import load_dotenv
-load_dotenv()
-
-# Setup resource directory for nfl_stadiums BEFORE importing it
-resource_dir = os.getenv("NFL_STADIUM_RESOURCES", "/tmp/nfl_stadium_resources")
-os.makedirs(resource_dir, exist_ok=True)
-
-from lukhed_basic_utils import osCommon as osC
-
-# Monkey patch osC.create_file_path_string BEFORE NFLStadiums import
-def patched_create_file_path_string(*args, **kwargs):
-    return resource_dir
-
-osC.create_file_path_string = patched_create_file_path_string
-
-# Now safe to import
+from utils.helpers import (running_in_lambda, get_injuries_adjustment, get_weather_adjustment)
+from utils.env_setup import configure_nfl_stadiums_resource_dir
 from nfl_stadiums import NFLStadiums
 
-# Instantiate globally
+# Load .env values
+load_dotenv()
+
+# Monkey-patch and get resource dir for nfl_stadiums
+resource_dir = configure_nfl_stadiums_resource_dir()
+
+# Instantiate stadiums object
 stad = NFLStadiums()
 print(f"Using NFL stadium resource dir: {stad._resources_dir}")
 
-# Path for local or packaged data files
+# Path to local data files
 path = os.path.join(os.path.dirname(__file__), "data")
-
-# Helper: Injury adjustment
-def get_injuries_adjustment(file_path, home_team, away_team, team_abbreviations, qb_tiers, team_qbs):
-    df_injuries = pd.read_csv(file_path)
-    df_injuries = df_injuries.dropna(subset=["Status"])
-    relevant_columns = ["Player", "Pos", "Status", "Injury Comment"]
-    team_injuries = {team: group[relevant_columns].to_dict(orient="records") for team, group in df_injuries.groupby("Tm")}
-
-    home_team_adjust = 0
-    away_team_adjust = 0
-    home_abbr = team_abbreviations.get(home_team)
-    away_abbr = team_abbreviations.get(away_team)
-
-    if home_abbr and any(p["Pos"] == "QB" for p in team_injuries.get(home_abbr, [])):
-        home_team_adjust += qb_tiers.get(team_qbs.get(home_team, [None, "average"])[1], 0)
-    if away_abbr and any(p["Pos"] == "QB" for p in team_injuries.get(away_abbr, [])):
-        away_team_adjust += qb_tiers.get(team_qbs.get(away_team, [None, "average"])[1], 0)
-
-    return home_team_adjust, away_team_adjust
-
-# Helper: Weather adjustment
-def get_weather_adjustment(team_name, game_date, weather_tiers):
-    try:
-        forecast = stad.get_weather_forecast_for_stadium(team_name, game_date)
-        if forecast.get("roof", "").lower() in ["indoor", "dome"]:
-            return weather_tiers.get("indoor", 0)
-
-        adjustment = 0
-        temp = forecast.get("temperature")
-        wind = forecast.get("wind_speed")
-        precip_type = forecast.get("precipitation_type", "none").lower()
-        precip_intensity = forecast.get("precipitation_intensity", "none").lower()
-
-        if temp is not None:
-            if temp > 85:
-                adjustment += weather_tiers.get("temperature_above_85", 0)
-            elif 55 <= temp <= 85:
-                adjustment += weather_tiers.get("temperature_55_85", 0)
-            elif 32 <= temp < 55:
-                adjustment += weather_tiers.get("temperature_32_54", 0)
-            else:
-                adjustment += weather_tiers.get("temperature_below_32", 0)
-
-        if wind is not None:
-            if wind <= 10:
-                adjustment += weather_tiers.get("wind_0_10_mph", 0)
-            elif 11 <= wind <= 15:
-                adjustment += weather_tiers.get("wind_11_15_mph", 0)
-            elif 16 <= wind <= 20:
-                adjustment += weather_tiers.get("wind_16_20_mph", 0)
-            else:
-                adjustment += weather_tiers.get("wind_over_20_mph", 0)
-
-        adjustment += weather_tiers.get(f"{precip_intensity}_{precip_type}", 0)
-        return adjustment
-    except Exception as e:
-        print(f"Weather error: {e}")
-        return 0
 
 # Main logic
 def run_predictions():
@@ -155,11 +88,15 @@ def run_predictions():
 
         results.append([home_team, ht_pred, away_team, at_pred, result, total])
         print(f"Predicted Score - {home_team}: {ht_pred}, {away_team}: {at_pred}")
+        df_results = pd.DataFrame(results, columns=["Home Team", "Home Score", "Away Team", "Away Score", "Result", "Over/Under"])
 
-    df_results = pd.DataFrame(results, columns=["Home Team", "Home Score", "Away Team", "Away Score", "Result", "Over/Under"])
-    df_results.to_csv(os.path.join(path, "predicted_matchups_test.csv"), index=False)
-    print("Matchups saved to predicted_matchups_test.csv")
-    return {"status": "ok", "result": results}
+        # Only write to CSV if not in Lambda
+        if not running_in_lambda():
+            output_path = os.path.join(path, "predicted_matchups_test.csv")
+            df_results.to_csv(output_path, index=False)
+            print(f"Matchups saved to {output_path}")
+        else:
+            print("Skipping CSV write — running in AWS Lambda")
 
 # Run locally if executed directly
 if __name__ == "__main__":
