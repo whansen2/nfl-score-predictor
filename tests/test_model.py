@@ -3,7 +3,7 @@ import pandas as pd
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score
-from nfl_predictor.nfl_ai_scores import get_injuries_adjustment
+from nfl_predictor.utils.helpers import get_injuries_adjustment
 
 # Test whether the model can be trained and produce accurate predictions on dummy data
 def test_model_training_and_prediction():

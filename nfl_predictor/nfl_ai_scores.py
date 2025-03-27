@@ -17,7 +17,8 @@ resource_dir = configure_nfl_stadiums_resource_dir()
 
 # Instantiate stadiums object
 stad = NFLStadiums()
-print(f"Using NFL stadium resource dir: {stad._resources_dir}")
+if running_in_lambda():
+    print(f"Using NFL stadium resource dir: {stad._resources_dir}")
 
 # Path to local data files
 path = os.path.join(os.path.dirname(__file__), "data")
@@ -76,7 +77,7 @@ def run_predictions():
 
         inj_file = os.path.join(path, "nfl_injuries_test.csv")
         ht_adj, at_adj = get_injuries_adjustment(inj_file, home_team, away_team, team_abbreviations, qb_tiers, team_qbs)
-        wt_adj = get_weather_adjustment(home_team, game_date, weather_tiers)
+        wt_adj = get_weather_adjustment(stad, home_team, game_date, weather_tiers)
 
         ht_pred += ht_adj + wt_adj
         at_pred += at_adj + wt_adj
