@@ -1,15 +1,14 @@
 import os
 import tempfile
 
-# Patch the internal path BEFORE importing anything from the submodules
+# --- PATCH FOR LAMBDA (or safe for all environments) ---
 lambda_tmp_path = os.path.join(tempfile.gettempdir(), "nfl_stadium_resources")
-import nfl_stadiums  # Import root first
-nfl_stadiums.RESOURCE_DIR = lambda_tmp_path  # Override internal path manually
+os.environ["NFL_STADIUM_RESOURCES"] = lambda_tmp_path  # respected by the library
 
-# Log for sanity check
-print(f"[INFO] NFL_STADIUM_RESOURCES pt 1 set to: {nfl_stadiums.RESOURCE_DIR}")
+# Log early for sanity
+print(f"[INFO] NFL_STADIUM_RESOURCES env var set to: {os.environ['NFL_STADIUM_RESOURCES']}")
 
-# Now it's safe to import other things
+# --- Now safe to import everything else ---
 import pandas as pd
 import yaml
 from sklearn.model_selection import train_test_split
@@ -19,16 +18,17 @@ from sklearn.metrics import mean_absolute_error, r2_score
 from dotenv import load_dotenv
 load_dotenv()
 
+# Import AFTER env is patched
 from nfl_stadiums import NFLStadiums
 
-# Log for sanity check
-print(f"[INFO] NFL_STADIUM_RESOURCES pt 2 set to: {nfl_stadiums.RESOURCE_DIR}")
+# Log before instantiating
+print(f"[INFO] About to instantiate NFLStadiums...")
 
-# Global constants
+# Safe instantiation now
 stad = NFLStadiums()
 
-# Log for sanity check
-print(f"[INFO] NFL_STADIUM_RESOURCES pt 3 set to: {nfl_stadiums.RESOURCE_DIR}")
+# Log after instantiation
+print(f"[INFO] Successfully created NFLStadiums. Resource dir is: {os.environ['NFL_STADIUM_RESOURCES']}")
 
 path = os.path.join(os.path.dirname(__file__), "data")
 
