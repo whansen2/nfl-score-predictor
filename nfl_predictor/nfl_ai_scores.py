@@ -4,26 +4,31 @@ import yaml
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, r2_score
-from dotenv import load_dotenv
 
-# Load .env variables for local use (if needed)
+# Load local .env if running locally
+from dotenv import load_dotenv
 load_dotenv()
 
-# Import the custom subclass of NFLStadiums
+# Setup resource directory for nfl_stadiums BEFORE importing it
+resource_dir = os.getenv("NFL_STADIUM_RESOURCES", "/tmp/nfl_stadium_resources")
+os.makedirs(resource_dir, exist_ok=True)
+
+from lukhed_basic_utils import osCommon as osC
+
+# Monkey patch osC.create_file_path_string BEFORE NFLStadiums import
+def patched_create_file_path_string(*args, **kwargs):
+    return resource_dir
+
+osC.create_file_path_string = patched_create_file_path_string
+
+# Now safe to import
 from nfl_stadiums import NFLStadiums
 
-# Define CustomNFLStadiums class to override the default _resources_dir
-class CustomNFLStadiums(NFLStadiums):
-    def __init__(self, *args, **kwargs):
-        # Access the environment variable
-        self._resources_dir = os.getenv('NFL_STADIUM_RESOURCES', '/tmp/nfl_stadium_resources')  # Default to /tmp if not set
-        print(f"Using resources directory: {self._resources_dir}")
-        super().__init__(*args, **kwargs)
+# Instantiate globally
+stad = NFLStadiums()
+print(f"Using NFL stadium resource dir: {stad._resources_dir}")
 
-# Initialize global resources with the custom class
-stad = CustomNFLStadiums()
-
-# Define the path for Lambda execution
+# Path for local or packaged data files
 path = os.path.join(os.path.dirname(__file__), "data")
 
 # Helper: Injury adjustment

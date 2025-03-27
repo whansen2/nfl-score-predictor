@@ -9,3 +9,4 @@ python-dotenv==1.0.0
 
 # NFL stadium/weather data from nfl-stadiums, powered by Open-Meteo
 nfl-stadiums==2.0.2
+lukhed-basic-utils==1.4.7
