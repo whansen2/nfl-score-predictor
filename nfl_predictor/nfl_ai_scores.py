@@ -1,29 +1,19 @@
 import os
-import tempfile
 import pandas as pd
 import yaml
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, r2_score
-
 from dotenv import load_dotenv
+
+# Load .env variables for local use
 load_dotenv()
 
-# Step 1: define a writable directory (Lambda can only write to /tmp)
-lambda_tmp_path = os.path.join(tempfile.gettempdir(), "nfl_stadium_resources")
-
-# Step 2: import the base package (but NOT any submodules/classes yet)
-import nfl_stadiums
-
-# Step 3: override the internal RESOURCE_DIR before any deeper logic loads
-nfl_stadiums.RESOURCE_DIR = lambda_tmp_path
-
-# Step 4: only now import the class — this is safe
+# The env var was already set at the OS level
 from nfl_stadiums import NFLStadiums
 
-# Now you can use the library
+# Initialize global resources
 stad = NFLStadiums()
-
 path = os.path.join(os.path.dirname(__file__), "data")
 
 # Helper: Injury adjustment
