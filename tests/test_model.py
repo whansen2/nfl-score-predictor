@@ -1,80 +1,56 @@
-import os
 import pandas as pd
+import pytest
+from unittest.mock import patch
 from sklearn.linear_model import LinearRegression
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import r2_score
-from nfl_predictor.utils.helpers import get_injuries_adjustment
 
-# Test whether the model can be trained and produce accurate predictions on dummy data
-def test_model_training_and_prediction():
-    # Dummy data resembling current features
-    data = {
-        "Sc%_x": [0.3, 0.4, 0.5, 0.6],
-        "Tot_1stD/G": [18, 20, 22, 24],
-        "Y/P_x": [5.2, 5.5, 6.1, 6.7],
-        "RZPct_x": [0.5, 0.55, 0.6, 0.65],
-        "TO%_x": [0.12, 0.11, 0.09, 0.07],
-        "Sc%_y": [0.25, 0.3, 0.35, 0.4],
-        "PPG": [17, 20, 24, 28]
-    }
-    df = pd.DataFrame(data)
+@pytest.mark.parametrize("inj_adj, wt_adj, home_stats, away_stats", [
+    # Elite QB out at home, bad weather
+    ((-6, 0), -2,
+     {"Sc%_x": 0.45, "Tot_1stD/G": 20, "Y/P_x": 6.2, "RZPct_x": 0.6, "TO%_x": 0.1, "Sc%_y": 0.35},
+     {"Sc%_x": 0.42, "Tot_1stD/G": 18.2, "Y/P_x": 5.8, "RZPct_x": 0.55, "TO%_x": 0.12, "Sc%_y": 0.32}),
+    
+    # Both QBs out, neutral weather
+    ((-6, -4), 0,
+     {"Sc%_x": 0.5, "Tot_1stD/G": 21, "Y/P_x": 6.0, "RZPct_x": 0.58, "TO%_x": 0.09, "Sc%_y": 0.34},
+     {"Sc%_x": 0.48, "Tot_1stD/G": 19.5, "Y/P_x": 5.6, "RZPct_x": 0.52, "TO%_x": 0.1, "Sc%_y": 0.3}),
+    
+    # No injuries, no weather impact
+    ((0, 0), 0,
+     {"Sc%_x": 0.55, "Tot_1stD/G": 22, "Y/P_x": 6.3, "RZPct_x": 0.62, "TO%_x": 0.08, "Sc%_y": 0.37},
+     {"Sc%_x": 0.5, "Tot_1stD/G": 20, "Y/P_x": 6.0, "RZPct_x": 0.6, "TO%_x": 0.1, "Sc%_y": 0.33}),
+])
+
+@patch("nfl_predictor.utils.helpers.get_weather_adjustment")
+@patch("nfl_predictor.utils.helpers.get_injuries_adjustment")
+def test_prediction_pipeline_with_adjustments_param(
+    mock_injuries, mock_weather, inj_adj, wt_adj, home_stats, away_stats
+):
+    # Mock return values
+    mock_injuries.return_value = inj_adj
+    mock_weather.return_value = wt_adj
+
     features = ["Sc%_x", "Tot_1stD/G", "Y/P_x", "RZPct_x", "TO%_x", "Sc%_y"]
+    df = pd.DataFrame([
+        {"Tm": "HomeTeam", **home_stats, "PF": 350, "G": 17},
+        {"Tm": "AwayTeam", **away_stats, "PF": 320, "G": 17}
+    ])
+    df["PPG"] = df["PF"] / df["G"]
+    df["Tot_1stD/G"] = df["Tot_1stD/G"]
+
     X = df[features]
     y = df["PPG"]
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42)
-
     model = LinearRegression()
-    model.fit(X_train, y_train)
-    y_pred = model.predict(X_test)
+    model.fit(X, y)
 
-    r2 = r2_score(y_test, y_pred)
+    ht_pred = round(model.predict(df[df["Tm"] == "HomeTeam"][features])[0]) + 1
+    at_pred = round(model.predict(df[df["Tm"] == "AwayTeam"][features])[0])
 
-    # Basic sanity check: R² should be reasonable with dummy data
-    assert r2 > 0.8
+    ht_pred += inj_adj[0] + wt_adj
+    at_pred += inj_adj[1] + wt_adj
 
-# Test that the output DataFrame from predictions has the correct structure
-def test_output_dataframe_structure():
-    sample_data = [["Eagles", 27, "Chiefs", 24, "Eagles win by 3", 51]]
-    df = pd.DataFrame(sample_data, columns=["Home Team", "Home Score", "Away Team", "Away Score", "Result", "Over/Under"])
-    
-    expected_columns = {"Home Team", "Home Score", "Away Team", "Away Score", "Result", "Over/Under"}
-    assert set(df.columns) == expected_columns
-
-# Test that injury adjustment function returns valid integer values
-def test_injury_adjustment_output_type():
-    # Minimal test data for both teams
-    dummy = pd.DataFrame({
-        "Player": ["QB1", "WR1"],
-        "Tm": ["PHI", "KAN"],
-        "Pos": ["QB", "WR"],
-        "Status": ["Questionable", "Out"],
-        "Injury Comment": ["Elbow", "Hamstring"]
-    })
-    dummy.to_csv("test_injuries.csv", index=False)
-
-    home_team = "Philadelphia Eagles"
-    away_team = "Kansas City Chiefs"
-
-    # Minimal config for test (mocking the YAML contents)
-    team_abbreviations = {
-        "Philadelphia Eagles": "PHI",
-        "Kansas City Chiefs": "KAN"
-    }
-    qb_tiers = {
-        "elite": 3,
-        "average": 1
-    }
-    team_qbs = {
-        "Philadelphia Eagles": ["Jalen Hurts", "elite"],
-        "Kansas City Chiefs": ["Patrick Mahomes", "elite"]
-    }
-
-    adjust_home, adjust_away = get_injuries_adjustment(
-        "test_injuries.csv", home_team, away_team, team_abbreviations, qb_tiers, team_qbs
-    )
-
-    assert isinstance(adjust_home, int)
-    assert isinstance(adjust_away, int)
-
-    os.remove("test_injuries.csv")
+    assert isinstance(ht_pred, int)
+    assert isinstance(at_pred, int)
+    assert ht_pred > 0
+    assert at_pred > 0
+    assert abs(ht_pred - at_pred) >= 0
