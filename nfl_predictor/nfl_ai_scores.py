@@ -1,14 +1,5 @@
 import os
 import tempfile
-
-# --- PATCH FOR LAMBDA (or safe for all environments) ---
-lambda_tmp_path = os.path.join(tempfile.gettempdir(), "nfl_stadium_resources")
-os.environ["NFL_STADIUM_RESOURCES"] = lambda_tmp_path  # respected by the library
-
-# Log early for sanity
-print(f"[INFO] NFL_STADIUM_RESOURCES env var set to: {os.environ['NFL_STADIUM_RESOURCES']}")
-
-# --- Now safe to import everything else ---
 import pandas as pd
 import yaml
 from sklearn.model_selection import train_test_split
@@ -18,17 +9,20 @@ from sklearn.metrics import mean_absolute_error, r2_score
 from dotenv import load_dotenv
 load_dotenv()
 
-# Import AFTER env is patched
+# Step 1: define a writable directory (Lambda can only write to /tmp)
+lambda_tmp_path = os.path.join(tempfile.gettempdir(), "nfl_stadium_resources")
+
+# Step 2: import the base package (but NOT any submodules/classes yet)
+import nfl_stadiums
+
+# Step 3: override the internal RESOURCE_DIR before any deeper logic loads
+nfl_stadiums.RESOURCE_DIR = lambda_tmp_path
+
+# Step 4: only now import the class — this is safe
 from nfl_stadiums import NFLStadiums
 
-# Log before instantiating
-print(f"[INFO] About to instantiate NFLStadiums...")
-
-# Safe instantiation now
+# Now you can use the library
 stad = NFLStadiums()
-
-# Log after instantiation
-print(f"[INFO] Successfully created NFLStadiums. Resource dir is: {os.environ['NFL_STADIUM_RESOURCES']}")
 
 path = os.path.join(os.path.dirname(__file__), "data")
 
