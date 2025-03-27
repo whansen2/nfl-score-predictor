@@ -5,6 +5,13 @@ import pandas as pd
 def running_in_lambda():
     return os.getenv("AWS_EXECUTION_ENV") is not None
 
+# Determine which week's data to use for training
+def get_training_week(week_value):
+    try:
+        return int(week_value)
+    except ValueError:
+        return 18  # For postseason (e.g., "WildCard", "SuperBowl", etc.)
+
 # Injury adjustment helper
 def get_injuries_adjustment(file_path, home_team, away_team, team_abbreviations, qb_tiers, team_qbs):
     df_injuries = pd.read_csv(file_path)

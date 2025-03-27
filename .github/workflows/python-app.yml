@@ -41,7 +41,6 @@ jobs:
           source nfl_env/bin/activate
           export WEEK_NUMBER=18
           export YEAR_ABBR=24
-          export NUM_GAMES=1
           export GAME_DATE=2025-02-09
           export HOME_TEAM="Philadelphia Eagles"
           export AWAY_TEAM="Kansas City Chiefs"
