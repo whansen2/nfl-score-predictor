@@ -3,7 +3,7 @@ import pandas as pd
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score
-from nfl_predictor.nfl_ai_scores import get_injuries_adjustment
+from nfl_predictor.utils.helpers import get_injuries_adjustment
 
 # Test whether the model can be trained and produce accurate predictions on dummy data
 def test_model_training_and_prediction():
@@ -56,7 +56,23 @@ def test_injury_adjustment_output_type():
     home_team = "Philadelphia Eagles"
     away_team = "Kansas City Chiefs"
 
-    adjust_home, adjust_away = get_injuries_adjustment("test_injuries.csv", home_team, away_team)
+    # Minimal config for test (mocking the YAML contents)
+    team_abbreviations = {
+        "Philadelphia Eagles": "PHI",
+        "Kansas City Chiefs": "KAN"
+    }
+    qb_tiers = {
+        "elite": 3,
+        "average": 1
+    }
+    team_qbs = {
+        "Philadelphia Eagles": ["Jalen Hurts", "elite"],
+        "Kansas City Chiefs": ["Patrick Mahomes", "elite"]
+    }
+
+    adjust_home, adjust_away = get_injuries_adjustment(
+        "test_injuries.csv", home_team, away_team, team_abbreviations, qb_tiers, team_qbs
+    )
 
     assert isinstance(adjust_home, int)
     assert isinstance(adjust_away, int)
