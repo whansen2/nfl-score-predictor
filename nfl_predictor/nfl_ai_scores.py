@@ -135,7 +135,7 @@ def run_predictions():
             )
 
         if ENABLE_WEATHER_ADJUSTMENTS:
-            forecast = stad.get_weather_forecast_for_stadium(home_team, game_date)
+            # forecast = stad.get_weather_forecast_for_stadium(home_team, game_date)  # For debugging
             # print(f"Forecast for {home_team} on {game_date}:\n{forecast}")  # For debugging
             wt_adj = get_weather_adjustment(
                 stad, home_team, game_date, weather_tiers
