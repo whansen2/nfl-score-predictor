@@ -4,6 +4,11 @@ FROM public.ecr.aws/lambda/python:3.11
 # Set env var so it's respected by nfl_stadiums BEFORE Python loads
 ENV NFL_STADIUM_RESOURCES=/tmp/nfl_stadium_resources
 
+# Set other adjustment env vars
+ENV VERBOSE_ADJUSTMENTS=True
+ENV ENABLE_INJURY_ADJUSTMENTS=False
+ENV ENABLE_WEATHER_ADJUSTMENTS=True
+
 # Set working directory
 WORKDIR /var/task
 
