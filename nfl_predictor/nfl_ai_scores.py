@@ -23,14 +23,21 @@ if running_in_lambda():
 # Path to local data files
 path = os.path.join(os.path.dirname(__file__), "data")
 
+# Control optional logic via .env
+VERBOSE_ADJUSTMENTS = os.getenv("VERBOSE_ADJUSTMENTS", "False") == "True"
+ENABLE_INJURY_ADJUSTMENTS = os.getenv("ENABLE_INJURY_ADJUSTMENTS", "False") == "True"
+ENABLE_WEATHER_ADJUSTMENTS = os.getenv("ENABLE_WEATHER_ADJUSTMENTS", "False") == "True"
+
 # Main logic
 def run_predictions():
+    # Load .env values
     week_number = int(os.getenv("WEEK_NUMBER", 18))
     year_abbr = int(os.getenv("YEAR_ABBR", 24))
     game_date = os.getenv("GAME_DATE", "2025-02-09")
     home_team = os.getenv("HOME_TEAM", "Philadelphia Eagles")
     away_team = os.getenv("AWAY_TEAM", "Kansas City Chiefs")
 
+    # Load team, QB, and weather properties
     with open(os.path.join(path, "nfl_properties_test.yaml"), "r") as file:
         nfl_properties = yaml.safe_load(file)
 
@@ -55,38 +62,49 @@ def run_predictions():
             "Game Date": game_date
         }])
 
-    printed_weeks = set()
+    printed_weeks = set()  # Track weeks already printed to avoid duplicate model metrics
+    week_model_cache = {}  # Cache trained models per week to avoid retraining
+
     for _, row in df_matchups.iterrows():
         week = row["Week"]
         training_week = get_training_week(week)  # Determine training week for each matchup
 
-        # Load data based on training_week for this specific matchup
-        df_conversions = pd.read_csv(f"{path}/nfl_conversions_thru_week_{training_week}_{year_abbr}.csv")
-        df_offense = pd.read_csv(f"{path}/nfl_team_offense_thru_week_{training_week}_{year_abbr}.csv")
-        df_conversions_against = pd.read_csv(f"{path}/nfl_conversions_against_thru_week_{week_number}_{year_abbr}.csv")  # Only 18 for now
-        df_defense = pd.read_csv(f"{path}/nfl_team_defense_thru_week_{week_number}_{year_abbr}.csv")  # Only 18 for now
+        # Train model only once per week and cache it
+        if week not in week_model_cache:
+            try:
+                df_conversions = pd.read_csv(f"{path}/nfl_conversions_thru_week_{training_week}_{year_abbr}.csv")
+                df_offense = pd.read_csv(f"{path}/nfl_team_offense_thru_week_{training_week}_{year_abbr}.csv")
+                df_conversions_against = pd.read_csv(f"{path}/nfl_conversions_against_thru_week_{week_number}_{year_abbr}.csv")
+                df_defense = pd.read_csv(f"{path}/nfl_team_defense_thru_week_{week_number}_{year_abbr}.csv")
+            except FileNotFoundError as e:
+                print(f"Missing data file for week {training_week} or {week_number}: {e}")
+                continue  # Skip to next iteration
 
-        df = pd.merge(df_offense, df_conversions, on="Tm")
-        df = pd.merge(df, df_conversions_against, on="Tm")
-        df = pd.merge(df, df_defense, on="Tm")
-        df["PPG"] = df["PF"] / df["G"]
-        df["Tot_1stD/G"] = df["Tot_1stD"] / df["G"]
+            df = pd.merge(df_offense, df_conversions, on="Tm")
+            df = pd.merge(df, df_conversions_against, on="Tm")
+            df = pd.merge(df, df_defense, on="Tm")
+            df["PPG"] = df["PF"] / df["G"]
+            df["Tot_1stD/G"] = df["Tot_1stD"] / df["G"]
 
-        features = ["Sc%_x", "Tot_1stD/G", "Y/P_x", "RZPct_x", "TO%_x", "Sc%_y"]
-        X = df[features]
-        y = df["PPG"]
+            features = ["Sc%_x", "Tot_1stD/G", "Y/P_x", "RZPct_x", "TO%_x", "Sc%_y"]
+            X = df[features]
+            y = df["PPG"]
 
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42)
-        model = LinearRegression()
-        model.fit(X_train, y_train)
-        y_pred = model.predict(X_test)
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42)
+            model = LinearRegression()
+            model.fit(X_train, y_train)
 
-        # Print the results only for the first match of the week
-        if week not in printed_weeks:
-            print(f"Training for week {week} data")
-            print("Mean Absolute Error:", mean_absolute_error(y_test, y_pred))
-            print("R² Score:", r2_score(y_test, y_pred))
-            printed_weeks.add(week)
+            # Print the results only for the first match of the week
+            if week not in printed_weeks:
+                y_pred = model.predict(X_test)
+                print(f"Training for week {week} data")
+                print("Mean Absolute Error:", mean_absolute_error(y_test, y_pred))
+                print("R² Score:", r2_score(y_test, y_pred))
+                printed_weeks.add(week)
+
+            week_model_cache[week] = (model, df, features)
+        else:
+            model, df, features = week_model_cache[week]
 
         home_team = row["Home Team"]
         away_team = row["Away Team"]
@@ -99,15 +117,34 @@ def run_predictions():
         ht_stats = df.loc[df["Tm"] == home_team, features]
         at_stats = df.loc[df["Tm"] == away_team, features]
 
-        ht_pred = round(model.predict(ht_stats)[0]) + 1
+        # Verify that both teams have full stats available before predicting
+        if ht_stats.empty or at_stats.empty:
+            print(f"Skipping due to missing stats for {home_team} or {away_team}")
+            continue  # Skip to next iteration
+
+        ht_pred = round(model.predict(ht_stats)[0]) + 1  # Predict home team score and apply home-field advantage
         at_pred = round(model.predict(at_stats)[0])
 
-        ht_adj, at_adj = get_injuries_adjustment(
-            inj_file, home_team, away_team, team_abbreviations, qb_tiers, team_qbs
-        )
-        wt_adj = get_weather_adjustment(
-            stad, home_team, game_date, weather_tiers
-        )
+        # Apply adjustments if enabled
+        ht_adj, at_adj = (0, 0)
+        wt_adj = 0
+
+        if ENABLE_INJURY_ADJUSTMENTS:
+            ht_adj, at_adj = get_injuries_adjustment(
+                inj_file, home_team, away_team, team_abbreviations, qb_tiers, team_qbs
+            )
+
+        if ENABLE_WEATHER_ADJUSTMENTS:
+            # forecast = stad.get_weather_forecast_for_stadium(home_team, game_date)  # For debugging
+            # print(f"Forecast for {home_team} on {game_date}:\n{forecast}")  # For debugging
+            wt_adj = get_weather_adjustment(
+                stad, home_team, game_date, weather_tiers
+            )
+
+        if VERBOSE_ADJUSTMENTS:
+            print(f"Adjustments for {away_team} @ {home_team} on {game_date}")
+            print(f"Injury Adjustment - {home_team}: {ht_adj}, {away_team}: {at_adj}")
+            print(f"Weather Adjustment (applied to both): {wt_adj}\n")
 
         ht_pred += ht_adj + wt_adj
         at_pred += at_adj + wt_adj
