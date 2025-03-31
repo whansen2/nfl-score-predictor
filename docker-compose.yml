@@ -10,6 +10,7 @@ services:
       - GAME_DATE=2025-02-09
       - HOME_TEAM=Philadelphia Eagles
       - AWAY_TEAM=Kansas City Chiefs
+      - LOG_LEVEL=Info
       - VERBOSE_ADJUSTMENTS=False
       - ENABLE_INJURY_ADJUSTMENTS=False
       - ENABLE_WEATHER_ADJUSTMENTS=False
