@@ -85,8 +85,10 @@ def run_predictions():
             df = pd.merge(df, df_defense, on="Tm")
             df["PPG"] = df["PF"] / df["G"]
             df["Tot_1stD/G"] = df["Tot_1stD"] / df["G"]
+            df["Avg_RZTD"] = df["RZTD_x"] / df["G"]  # this field is part of the Databricks feature set
 
-            features = ["Sc%_x", "Tot_1stD/G", "Y/P_x", "RZPct_x", "TO%_x", "Sc%_y"]
+            features = ["Sc%_x", "Tot_1stD/G", "Y/P_x", "RZPct_x", "TO%_x", "Sc%_y"]  # Python feature set
+            # features = ["Y/P_x", "Sc%_x", "Tot_1stD/G", "Avg_RZTD"]  # Databricks feature set
             X = df[features]
             y = df["PPG"]
 
@@ -135,8 +137,6 @@ def run_predictions():
             )
 
         if ENABLE_WEATHER_ADJUSTMENTS:
-            # forecast = stad.get_weather_forecast_for_stadium(home_team, game_date)  # For debugging
-            # print(f"Forecast for {home_team} on {game_date}:\n{forecast}")  # For debugging
             wt_adj = get_weather_adjustment(
                 stad, home_team, game_date, weather_tiers
             )

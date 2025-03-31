@@ -10,9 +10,9 @@ services:
       - GAME_DATE=2025-02-09
       - HOME_TEAM=Philadelphia Eagles
       - AWAY_TEAM=Kansas City Chiefs
-      - VERBOSE_ADJUSTMENTS=True
+      - VERBOSE_ADJUSTMENTS=False
       - ENABLE_INJURY_ADJUSTMENTS=False
-      - ENABLE_WEATHER_ADJUSTMENTS=True
+      - ENABLE_WEATHER_ADJUSTMENTS=False
     volumes:
       - ./nfl_predictor/data:/app/data
     command: python nfl_predictor/nfl_ai_scores.py
