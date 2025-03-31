@@ -24,7 +24,7 @@ install:
 
 # Run the predictor script locally
 run:
-	$(ACTIVATE) && $(PYTHON) $(SCRIPT)
+	bash -c "$(ACTIVATE) && $(PYTHON) $(SCRIPT)"
 
 # Run Docker container
 docker-up:
