@@ -4,7 +4,7 @@ import logging
 import boto3
 import pandas as pd
 from urllib.parse import unquote_plus
-from nfl_ai_scores import run_predictions
+from .nfl_ai_scores import run_predictions
 
 # Setup logging
 logger = logging.getLogger()
