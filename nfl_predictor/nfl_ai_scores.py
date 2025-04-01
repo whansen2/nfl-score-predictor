@@ -24,7 +24,7 @@ logging.basicConfig(level=getattr(logging, log_level, logging.INFO))
 logger = logging.getLogger(__name__)
 
 # Determine working path based on environment
-path = "/tmp" if running_in_lambda() else os.path.join(os.path.dirname(__file__), "data")
+path = "/var/task/nfl_predictor/data" if running_in_lambda() else os.path.join(os.path.dirname(__file__), "data")
 
 # Control optional logic via .env
 VERBOSE_ADJUSTMENTS = os.getenv("VERBOSE_ADJUSTMENTS", "False") == "True"
