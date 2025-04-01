@@ -17,8 +17,8 @@ WORKDIR /var/task
 COPY nfl_predictor/requirements.txt .
 RUN pip3 install --upgrade pip && pip3 install --no-cache-dir -r requirements.txt
 
-# Copy code
-COPY nfl_predictor/ .
+# Copy code, including all required files, into the container
+COPY . /var/task/
 
 # Set Lambda handler
 CMD ["lambda_handler.handler"]
