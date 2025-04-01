@@ -21,4 +21,4 @@ RUN pip3 install --upgrade pip && pip3 install --no-cache-dir -r requirements.tx
 COPY . /var/task/
 
 # Set Lambda handler
-CMD ["lambda_handler.handler"]
+CMD ["nfl_predictor.lambda_handler.handler"]
