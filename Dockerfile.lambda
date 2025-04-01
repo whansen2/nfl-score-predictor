@@ -15,7 +15,7 @@ WORKDIR /var/task
 
 # Copy and install dependencies
 COPY nfl_predictor/requirements.txt .
-RUN pip3 install --no-cache-dir -r requirements.txt
+RUN pip3 install --upgrade pip && pip3 install --no-cache-dir -r requirements.txt
 
 # Copy code
 COPY nfl_predictor/ .

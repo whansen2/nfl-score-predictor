@@ -16,4 +16,4 @@ services:
       - ENABLE_WEATHER_ADJUSTMENTS=False
     volumes:
       - ./nfl_predictor/data:/app/data
-    command: python nfl_predictor/nfl_ai_scores.py
+    command: python nfl_ai_scores.py
