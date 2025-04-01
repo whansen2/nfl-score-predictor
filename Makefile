@@ -24,7 +24,7 @@ install:
 
 # Run the predictor script locally
 run:
-	bash -c "$(ACTIVATE) && $(PYTHON) $(SCRIPT)"
+	PYTHONPATH=. bash -c "source nfl_env/bin/activate && python nfl_predictor/nfl_ai_scores.py"
 
 # Run Docker container
 docker-up:

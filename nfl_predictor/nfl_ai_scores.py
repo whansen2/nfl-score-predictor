@@ -9,13 +9,13 @@ import yaml
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, r2_score
-from utils.helpers import (
+from nfl_predictor.utils.helpers import (
     running_in_lambda,
     get_training_week,
     get_injuries_adjustment,
-    get_weather_adjustment
+    get_weather_adjustment,
 )
-from utils.env_setup import configure_nfl_stadiums_resource_dir
+from nfl_predictor.utils.env_setup import configure_nfl_stadiums_resource_dir
 from nfl_stadiums import NFLStadiums
 
 # Setup logging
