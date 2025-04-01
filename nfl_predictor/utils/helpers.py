@@ -14,25 +14,49 @@ def get_training_week(week_value):
         return 18  # For postseason (e.g., "WildCard", "SuperBowl", etc.)
 
 # Injury adjustment helper
-def get_injuries_adjustment(file_path, home_team, away_team, team_abbreviations, qb_tiers, team_qbs):
-    df_injuries = pd.read_csv(file_path)
-    df_injuries = df_injuries.dropna(subset=["Status"])
+def get_injuries_adjustment(injuries_df, home_team, away_team, team_abbreviations, qb_tiers, team_qbs):
+    """
+    Given a preloaded injuries DataFrame, returns injury-based QB adjustments
+    for both home and away teams.
+    
+    Affects score if a QB is injured and their tier has an associated weight.
+    """
+    if not isinstance(injuries_df, pd.DataFrame) or injuries_df.empty:
+        return 0, 0
+
+    # Drop rows without a listed injury status (optional but keeps data clean)
+    injuries_df = injuries_df.dropna(subset=["Status", "Pos"])
+
+    # Only keep relevant fields
     relevant_columns = ["Player", "Pos", "Status", "Injury Comment"]
     team_injuries = {
         team: group[relevant_columns].to_dict(orient="records")
-        for team, group in df_injuries.groupby("Tm")
+        for team, group in injuries_df.groupby("Tm")
     }
 
     def qb_adjust(team):
         abbr = team_abbreviations.get(team)
-        if abbr and any(p["Pos"] == "QB" for p in team_injuries.get(abbr, [])):
-            return qb_tiers.get(team_qbs.get(team, [None, "average"])[1], 0)
+        if not abbr:
+            return 0
+
+        team_qb_list = team_injuries.get(abbr, [])
+        for player in team_qb_list:
+            if player["Pos"] == "QB" and player.get("Status", "").lower() in ["questionable", "doubtful", "out"]:
+                qb_name, tier = team_qbs.get(team, [None, "average"])
+                return qb_tiers.get(tier, 0)
         return 0
 
     return qb_adjust(home_team), qb_adjust(away_team)
 
 # Weather adjustment helper
 def get_weather_adjustment(stad, team_name, game_date, weather_tiers):
+    """
+    Calculates weather-based score adjustment for a given team and game date.
+
+    Weather adjustments are skipped for indoor or retractable-roof stadiums.
+    For outdoor games, temperature, wind, rain, and snow are evaluated based on 
+    hourly forecast data near presumed kickoff time.
+    """
     try:
         # Skip if indoor or retractable stadium
         stadium_info = stad.get_stadium_by_team(team_name)

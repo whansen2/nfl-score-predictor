@@ -9,14 +9,46 @@ import yaml
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, r2_score
-from utils.helpers import (running_in_lambda, get_training_week, get_injuries_adjustment, get_weather_adjustment)
-from utils.env_setup import configure_nfl_stadiums_resource_dir
+from nfl_predictor.utils.helpers import (
+    running_in_lambda,
+    get_training_week,
+    get_injuries_adjustment,
+    get_weather_adjustment,
+)
+from nfl_predictor.utils.env_setup import configure_nfl_stadiums_resource_dir
 from nfl_stadiums import NFLStadiums
 
 # Setup logging
 log_level = os.getenv("LOG_LEVEL", "INFO").upper()
 logging.basicConfig(level=getattr(logging, log_level, logging.INFO))
 logger = logging.getLogger(__name__)
+
+# Determine working path based on environment
+path = "/var/task/nfl_predictor/data" if running_in_lambda() else os.path.join(os.path.dirname(__file__), "data")
+
+# Control optional logic via .env
+VERBOSE_ADJUSTMENTS = os.getenv("VERBOSE_ADJUSTMENTS", "False") == "True"
+ENABLE_INJURY_ADJUSTMENTS = os.getenv("ENABLE_INJURY_ADJUSTMENTS", "False") == "True"
+ENABLE_WEATHER_ADJUSTMENTS = os.getenv("ENABLE_WEATHER_ADJUSTMENTS", "False") == "True"
+
+# Load .env values for defaults if matchup CSV isn't found
+WEEK_NUMBER = int(os.getenv("WEEK_NUMBER", 18))
+YEAR_ABBR = int(os.getenv("YEAR_ABBR", 24))
+GAME_DATE = os.getenv("GAME_DATE", "2025-02-09")
+HOME_TEAM = os.getenv("HOME_TEAM", "Philadelphia Eagles")
+AWAY_TEAM = os.getenv("AWAY_TEAM", "Kansas City Chiefs")
+
+# Base filenames
+INPUT_FILE_NAME = "upcoming_matchups_test.csv"
+INJURIES_FILE_NAME = "nfl_injuries_test.csv"
+OUTPUT_FILE_NAME = "predicted_matchups_test.csv"
+PROPERTIES_FILE_NAME = "nfl_properties_test.yaml"
+
+# Dynamic file templates for stats
+CONVERSIONS_FILE = "nfl_conversions_thru_week_{week}_{year}.csv"
+OFFENSE_FILE = "nfl_team_offense_thru_week_{week}_{year}.csv"
+DEFENSE_FILE = "nfl_team_defense_thru_week_{week}_{year}.csv"
+CONV_AGAINST_FILE = "nfl_conversions_against_thru_week_{week}_{year}.csv"
 
 # Monkey-patch and get resource dir for nfl_stadiums
 resource_dir = configure_nfl_stadiums_resource_dir()
@@ -26,31 +58,10 @@ stad = NFLStadiums()
 if running_in_lambda():
     logger.info(f"Using NFL stadium resource dir: {stad._resources_dir}")
 
-# Path to local data files
-path = os.path.join(os.path.dirname(__file__), "data")
-
-# Control optional logic via .env
-VERBOSE_ADJUSTMENTS = os.getenv("VERBOSE_ADJUSTMENTS", "False") == "True"
-ENABLE_INJURY_ADJUSTMENTS = os.getenv("ENABLE_INJURY_ADJUSTMENTS", "False") == "True"
-ENABLE_WEATHER_ADJUSTMENTS = os.getenv("ENABLE_WEATHER_ADJUSTMENTS", "False") == "True"
-
-# Main logic
-def run_predictions(
-    week_number=None,
-    year_abbr=None,
-    game_date=None,
-    home_team=None,
-    away_team=None
-):
-    # Load .env values if not passed in
-    week_number = int(week_number or os.getenv("WEEK_NUMBER", 18))
-    year_abbr = int(year_abbr or os.getenv("YEAR_ABBR", 24))
-    game_date = game_date or os.getenv("GAME_DATE", "2025-02-09")
-    home_team = home_team or os.getenv("HOME_TEAM", "Philadelphia Eagles")
-    away_team = away_team or os.getenv("AWAY_TEAM", "Kansas City Chiefs")
-
+# Main prediction logic
+def run_predictions():
     # Load team, QB, and weather properties
-    with open(os.path.join(path, "nfl_properties_test.yaml"), "r") as file:
+    with open(os.path.join(path, PROPERTIES_FILE_NAME), "r") as file:
         nfl_properties = yaml.safe_load(file)
 
     team_abbreviations = nfl_properties["team_abbreviations"]
@@ -58,62 +69,77 @@ def run_predictions(
     team_qbs = nfl_properties["team_qbs"]
     weather_tiers = nfl_properties["weather_tiers"]
 
-    # Injury data path
-    inj_file = os.path.join(path, "nfl_injuries_test.csv")
-    results = []
+    # Load injuries data (if enabled)
+    injuries_df = None
+    if ENABLE_INJURY_ADJUSTMENTS:
+        try:
+            injuries_df = pd.read_csv(os.path.join(path, INJURIES_FILE_NAME))
+        except FileNotFoundError:
+            logger.warning("Injury adjustments enabled but injuries file not found.")
 
     # Matchups CSV path
-    matchups_path = os.path.join(path, "upcoming_matchups_test.csv")
+    matchups_path = os.path.join(path, INPUT_FILE_NAME)
 
     # Load upcoming matchups from CSV if present
     if os.path.exists(matchups_path):
         df_matchups = pd.read_csv(matchups_path)
         logger.info(f"Loaded {len(df_matchups)} upcoming matchups from CSV")
     else:
-        # Fallback to single matchup from env/default
+        # Fallback to single matchup from .env
         df_matchups = pd.DataFrame([{
-            "Week": week_number,
-            "Home Team": home_team,
-            "Away Team": away_team,
-            "Game Date": game_date
+            "Week": WEEK_NUMBER,
+            "Home Team": HOME_TEAM,
+            "Away Team": AWAY_TEAM,
+            "Game Date": GAME_DATE
         }])
         logger.warning("No matchup CSV found — using single matchup from .env or defaults")
 
-    printed_weeks = set()  # Track weeks already printed to avoid duplicate model metrics
-    week_model_cache = {}  # Cache trained models per week to avoid retraining
+    printed_weeks = set()       # Track weeks already printed to avoid duplicate model metrics
+    week_model_cache = {}       # Cache trained models per week to avoid retraining
+    results = []                # Store final output rows
 
     for _, row in df_matchups.iterrows():
         week = row["Week"]
+        home_team = row["Home Team"]
+        away_team = row["Away Team"]
+        game_date = row["Game Date"]
         training_week = get_training_week(week)  # Determine training week for each matchup
 
         # Train model only once per week and cache it
         if week not in week_model_cache:
             try:
-                df_conversions = pd.read_csv(f"{path}/nfl_conversions_thru_week_{training_week}_{year_abbr}.csv")
-                df_offense = pd.read_csv(f"{path}/nfl_team_offense_thru_week_{training_week}_{year_abbr}.csv")
-                df_conversions_against = pd.read_csv(f"{path}/nfl_conversions_against_thru_week_{week_number}_{year_abbr}.csv")
-                df_defense = pd.read_csv(f"{path}/nfl_team_defense_thru_week_{week_number}_{year_abbr}.csv")
+                df_conversions = pd.read_csv(os.path.join(path, CONVERSIONS_FILE.format(week=training_week, year=YEAR_ABBR)))
+                df_offense = pd.read_csv(os.path.join(path, OFFENSE_FILE.format(week=training_week, year=YEAR_ABBR)))
+                df_conversions_against = pd.read_csv(os.path.join(path, CONV_AGAINST_FILE.format(week=WEEK_NUMBER, year=YEAR_ABBR)))
+                df_defense = pd.read_csv(os.path.join(path, DEFENSE_FILE.format(week=WEEK_NUMBER, year=YEAR_ABBR)))
             except FileNotFoundError as e:
-                logger.warning(f"Missing data file for week {training_week} or {week_number}: {e}")
-                return {"error": f"Missing data file for week {training_week} or {week_number}: {str(e)}"}
+                logger.warning(f"Missing data file for week {training_week} or {WEEK_NUMBER}: {e}")
+                continue
 
+            # Merge team stat datasets
             df = pd.merge(df_offense, df_conversions, on="Tm")
             df = pd.merge(df, df_conversions_against, on="Tm")
             df = pd.merge(df, df_defense, on="Tm")
+
+            # Create engineered features
             df["PPG"] = df["PF"] / df["G"]
             df["Tot_1stD/G"] = df["Tot_1stD"] / df["G"]
             df["Avg_RZTD"] = df["RZTD_x"] / df["G"]  # this field is part of the Databricks feature set
 
-            features = ["Sc%_x", "Tot_1stD/G", "Y/P_x", "RZPct_x", "TO%_x", "Sc%_y"]  # Python feature set
-            # features = ["Y/P_x", "Sc%_x", "Tot_1stD/G", "Avg_RZTD"]  # Databricks feature set
+            # Python feature set
+            features = ["Sc%_x", "Tot_1stD/G", "Y/P_x", "RZPct_x", "TO%_x", "Sc%_y"]
+
+            # Databricks feature set (alternate)
+            # features = ["Y/P_x", "Sc%_x", "Tot_1stD/G", "Avg_RZTD"]
+
+            # Train/test split and model fitting
             X = df[features]
             y = df["PPG"]
-
             X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42)
             model = LinearRegression()
             model.fit(X_train, y_train)
 
-            # Print the results only for the first match of the week
+            # Log model performance once per week
             if week not in printed_weeks:
                 y_pred = model.predict(X_test)
                 logger.info(f"Training for week {week} data")
@@ -121,36 +147,33 @@ def run_predictions(
                 logger.info("R² Score: %.3f", r2_score(y_test, y_pred))
                 printed_weeks.add(week)
 
+            # Cache trained model
             week_model_cache[week] = (model, df, features)
         else:
             model, df, features = week_model_cache[week]
 
-        home_team = row["Home Team"]
-        away_team = row["Away Team"]
-        game_date = row["Game Date"]
-
+        # Verify teams are in dataset
         if home_team not in df["Tm"].values or away_team not in df["Tm"].values:
             logger.warning(f"Skipping invalid matchup: {home_team} vs {away_team}")
-            return {"error": f"Skipping invalid matchup: {home_team} vs {away_team}"}
+            continue
 
+        # Extract features for prediction
         ht_stats = df.loc[df["Tm"] == home_team, features]
         at_stats = df.loc[df["Tm"] == away_team, features]
-
-        # Verify that both teams have full stats available before predicting
         if ht_stats.empty or at_stats.empty:
             logger.warning(f"Missing stats for {home_team} or {away_team}")
-            return {"error": f"Missing stats for {home_team} or {away_team}"}
+            continue
 
-        ht_pred = round(model.predict(ht_stats)[0]) + 1  # Predict home team score and apply home-field advantage
+        # Predict scores (home team gets +1 bonus)
+        ht_pred = round(model.predict(ht_stats)[0]) + 1
         at_pred = round(model.predict(at_stats)[0])
 
-        # Apply adjustments if enabled
-        ht_adj, at_adj = (0, 0)
-        wt_adj = 0
+        # Apply adjustments
+        ht_adj, at_adj, wt_adj = 0, 0, 0
 
-        if ENABLE_INJURY_ADJUSTMENTS:
+        if ENABLE_INJURY_ADJUSTMENTS and injuries_df is not None:
             ht_adj, at_adj = get_injuries_adjustment(
-                inj_file, home_team, away_team, team_abbreviations, qb_tiers, team_qbs
+                injuries_df, home_team, away_team, team_abbreviations, qb_tiers, team_qbs
             )
 
         if ENABLE_WEATHER_ADJUSTMENTS:
@@ -159,13 +182,12 @@ def run_predictions(
             )
 
         if VERBOSE_ADJUSTMENTS:
-            logger.info(f"Adjustments for {away_team} @ {home_team} on {game_date}")
-            logger.info(f"Injury Adjustment - {home_team}: {ht_adj}, {away_team}: {at_adj}")
-            logger.info(f"Weather Adjustment (applied to both): {wt_adj}\n")
+            logger.info(f"Adjustments - Injury: {ht_adj}/{at_adj}, Weather: {wt_adj}")
 
         ht_pred += ht_adj + wt_adj
         at_pred += at_adj + wt_adj
 
+        # Determine outcome and save result
         diff = ht_pred - at_pred
         winner = home_team if diff > 0 else away_team
         result = "Tie" if diff == 0 else f"{winner} win by {abs(diff)}"
@@ -174,20 +196,21 @@ def run_predictions(
         results.append([week, home_team, ht_pred, away_team, at_pred, result, total])
 
     if results:
-        df_results = pd.DataFrame(results, columns=["Week", "Home Team", "Home Score", "Away Team", "Away Score", "Result", "Over/Under"])
+        df_results = pd.DataFrame(results, columns=[
+            "Week", "Home Team", "Home Score", "Away Team", "Away Score", "Result", "Over/Under"
+        ])
 
-        # Only write to CSV if not in Lambda
+        # Write CSV locally or return to Lambda
         if not running_in_lambda():
-            output_path = os.path.join(path, "predicted_matchups_test.csv")
+            output_path = os.path.join(path, OUTPUT_FILE_NAME)
             df_results.to_csv(output_path, index=False)
-            logger.info(f"Matchups saved to {output_path}")
+            logger.info(f"Saved predicted results locally to {output_path}")
         else:
-            logger.info("Skipping CSV write — running in AWS Lambda")
-            logger.info("\nPredicted Matchups Results:\n%s", df_results.to_string(index=False))
-            # Return structured output for API use
-            return df_results.iloc[0].to_dict()
+            logger.info("Prediction Results:\n%s", df_results.to_string(index=False))
+            return df_results
 
-    return {"error": "No predictions were made"}
+    # No predictions made
+    return pd.DataFrame()
 
 if __name__ == "__main__":
     run_predictions()

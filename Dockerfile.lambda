@@ -1,24 +1,24 @@
 # Use AWS-provided Python 3.11 base image for Lambda (x86_64)
 FROM public.ecr.aws/lambda/python:3.11
 
-# Set env var so it's respected by nfl_stadiums BEFORE Python loads
+# Respect nfl_stadiums resource location
 ENV NFL_STADIUM_RESOURCES=/tmp/nfl_stadium_resources
 
-# Set other env vars
+# App-specific environment variables (optional defaults, can override in Lambda console)
 ENV LOG_LEVEL=Info
 ENV VERBOSE_ADJUSTMENTS=True
 ENV ENABLE_INJURY_ADJUSTMENTS=False
 ENV ENABLE_WEATHER_ADJUSTMENTS=True
 
-# Set working directory
+# Set the working directory (Lambda expects everything under /var/task)
 WORKDIR /var/task
 
-# Copy and install dependencies
+# Install dependencies
 COPY nfl_predictor/requirements.txt .
-RUN pip3 install --no-cache-dir -r requirements.txt
+RUN pip3 install --upgrade pip && pip3 install --no-cache-dir -r requirements.txt
 
-# Copy code
-COPY nfl_predictor/ .
+# Copy all code including data, utils, and handler
+COPY nfl_predictor /var/task/nfl_predictor
 
-# Set Lambda handler
-CMD ["lambda_handler.handler"]
+# Lambda entry point
+CMD ["nfl_predictor.lambda_handler.handler"]
