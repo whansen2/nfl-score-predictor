@@ -26,6 +26,7 @@ def test_auto_generated_injury_adjustments(tmp_path, team_name, qb_name, tier_la
     # Pick any opponent that’s not the team being tested
     opponent = next(t for t in team_qbs if t != team_name)
 
+    # Create minimal DataFrame simulating injury report for the test QB
     df = pd.DataFrame([{
         "Player": qb_name,
         "Tm": team_abbreviations[team_name],
@@ -36,13 +37,16 @@ def test_auto_generated_injury_adjustments(tmp_path, team_name, qb_name, tier_la
     injury_file = tmp_path / "injuries.csv"
     df.to_csv(injury_file, index=False)
 
+    # Load the test CSV into a DataFrame
+    df_loaded = pd.read_csv(injury_file)
+
     test_team_qbs = {
         team_name: [qb_name, tier_label],
         opponent: team_qbs[opponent]
     }
 
     adjustment_home, adjustment_away = get_injuries_adjustment(
-        str(injury_file),
+        df_loaded,
         home_team=team_name,
         away_team=opponent,
         team_abbreviations=team_abbreviations,
@@ -50,6 +54,7 @@ def test_auto_generated_injury_adjustments(tmp_path, team_name, qb_name, tier_la
         team_qbs=test_team_qbs
     )
 
+    # Handle opponent logic gracefully
     if qb_name == team_qbs[opponent][0]:
         expected_away = qb_tiers[team_qbs[opponent][1]]
     else:

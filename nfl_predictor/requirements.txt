@@ -1,12 +1,12 @@
 # Core dependencies
 pandas==2.2.1
 pyyaml==6.0.1
-pytest==8.1.1
 scikit-learn==1.4.1.post1
 
-# For environment variable management in local development
+# Local development and testing
+pytest==8.1.1
 python-dotenv==1.0.0
 
-# NFL stadium/weather data from nfl-stadiums, powered by Open-Meteo
+# NFL stadium/weather data
 nfl-stadiums==2.0.2
 lukhed-basic-utils==1.4.7
