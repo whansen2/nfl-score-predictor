@@ -1,0 +1,69 @@
+name: Deploy Lambda Container
+
+on:
+  workflow_run:
+    workflows: ["Pre-Deploy Checks"]
+    types:
+      - completed
+
+jobs:
+  deploy:
+    name: Build and Deploy Lambda Image
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    env:
+      IMAGE_NAME: nfl-score-predictor
+      AWS_REGION: us-east-1
+      FUNCTION_NAME: nfl_score_predictor
+      AWS_ACCOUNT_ID: 539612316899
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Log in to Amazon ECR
+        run: |
+          aws ecr get-login-password --region $AWS_REGION | \
+          docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+
+      - name: Disable BuildKit + Build Docker image
+        run: |
+          export DOCKER_BUILDKIT=0
+          IMAGE_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_NAME:latest
+          docker build --no-cache \
+            --platform linux/amd64 \
+            -f Dockerfile.lambda \
+            -t $IMAGE_URI .
+          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+
+      - name: Confirm Image Architecture
+        run: docker inspect $IMAGE_URI | grep Architecture
+
+      - name: Push Image to ECR
+        run: docker push $IMAGE_URI
+
+      - name: Deploy to Lambda
+        run: |
+          aws lambda update-function-code \
+            --function-name $FUNCTION_NAME \
+            --image-uri $IMAGE_URI \
+            --region $AWS_REGION
+
+      - name: Upload test CSV to S3 if it exists
+        run: |
+          if [ -f "nfl_predictor/data/upcoming_matchups_test.csv" ]; then
+            echo "CSV found, uploading to S3..."
+            aws s3 cp nfl_predictor/data/upcoming_matchups_test.csv \
+              s3://nfl-score-predictor-test-input/upcoming_matchups_test.csv \
+              --region $AWS_REGION
+          else
+            echo "No test CSV found, skipping upload."
+          fi
