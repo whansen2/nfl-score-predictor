@@ -57,6 +57,9 @@ jobs:
             --image-uri $IMAGE_URI \
             --region $AWS_REGION
 
+      - name: Wait for Lambda to be ready
+        run: sleep 15
+
       - name: Upload test CSV to S3 if it exists
         run: |
           if [ -f "nfl_predictor/data/upcoming_matchups_test.csv" ]; then
