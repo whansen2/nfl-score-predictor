@@ -30,4 +30,4 @@ venv/
 nfl_stadium_resources/
 
 # Output files (keep raw input CSVs, ignore generated output)
-nfl_predictor/data/predicted_matchups_test.csv
+nfl_predictor/data/predicted_matchups_*
