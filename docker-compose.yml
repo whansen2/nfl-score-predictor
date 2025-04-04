@@ -14,6 +14,7 @@ services:
       - VERBOSE_ADJUSTMENTS=False
       - ENABLE_INJURY_ADJUSTMENTS=False
       - ENABLE_WEATHER_ADJUSTMENTS=False
+      - ENABLE_UPSETS_AGENT=True
     volumes:
       - ./nfl_predictor/data:/app/nfl_predictor/data
     command: python nfl_predictor/nfl_ai_scores.py
