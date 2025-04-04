@@ -9,6 +9,18 @@ import yaml
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, r2_score
+from nfl_predictor.agents.upsets_ai_agent import run_upsets_agent
+from nfl_predictor.utils.constants import (
+    INPUT_FILE_NAME,
+    INJURIES_FILE_NAME,
+    PROPERTIES_FILE_NAME,
+    OUTPUT_FILE_NAME,
+    FLAGGED_OUTPUT_FILE_NAME,
+    CONVERSIONS_FILE,
+    OFFENSE_FILE,
+    DEFENSE_FILE,
+    CONV_AGAINST_FILE
+)
 from nfl_predictor.utils.helpers import (
     running_in_lambda,
     get_training_week,
@@ -27,9 +39,10 @@ logger = logging.getLogger(__name__)
 path = "/var/task/nfl_predictor/data" if running_in_lambda() else os.path.join(os.path.dirname(__file__), "data")
 
 # Control optional logic via .env
-VERBOSE_ADJUSTMENTS = os.getenv("VERBOSE_ADJUSTMENTS", "False") == "True"
 ENABLE_INJURY_ADJUSTMENTS = os.getenv("ENABLE_INJURY_ADJUSTMENTS", "False") == "True"
 ENABLE_WEATHER_ADJUSTMENTS = os.getenv("ENABLE_WEATHER_ADJUSTMENTS", "False") == "True"
+VERBOSE_ADJUSTMENTS = os.getenv("VERBOSE_ADJUSTMENTS", "False") == "True"
+ENABLE_UPSETS_AGENT = os.getenv("ENABLE_UPSETS_AGENT", "False") == "True"
 
 # Load .env values for defaults if matchup CSV isn't found
 WEEK_NUMBER = int(os.getenv("WEEK_NUMBER", 18))
@@ -37,18 +50,6 @@ YEAR_ABBR = int(os.getenv("YEAR_ABBR", 24))
 GAME_DATE = os.getenv("GAME_DATE", "2025-02-09")
 HOME_TEAM = os.getenv("HOME_TEAM", "Philadelphia Eagles")
 AWAY_TEAM = os.getenv("AWAY_TEAM", "Kansas City Chiefs")
-
-# Base filenames
-INPUT_FILE_NAME = "upcoming_matchups_test.csv"
-INJURIES_FILE_NAME = "nfl_injuries_test.csv"
-OUTPUT_FILE_NAME = "predicted_matchups_test.csv"
-PROPERTIES_FILE_NAME = "nfl_properties_test.yaml"
-
-# Dynamic file templates for stats
-CONVERSIONS_FILE = "nfl_conversions_thru_week_{week}_{year}.csv"
-OFFENSE_FILE = "nfl_team_offense_thru_week_{week}_{year}.csv"
-DEFENSE_FILE = "nfl_team_defense_thru_week_{week}_{year}.csv"
-CONV_AGAINST_FILE = "nfl_conversions_against_thru_week_{week}_{year}.csv"
 
 # Monkey-patch and get resource dir for nfl_stadiums
 resource_dir = configure_nfl_stadiums_resource_dir()
@@ -200,14 +201,25 @@ def run_predictions():
             "Week", "Home Team", "Home Score", "Away Team", "Away Score", "Result", "Over/Under"
         ])
 
-        # Write CSV locally or return to Lambda
+        # Define outputs
+        output_files = [(OUTPUT_FILE_NAME, df_results)]
+
+        # Optionally run Upsets Agent and add to outputs
+        if ENABLE_UPSETS_AGENT:
+            df_flagged = run_upsets_agent(df_results.copy(), path)
+            output_files.append((FLAGGED_OUTPUT_FILE_NAME, df_flagged))
+
+        # Handle writing based on environment
         if not running_in_lambda():
-            output_path = os.path.join(path, OUTPUT_FILE_NAME)
-            df_results.to_csv(output_path, index=False)
-            logger.info(f"Saved predicted results locally to {output_path}")
+            for filename, df_out in output_files:
+                output_path = os.path.join(path, filename)
+                df_out.to_csv(output_path, index=False)
+                logger.info(f"Saved output to {output_path}")
         else:
-            logger.info("Prediction Results:\n%s", df_results.to_string(index=False))
-            return df_results
+            for filename, df_out in output_files:
+                logger.info(f"{filename} Results:\n{df_out.to_string(index=False)}")
+
+        return df_flagged if ENABLE_UPSETS_AGENT else df_results
 
     # No predictions made
     return pd.DataFrame()

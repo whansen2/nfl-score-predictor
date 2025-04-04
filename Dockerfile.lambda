@@ -6,9 +6,10 @@ ENV NFL_STADIUM_RESOURCES=/tmp/nfl_stadium_resources
 
 # App-specific environment variables (optional defaults, can override in Lambda console)
 ENV LOG_LEVEL=Info
-ENV VERBOSE_ADJUSTMENTS=True
+ENV VERBOSE_ADJUSTMENTS=False
 ENV ENABLE_INJURY_ADJUSTMENTS=False
-ENV ENABLE_WEATHER_ADJUSTMENTS=True
+ENV ENABLE_WEATHER_ADJUSTMENTS=False
+ENV ENABLE_UPSETS_AGENT=True
 
 # Set the working directory (Lambda expects everything under /var/task)
 WORKDIR /var/task
