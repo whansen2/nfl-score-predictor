@@ -216,10 +216,10 @@ def run_predictions():
                 df_out.to_csv(output_path, index=False)
                 logger.info(f"Saved output to {output_path}")
         else:
-            for label, df_out in output_files:
-                logger.info(f"{label} Results:\n{df_out.to_string(index=False)}")
+            for filename, df_out in output_files:
+                logger.info(f"{filename} Results:\n{df_out.to_string(index=False)}")
 
-        return df_results
+        return df_flagged if ENABLE_UPSETS_AGENT else df_results
 
     # No predictions made
     return pd.DataFrame()
