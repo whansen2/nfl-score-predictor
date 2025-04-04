@@ -206,7 +206,7 @@ def run_predictions():
 
         # Optionally run Upsets Agent and add to outputs
         if ENABLE_UPSETS_AGENT:
-            df_flagged = run_upsets_agent(df_results.copy(), path)
+            df_flagged = run_upsets_agent(df_results, path)
             output_files.append((FLAGGED_OUTPUT_FILE_NAME, df_flagged))
 
         # Handle writing based on environment
@@ -216,8 +216,8 @@ def run_predictions():
                 df_out.to_csv(output_path, index=False)
                 logger.info(f"Saved output to {output_path}")
         else:
-            for filename, df_out in output_files:
-                logger.info(f"{filename} Results:\n{df_out.to_string(index=False)}")
+            for filename, _ in output_files:
+                logger.info(f"{filename} generated successfully in Lambda environment.")
 
         return df_flagged if ENABLE_UPSETS_AGENT else df_results
 
