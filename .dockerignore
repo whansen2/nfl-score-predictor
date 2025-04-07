@@ -21,10 +21,15 @@ venv/
 
 # Logs & output
 *.log
-nfl_predictor/data/predicted_matchups_test.csv
+nfl_predictor/data/predicted_matchups_*
 
 # Tests (not needed in Lambda image)
 tests/
 
 # Mac OS
 .DS_Store
+
+# === LLM / Blitz additions ===
+llm/models/
+*.gguf
+llm/*.log
