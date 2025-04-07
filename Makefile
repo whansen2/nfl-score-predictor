@@ -50,11 +50,11 @@ blitz-chat:
 blitz-predict:
 	$(MAKE) -C llm predict
 
-blitz-recap:
-	$(MAKE) -C llm recap
-
 blitz-flag:
 	$(MAKE) -C llm flag
+
+blitz-recap:
+	$(MAKE) -C llm recap
 
 blitz-run:
 	$(MAKE) -C llm run
@@ -66,8 +66,8 @@ blitz-help:
 	@echo "----------------------------------------"
 	@echo "make blitz-chat      💬  Chat with Blitz about predictions"
 	@echo "make blitz-predict   🧮  Run Blitz's copy of predictions"
-	@echo "make blitz-recap     📰  Get a weekly game recap"
 	@echo "make blitz-flag      🚨  See close calls or upsets"
+	@echo "make blitz-recap     📰  Get a weekly game recap"
 	@echo "make blitz-run       🔁  Flag upsets and recap the week"
 	@echo ""
 
@@ -86,4 +86,4 @@ all:
 	@echo "✅ All done!"
 	@echo "👉 Next steps: try 'make blitz-help' or 'make blitz-chat'"
 
-.PHONY: venv install run docker-up docker-down test clean blitz-chat blitz-predict blitz-recap blitz-flag blitz-run blitz-help all
+.PHONY: venv install run docker-up docker-down test clean blitz-chat blitz-predict blitz-flag blitz-recap blitz-run blitz-help all
