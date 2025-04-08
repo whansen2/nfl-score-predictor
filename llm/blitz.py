@@ -52,18 +52,58 @@ def ask_blitz(user_prompt: str) -> str:
         return result["choices"][0]["text"].strip()
     except Exception as e:
         return f"[Error] LLM failed: {str(e)}"
+    
+# === Helper function for chat ===
+def load_prediction_context(limit=25):
+    path = Path(__file__).parent.parent / "nfl_predictor" / "data" / OUTPUT_FILE_NAME
+    if not path.exists():
+        return []
+
+    df = pd.read_csv(path)
+    df["summary"] = df.apply(
+        lambda row: f"Week {row['Week']}: {row['Away Team']} ({row['Away Score']}) at {row['Home Team']} ({row['Home Score']}) — {row['Result']} [O/U: {row['Over/Under']}]",
+        axis=1
+    )
+    return df["summary"].tolist()[-limit:]
 
 # === CLI Commands ===
 @app.command()
 def chat():
     """Interactive chat with Blitz about matchups, teams, or stats."""
     typer.secho("💬 Chat with Blitz! Type 'exit' to quit.\n", fg=typer.colors.CYAN)
+
+    # Load context from prediction output
+    context_lines = load_prediction_context(limit=25)
+    prediction_context = "\n".join(context_lines)
+
+    # Initial system prompt + recent data
+    system_intro = (
+        "You are Blitz, a smart and approachable NFL analyst. "
+        "You are chatting with a fan using recent predicted NFL matchups. "
+        "Respond naturally, casually, and with sharp insight. Be concise. "
+        "Use the data below if relevant, but don't repeat it unless asked.\n"
+        "Recent predicted matchups:\n"
+        f"{prediction_context}"
+    )
+
+    context = f"<|user|>\n{system_intro}\n<|endoftext|>\n"
+
     while True:
         try:
             user_input = typer.prompt("You")
             if user_input.strip().lower() in {"exit", "quit"}:
                 break
-            typer.echo(ask_blitz(user_input))
+
+            full_prompt = f"{context}<|user|>\n{user_input.strip()}\n<|endoftext|>\n<|assistant|>"
+            response = LLM(
+                prompt=full_prompt,
+                max_tokens=256,
+                temperature=0.6,
+                stop=["<|user|>", "<|endoftext|>"]
+            )["choices"][0]["text"].strip()
+
+            typer.echo(response)
+
         except KeyboardInterrupt:
             typer.echo("\n👋 Exiting Blitz chat.")
             break
