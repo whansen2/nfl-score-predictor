@@ -1,6 +1,6 @@
 # Blitz – Local NFL LLM Agent
 
-This folder contains Blitz, a lightweight, local AI assistant built to work alongside your NFL score predictor. It uses the Mistral-7B-Instruct-v0.2 model to chat, predict, flag — all offline.
+This folder contains Blitz, a lightweight, local AI assistant built to work alongside your NFL score predictor. It uses the StableLM-Zephyr-3B model to chat, predict, flag — all offline.
 
 ---
 
@@ -12,7 +12,7 @@ llm/
 ├── requirements.txt         # Only LLM-related dependencies
 ├── Makefile                 # Helper commands (make chat, make predict, etc.)
 ├── models/                  # Place GGUF model here (not tracked in Git)
-│   └── mistral-7b-instruct-v0.2.Q4_K_M.gguf
+│   └── stablelm-zephyr-3b.Q4_K_M.gguf
 ```
 
 ---
@@ -30,11 +30,9 @@ make install
 ```
 3. Download the Mistral model:
 
-    - Visit: https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF
-    - Download: mistral-7b-instruct-v0.2.Q4_K_M.gguf
+    - Visit: https://huggingface.co/TheBloke/stablelm-zephyr-3b-GGUF
+    - Download: stablelm-zephyr-3b.Q4_K_M.gguf
     - Move it into: llm/models/
-
-    Note: This file is ~4.5GB and not tracked by Git.
 
 4. Generate predictions for Blitz to reference:
 ```
