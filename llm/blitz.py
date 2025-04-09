@@ -1,6 +1,7 @@
 import os
 import sys
 import io
+import re
 import contextlib
 from pathlib import Path
 import pandas as pd
@@ -91,7 +92,7 @@ def chat():
     prediction_context = "\n".join(context_lines)
     weeks_summary = ", ".join(available_weeks)
 
-    # System prompt with identity, limitations, and available week info
+    # Define system prompt
     system_prompt = (
         "You are Blitz, a smart but grounded NFL fan. "
         "You're chatting with another football fan. "
@@ -101,24 +102,31 @@ def chat():
         "Never guess or make things up. "
         "Only answer based on what's provided. "
         "If the user greets you or says 'Hey', respond with a greeting and wait for a follow-up. "
-        "Do NOT list prediction data unless asked directly.\n\n"
+        "Do NOT list prediction data unless asked directly. "
+        "Use the exact week label from the prediction data (e.g., 'SuperBowl', 'ConfChamp'). Never make up or guess week numbers.\n\n"
         f"Prediction data includes these weeks (most recent first): {weeks_summary}\n\n"
         f"Prediction data:\n{prediction_context}\n"
     )
 
-    # Start conversation with system prompt only — Blitz will respond to first user message
-    chat_history = f"<|user|>\n{system_prompt}\n"
+    MAX_TURNS = 4  # Keep the last max_turns exchanges (user+assistant)
+    turns = []  # Stores tuples like (user_input, model_response)
 
     while True:
         try:
             user_input = typer.prompt("You")
-            if user_input.strip().lower() in {"exit", "quit"}:
+            if user_input.strip().lower() in {"exit", "quit", "bye"}:
                 typer.echo("👋 Later!")
                 break
 
-            # Append new user message and trigger Blitz reply
+            # Build chat history from system prompt + recent turns
+            chat_history = f"<|user|>\n{system_prompt}\n"
+            for user, assistant in turns[-MAX_TURNS:]:
+                chat_history += f"<|user|>\n{user}\n<|assistant|>{assistant}\n"
+
+            # Add the latest user input
             chat_history += f"<|user|>\n{user_input.strip()}\n<|assistant|>"
 
+            # Generate Blitz's response
             response = LLM(
                 prompt=chat_history,
                 max_tokens=300,
@@ -126,7 +134,14 @@ def chat():
                 stop=["<|user|>", "<|endoftext|>"]
             )["choices"][0]["text"].strip()
 
-            chat_history += f"{response}\n"
+            # Save the turn
+            turns.append((user_input.strip(), response))
+
+            # Trim turns to maintain a sliding window of memory
+            if len(turns) > MAX_TURNS:
+                turns = turns[-MAX_TURNS:]
+
+            # Output Blitz's response
             typer.echo(response)
 
         except KeyboardInterrupt:
@@ -171,7 +186,7 @@ def recap():
     def week_sort_key(week_val):
         return WEEK_ORDER.index(str(week_val)) if str(week_val) in WEEK_ORDER else -1
 
-    # Prompt user for week, default to latest
+    # Ask user for week
     week_input = input("Which week? (e.g., '1', 'WildCard', 'SuperBowl' or leave blank for latest): ").strip()
     if not week_input:
         unique_weeks = flagged_df["Week"].dropna().unique()
@@ -179,27 +194,31 @@ def recap():
         week_input = sorted_weeks[-1] if sorted_weeks else None
         typer.echo(f"(Using most recent week: {week_input})")
 
-    # Filter by week
+    # Filter to that week
     df_week = flagged_df[flagged_df["Week"].astype(str).str.lower() == str(week_input).lower()]
 
     if df_week.empty:
         typer.secho(f"No flagged results found for Week '{week_input}'", fg=typer.colors.YELLOW)
         raise typer.Exit()
 
-    # Use all columns and grab top 4 games
+    # Clean flag function to strip emojis and keep clarity
+    def clean_flag(flag):
+        if pd.isna(flag) or not str(flag).strip():
+            return "None"
+        # Remove known emojis
+        return re.sub(r"[⚠️🚨️]", "", str(flag)).strip()
+
+    # Loop through and summarize all games
     games = df_week[[
         "Home Team", "Home Score", "Away Team", "Away Score",
         "Result", "Over/Under", "Upset Flag"
-    ]].head(4)
+    ]]
 
     for _, row in games.iterrows():
         matchup = f"{row['Away Team']} ({row['Away Score']}) at {row['Home Team']} ({row['Home Score']})"
-        result = row["Result"]
-        predicted_margin = "tie" if "tie" in result.lower() else result
+        predicted_margin = "tie" if "tie" in row["Result"].lower() else row["Result"]
         total_line = row["Over/Under"]
-        flags = row["Upset Flag"]
-        is_flagged = isinstance(flags, str) and flags.strip().lower() != "none"
-        flag_line = f"{flags}" if is_flagged else "None"
+        flag_line = clean_flag(row["Upset Flag"])
 
         prompt = f"""
         Game Info:
@@ -215,10 +234,10 @@ def recap():
         Write exactly 2-3 concise bullet points using ONLY the data above.
         - Each bullet must start with "- "
         - First bullet: Begin with "The predicted result is..." and include the score or margin.
-        - Second bullet: Begin with "The over/under is..." and include what that suggests about the total.
-        - If flagged is "None", say: "This game is not flagged."
-        - If flagged has content, summarize it clearly (e.g., Close Call, Potential Upset).
-        - Do not include any intros, commentary, or analysis beyond the bullets.
+        - Second bullet: Begin with "The over/under is..." and mention the total.
+        - If Flagged is "None", say: "This game is not flagged."
+        - If Flagged has content, say: "This game is flagged as {flag_line}."
+        Do NOT explain, summarize, or invent anything else.
         """
 
         typer.echo(f"\n🏈 {matchup}")

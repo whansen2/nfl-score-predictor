@@ -84,6 +84,6 @@ all:
 	$(MAKE) run
 	@echo ""
 	@echo "✅ All done!"
-	@echo "👉 Next steps: try 'make blitz-help' or 'make blitz-chat'"
+	@echo "👉 Next steps: try 'make blitz-help' or 'make blitz-recap'"
 
 .PHONY: venv install run docker-up docker-down test clean blitz-chat blitz-predict blitz-flag blitz-recap blitz-run blitz-help all
