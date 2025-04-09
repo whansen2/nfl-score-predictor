@@ -31,3 +31,15 @@ nfl_stadium_resources/
 
 # Output files (keep raw input CSVs, ignore generated output)
 nfl_predictor/data/predicted_matchups_*
+
+# === LLM / Blitz additions ===
+
+# GGUF models
+*.gguf
+llm/models/
+
+# LLM requirements
+llm/requirements.txt
+
+# Optional: LLM chat transcripts or debug logs
+llm/*.log
