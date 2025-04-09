@@ -54,17 +54,31 @@ def ask_blitz(user_prompt: str) -> str:
         return f"[Error] LLM failed: {str(e)}"
     
 # === Helper function for chat ===
-def load_prediction_context(limit=25):
+def load_prediction_context(weeks_to_include=4):
     path = Path(__file__).parent.parent / "nfl_predictor" / "data" / OUTPUT_FILE_NAME
     if not path.exists():
-        return []
+        return [], []
 
     df = pd.read_csv(path)
-    df["summary"] = df.apply(
+
+    # Custom reverse-priority week order
+    CUSTOM_ORDER = ["SuperBowl", "ConfChamp", "Division", "WildCard"] + [str(i) for i in range(18, 0, -1)]
+    df["Week"] = df["Week"].astype(str)
+    df["WeekOrder"] = df["Week"].apply(lambda x: CUSTOM_ORDER.index(x) if x in CUSTOM_ORDER else -1)
+    df = df[df["WeekOrder"] >= 0].sort_values("WeekOrder")
+
+    # Get latest N unique weeks
+    recent_weeks = df["Week"].drop_duplicates().values[:weeks_to_include]
+    df_recent = df[df["Week"].isin(recent_weeks)].copy()
+
+    # Create match summary per row
+    df_recent.loc[:, "summary"] = df_recent.apply(
         lambda row: f"Week {row['Week']}: {row['Away Team']} ({row['Away Score']}) at {row['Home Team']} ({row['Home Score']}) — {row['Result']} [O/U: {row['Over/Under']}]",
         axis=1
     )
-    return df["summary"].tolist()[-limit:]
+
+    # Return both summaries and the available sorted weeks
+    return df_recent["summary"].tolist(), list(recent_weeks)
 
 # === CLI Commands ===
 @app.command()
@@ -72,36 +86,47 @@ def chat():
     """Interactive chat with Blitz about matchups, teams, or stats."""
     typer.secho("💬 Chat with Blitz! Type 'exit' to quit.\n", fg=typer.colors.CYAN)
 
-    # Load context from prediction output
-    context_lines = load_prediction_context(limit=25)
+    # Load recent prediction summaries + sorted week labels
+    context_lines, available_weeks = load_prediction_context(weeks_to_include=4)
     prediction_context = "\n".join(context_lines)
+    weeks_summary = ", ".join(available_weeks)
 
-    # Initial system prompt + recent data
-    system_intro = (
-        "You are Blitz, a smart and approachable NFL analyst. "
-        "You are chatting with a fan using recent predicted NFL matchups. "
-        "Respond naturally, casually, and with sharp insight. Be concise. "
-        "Use the data below if relevant, but don't repeat it unless asked.\n"
-        "Recent predicted matchups:\n"
-        f"{prediction_context}"
+    # System prompt with identity, limitations, and available week info
+    system_prompt = (
+        "You are Blitz, a smart but grounded NFL fan. "
+        "You're chatting with another football fan. "
+        "You ONLY know the prediction data shown below. "
+        "You do NOT know how the predictions were made — so don't explain it. "
+        "You don't have access to player stats, rosters, or algorithms. "
+        "Never guess or make things up. "
+        "Only answer based on what's provided. "
+        "If the user greets you or says 'Hey', respond with a greeting and wait for a follow-up. "
+        "Do NOT list prediction data unless asked directly.\n\n"
+        f"Prediction data includes these weeks (most recent first): {weeks_summary}\n\n"
+        f"Prediction data:\n{prediction_context}\n"
     )
 
-    context = f"<|user|>\n{system_intro}\n<|endoftext|>\n"
+    # Start conversation with system prompt only — Blitz will respond to first user message
+    chat_history = f"<|user|>\n{system_prompt}\n"
 
     while True:
         try:
             user_input = typer.prompt("You")
             if user_input.strip().lower() in {"exit", "quit"}:
+                typer.echo("👋 Later!")
                 break
 
-            full_prompt = f"{context}<|user|>\n{user_input.strip()}\n<|endoftext|>\n<|assistant|>"
+            # Append new user message and trigger Blitz reply
+            chat_history += f"<|user|>\n{user_input.strip()}\n<|assistant|>"
+
             response = LLM(
-                prompt=full_prompt,
-                max_tokens=256,
-                temperature=0.6,
+                prompt=chat_history,
+                max_tokens=300,
+                temperature=0.3,
                 stop=["<|user|>", "<|endoftext|>"]
             )["choices"][0]["text"].strip()
 
+            chat_history += f"{response}\n"
             typer.echo(response)
 
         except KeyboardInterrupt:
