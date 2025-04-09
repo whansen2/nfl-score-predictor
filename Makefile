@@ -1,4 +1,4 @@
-# Makefile for NFL Score Predictor
+# === NFL Score Predictor Makefile ===
 
 # === ENV ===
 ENV_FILE = .env
@@ -34,7 +34,7 @@ docker-up:
 docker-down:
 	docker-compose down
 
-# Run tests (you can expand this later)
+# Run tests
 test:
 	. $(VENV)/bin/activate && pytest $(TEST_DIR)
 
@@ -42,4 +42,48 @@ test:
 clean:
 	find . -type d -name "__pycache__" -exec rm -r {} + || true
 
-.PHONY: venv install run docker-up docker-down test clean
+# === Blitz Shortcuts (Delegates to llm/Makefile) ===
+
+blitz-chat:
+	$(MAKE) -C llm chat
+
+blitz-predict:
+	$(MAKE) -C llm predict
+
+blitz-flag:
+	$(MAKE) -C llm flag
+
+blitz-recap:
+	$(MAKE) -C llm recap
+
+blitz-run:
+	$(MAKE) -C llm run
+
+# Blitz help menu
+blitz-help:
+	@echo ""
+	@echo "🧠 Blitz - Local LLM Assistant Commands:"
+	@echo "----------------------------------------"
+	@echo "make blitz-chat      💬  Chat with Blitz about predictions"
+	@echo "make blitz-predict   🧮  Run Blitz's copy of predictions"
+	@echo "make blitz-flag      🚨  See close calls or upsets"
+	@echo "make blitz-recap     📰  Get a weekly game recap"
+	@echo "make blitz-run       🔁  Flag upsets and recap the week"
+	@echo ""
+
+# === Full Setup ===
+
+all:
+	@echo "🔧 Creating virtualenv..."
+	$(MAKE) venv
+	@echo "📦 Installing predictor dependencies..."
+	$(ACTIVATE) && pip install -r $(REQS)
+	@echo "🤖 Installing Blitz (LLM) dependencies..."
+	$(MAKE) -C llm install
+	@echo "🏈 Running predictions..."
+	$(MAKE) run
+	@echo ""
+	@echo "✅ All done!"
+	@echo "👉 Next steps: try 'make blitz-help' or 'make blitz-recap'"
+
+.PHONY: venv install run docker-up docker-down test clean blitz-chat blitz-predict blitz-flag blitz-recap blitz-run blitz-help all
