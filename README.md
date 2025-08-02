@@ -37,21 +37,35 @@ nfl-score-predictor/
 ├── Dockerfile.lambda
 ├── docker-compose.yml
 ├── Makefile
+├── pytest.ini
 ├── README.md
+├── LICENSE
 │
 ├── llm/                   # OpenAI-powered analysis module
 │   ├── blitz.py          # GPT-4o-mini integration for game analysis
-│   └── requirements.txt
+│   ├── requirements.txt
+│   ├── Makefile
+│   └── README.md
 │
-└── nfl_predictor/
-    ├── nfl_ai_scores.py   # Main prediction engine
-    ├── lambda_handler.py  # AWS Lambda deployment handler
-    ├── requirements.txt
-    ├── data/
-    ├── utils/
-    │   ├── constants.py   # All configuration constants and defaults
-    │   └── helpers.py     # Utility functions
-    └── ...
+├── nfl_predictor/         # Main prediction engine
+│   ├── __init__.py
+│   ├── nfl_ai_scores.py   # Core prediction script
+│   ├── lambda_handler.py  # AWS Lambda deployment handler
+│   ├── requirements.txt
+│   ├── agents/
+│   │   ├── __init__.py
+│   │   └── upsets_ai_agent.py  # Upset detection logic
+│   ├── data/              # Training data and test files
+│   └── utils/
+│       ├── __init__.py
+│       ├── constants.py   # All configuration constants and defaults
+│       ├── helpers.py     # Utility functions
+│       └── env_setup.py   # Environment configuration
+│
+└── tests/                 # Test suite
+    ├── test_model.py
+    ├── test_injuries.py
+    └── test_weather.py
 
 ```
 
@@ -69,6 +83,10 @@ nfl-score-predictor/
 2. Install dependencies:
 
 `pip install -r nfl_predictor/requirements.txt`
+
+For AI-powered analysis features, also install:
+
+`pip install -r llm/requirements.txt`
 
 3. Copy the environment template and add your OpenAI API key:
 
