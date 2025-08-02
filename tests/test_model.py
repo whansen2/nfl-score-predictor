@@ -3,6 +3,7 @@ import pandas as pd
 import pytest
 from unittest.mock import patch
 from sklearn.linear_model import LinearRegression
+from nfl_predictor.utils.constants import DEFAULT_FEATURES, HOME_FIELD_ADVANTAGE
 
 # Parameterized test for different combinations of injuries, weather, and team stats
 @pytest.mark.parametrize("inj_adj, wt_adj, home_stats, away_stats", [
@@ -29,17 +30,18 @@ def test_prediction_pipeline_with_adjustments_param(
 ):
     # Set mock return values for environment flags
     mock_getenv.side_effect = lambda key, default=None: {
-        "ENABLE_INJURY_ADJUSTMENTS": "True",
-        "ENABLE_WEATHER_ADJUSTMENTS": "True",
-        "VERBOSE_ADJUSTMENTS": "False"
+        "ENABLE_INJURY_ADJUSTMENTS": "true",
+        "ENABLE_WEATHER_ADJUSTMENTS": "true",
+        "ENABLE_UPSETS_AGENT": "true",
+        "VERBOSE_ADJUSTMENTS": "true"
     }.get(key, default)
 
     # Set mock return values for adjustments
     mock_injuries.return_value = inj_adj
     mock_weather.return_value = wt_adj
 
-    # Define features used in prediction
-    features = ["Sc%_x", "Tot_1stD/G", "Y/P_x", "RZPct_x", "TO%_x", "Sc%_y"]
+    # Define features used in prediction (from constants)
+    features = DEFAULT_FEATURES
 
     # Create dummy dataset with home and away team stats
     df = pd.DataFrame([
@@ -55,7 +57,7 @@ def test_prediction_pipeline_with_adjustments_param(
     model.fit(X, y)
 
     # Predict scores for each team using the trained model
-    ht_pred = round(model.predict(df[df["Tm"] == "HomeTeam"][features])[0]) + 1  # Home-field advantage
+    ht_pred = round(model.predict(df[df["Tm"] == "HomeTeam"][features])[0]) + HOME_FIELD_ADVANTAGE
     at_pred = round(model.predict(df[df["Tm"] == "AwayTeam"][features])[0])
 
     # Apply mocked adjustments
