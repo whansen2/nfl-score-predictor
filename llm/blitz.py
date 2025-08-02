@@ -307,9 +307,15 @@ def recap():
         total = row['Over/Under']
         flag = row.get('Upset Flag', '')
         
+        # Handle NaN values properly
+        if pd.isna(flag) or flag == '':
+            flag = None
+            flag_clean = "None"
+        else:
+            flag_clean = re.sub(r"[⚠️🚨️]", "", str(flag)).strip()
+        
         # Determine game type for analysis
         game_type = "flagged" if flag else "standard"
-        flag_clean = re.sub(r"[⚠️🚨️]", "", str(flag)).strip() if flag else "None"
 
         user_prompt = f"""
         Linear Regression Model Prediction Analysis:
@@ -333,13 +339,15 @@ def recap():
         """
 
         matchup = f"{row['Away Team']} @ {row['Home Team']}"
-        icon = "🔴" if "Upset" in str(flag) else "🟡" if flag else "⚪"
+        icon = "🔴" if flag and "Upset" in str(flag) else "🟡" if flag else "⚪"
         
         typer.echo(f"\n{icon} {matchup}")
         typer.echo(f"   Prediction: {row['Away Score']}-{row['Home Score']} | Total: {total} | Spread: {spread}")
         
         if flag:
             typer.echo(f"   🚩 {flag}")
+        else:
+            typer.echo(f"   🚩 No flags")
         
         # Get AI analysis
         response = ask_blitz(user_prompt.strip(), system_prompt, max_tokens=400)

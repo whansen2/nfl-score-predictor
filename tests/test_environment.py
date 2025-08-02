@@ -33,15 +33,6 @@ class TestEnvironmentConfiguration:
                 
                 assert result_dir == custom_path
                 assert os.path.exists(custom_path)
-    
-    @patch('lukhed_basic_utils.osCommon')
-    def test_monkey_patch_applied(self, mock_os_common):
-        """Test that the monkey patch is properly applied."""
-        configure_nfl_stadiums_resource_dir()
-        
-        # Verify the monkey patch was applied
-        # The function should have been replaced
-        assert hasattr(mock_os_common, 'create_file_path_string')
 
 
 class TestConstantsEnvironmentIntegration:

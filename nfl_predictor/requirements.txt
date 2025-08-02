@@ -11,5 +11,4 @@ pytest>=8.1.1,<9.0
 python-dotenv>=1.0.0,<2.0
 
 # NFL stadium/weather data
-nfl-stadiums>=2.0.2,<3.0
-lukhed-basic-utils>=1.4.7,<2.0
+nfl-stadiums==2.0.3
