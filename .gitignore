@@ -9,6 +9,9 @@ nfl_env/
 env/
 venv/
 
+# Environment variables (contains API keys)
+.env
+
 # VS Code
 .vscode/
 

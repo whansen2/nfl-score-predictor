@@ -12,10 +12,14 @@ This project combines machine learning with context-aware adjustments to generat
 
 ## 📊 Features
 
-- **Team performance modeling** using scikit-learn Linear Regression
+- **AI-powered analysis** using OpenAI GPT-4o-mini for deep game insights and strategy discussion
+- **Team performance modeling** using scikit-learn Linear Regression with 6 key statistical features
 - **Weather-aware scoring adjustments** powered by [nfl-stadiums](https://pypi.org/project/nfl-stadiums/) and Open-Meteo
 - **Injury impact modeling** based on quarterback tier ratings
 - **Interactive matchup predictor** that outputs winner, margin, and total points
+- **Upset detection agent** for identifying potential surprise outcomes
+- **AWS Lambda deployment** ready with containerized architecture
+- **Centralized configuration** via constants.py with environment overrides
 - **CSV export** for matchup predictions
 
 ---
@@ -27,18 +31,26 @@ nfl-score-predictor/
 │
 ├── .dockerignore
 ├── .gitignore
-├── .env
+├── .env                    # Contains only OPENAI_API_KEY
+├── .env.example           # Template for environment variables
 ├── Dockerfile.local
 ├── Dockerfile.lambda
 ├── docker-compose.yml
 ├── Makefile
 ├── README.md
 │
+├── llm/                   # OpenAI-powered analysis module
+│   ├── blitz.py          # GPT-4o-mini integration for game analysis
+│   └── requirements.txt
+│
 └── nfl_predictor/
-    ├── nfl_ai_scores.py
-    ├── lambda_handler.py
+    ├── nfl_ai_scores.py   # Main prediction engine
+    ├── lambda_handler.py  # AWS Lambda deployment handler
     ├── requirements.txt
     ├── data/
+    ├── utils/
+    │   ├── constants.py   # All configuration constants and defaults
+    │   └── helpers.py     # Utility functions
     └── ...
 
 ```
@@ -58,15 +70,43 @@ nfl-score-predictor/
 
 `pip install -r nfl_predictor/requirements.txt`
 
-3. Set your environment variables in the `.env` file:
+3. Copy the environment template and add your OpenAI API key:
+
+`cp .env.example .env`
+
+Then edit `.env` and add your OpenAI API key:
 
 ```
-WEEK_NUMBER=18
-YEAR_ABBR=24
-GAME_DATE=2025-02-09
-HOME_TEAM=Philadelphia Eagles
-AWAY_TEAM=Kansas City Chiefs
+# Only required variable - OpenAI API key for AI-powered analysis
+OPENAI_API_KEY=your_openai_api_key_here
 ```
+
+**Note**: All other configuration values (game parameters, feature flags, etc.) are defined in `nfl_predictor/utils/constants.py`. You can optionally override any of these in `.env` if needed (see `.env.example` for available options).
+
+---
+
+## 🔧 Configuration
+
+This project uses a **constants-first approach** for configuration:
+
+- **`nfl_predictor/utils/constants.py`**: Contains all default values for features, model parameters, file names, etc.
+- **`.env`**: Contains only the required OpenAI API key. Can optionally override any constants.
+- **`.env.example`**: Template showing available environment variables you can override.
+
+### Key Configuration Options
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `OPENAI_API_KEY` | *(required)* | API key for GPT-4o-mini analysis |
+| `LOG_LEVEL` | `INFO` | Logging verbosity level |
+| `ENABLE_INJURY_ADJUSTMENTS` | `false` | Include QB injury impact in predictions |
+| `ENABLE_WEATHER_ADJUSTMENTS` | `false` | Include weather conditions in scoring |
+| `ENABLE_UPSETS_AGENT` | `true` | Run AI-powered upset analysis |
+| `WEEK_NUMBER` | `18` | NFL week for predictions |
+| `HOME_TEAM` | `Philadelphia Eagles` | Default home team |
+| `AWAY_TEAM` | `Kansas City Chiefs` | Default away team |
+
+See `nfl_predictor/utils/constants.py` for the complete list of configurable values.
 
 ### Local (Docker)
 1. Build the Docker container:
@@ -107,11 +147,21 @@ Make sure your `.env` file is properly configured before using `make run` or `ma
 
 ## 🚀 Usage
 
-Run the script locally (after activating your virtual environment):
+### Core Prediction Engine
+
+Run the main prediction script locally (after activating your virtual environment):
 
 `python nfl_predictor/nfl_ai_scores.py`
 
-Matchups will be predicted based on your environment variables — no manual inputs required.
+Matchups will be predicted based on your configuration — no manual inputs required.
+
+### AI-Powered Analysis
+
+For deeper game insights and analysis, use the LLM module:
+
+`python llm/blitz.py`
+
+This launches an interactive chat interface powered by GPT-4o-mini for discussing matchups, strategies, and predictions.
 
 ---
 
