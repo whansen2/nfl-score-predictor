@@ -5,12 +5,6 @@ FROM public.ecr.aws/lambda/python:3.11
 ENV NFL_STADIUM_RESOURCES=/tmp/nfl_stadium_resources
 
 # All configuration values have defaults in constants.py
-# Optionally override via Lambda environment variables:
-# ENV LOG_LEVEL=INFO
-# ENV VERBOSE_ADJUSTMENTS=false
-# ENV ENABLE_INJURY_ADJUSTMENTS=false
-# ENV ENABLE_WEATHER_ADJUSTMENTS=false
-# ENV ENABLE_UPSETS_AGENT=true
 
 # Set the working directory (Lambda expects everything under /var/task)
 WORKDIR /var/task

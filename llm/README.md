@@ -165,7 +165,7 @@ typer>=0.9              # Modern CLI framework
 
 **"No prediction file found"**
 - Run `cd .. && make run` to generate predictions first
-- Ensure `ENABLE_UPSETS_AGENT=True` in `.env` for flagged data
+- Ensure `ENABLE_UPSETS_AGENT=true` in `.env` for flagged data
 
 **"OpenAI API failed"**  
 - Check `OPENAI_API_KEY` in `.env` file

@@ -257,7 +257,7 @@ def flag():
         else:
             typer.echo("🟢 No games flagged - all predictions look standard.")
     else:
-        typer.secho("No flagged file found. Enable ENABLE_UPSETS_AGENT=True in .env and run `make run`.", fg=typer.colors.RED)
+        typer.secho("No flagged file found. Enable ENABLE_UPSETS_AGENT=true in .env and run `make run`.", fg=typer.colors.RED)
 
 @app.command()
 def recap():
@@ -265,7 +265,7 @@ def recap():
     flagged_path = Path(__file__).parent.parent / "nfl_predictor" / "data" / FLAGGED_OUTPUT_FILE_NAME
 
     if not flagged_path.exists():
-        typer.secho("No flagged prediction file found. Enable ENABLE_UPSETS_AGENT=True and run prediction model first.", fg=typer.colors.RED)
+        typer.secho("No flagged prediction file found. Enable ENABLE_UPSETS_AGENT=true and run prediction model first.", fg=typer.colors.RED)
         raise typer.Exit()
 
     flagged_df = pd.read_csv(flagged_path)

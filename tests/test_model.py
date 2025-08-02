@@ -30,9 +30,10 @@ def test_prediction_pipeline_with_adjustments_param(
 ):
     # Set mock return values for environment flags
     mock_getenv.side_effect = lambda key, default=None: {
-        "ENABLE_INJURY_ADJUSTMENTS": "True",
-        "ENABLE_WEATHER_ADJUSTMENTS": "True",
-        "VERBOSE_ADJUSTMENTS": "False"
+        "ENABLE_INJURY_ADJUSTMENTS": "true",
+        "ENABLE_WEATHER_ADJUSTMENTS": "true",
+        "ENABLE_UPSETS_AGENT": "true",
+        "VERBOSE_ADJUSTMENTS": "true"
     }.get(key, default)
 
     # Set mock return values for adjustments

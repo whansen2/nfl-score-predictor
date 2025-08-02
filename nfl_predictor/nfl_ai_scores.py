@@ -65,7 +65,7 @@ from nfl_predictor.utils.env_setup import configure_nfl_stadiums_resource_dir
 from nfl_stadiums import NFLStadiums
 
 # Setup logging with better formatting
-log_level = os.getenv("LOG_LEVEL", DEFAULT_LOG_LEVEL).upper()
+log_level = os.getenv("LOG_LEVEL", DEFAULT_LOG_LEVEL)
 logging.basicConfig(
     level=getattr(logging, log_level, logging.INFO),
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
