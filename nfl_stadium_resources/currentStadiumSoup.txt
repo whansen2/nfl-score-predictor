@@ -729,13 +729,13 @@
 </ol></div><p><br/><span class="error mw-ext-cite-error" dir="ltr" lang="en">Cite error: There are <code>&lt;ref group=lower-alpha&gt;</code> tags or <code>{{efn}}</code> templates on this page, but the references will not show without a <code>{{reflist|group=lower-alpha}}</code> template or <code>{{notelist}}</code> template (see the <a href="/wiki/Help:Cite_errors/Cite_error_group_refs_without_references" title="Help:Cite errors/Cite error group refs without references">help page</a>).</span></p>
 <!-- 
 NewPP limit report
-Parsed by mw‐api‐ext.eqiad.main‐7fb4bccc4c‐44kdk
-Cached time: 20250802194343
+Parsed by mw‐api‐ext.eqiad.main‐7fb4bccc4c‐fm9f6
+Cached time: 20250802205916
 Cache expiry: 2592000
 Reduced expiry: false
 Complications: [vary‐revision‐sha1, vary‐revision‐exists]
-CPU time usage: 0.569 seconds
-Real time usage: 0.656 seconds
+CPU time usage: 0.624 seconds
+Real time usage: 0.714 seconds
 Preprocessor visited node count: 4527/1000000
 Revision size: 27540/2097152 bytes
 Post‐expand include size: 110128/2097152 bytes
@@ -744,21 +744,21 @@ Highest expansion depth: 12/100
 Expensive parser function count: 1/500
 Unstrip recursion depth: 0/20
 Unstrip post‐expand size: 102112/5000000 bytes
-Lua time usage: 0.281/10.000 seconds
+Lua time usage: 0.352/10.000 seconds
 Lua memory usage: 4489524/52428800 bytes
 Number of Wikibase entities loaded: 0/500
 -->
 <!--
 Transclusion expansion time report (%,ms,calls,template)
-100.00%  557.639      1 -total
- 49.64%  276.801     38 Template:Cite_web
-  9.77%   54.477      1 Template:NFL_stadiums_map
-  6.44%   35.912      5 Template:Cite_news
-  5.87%   32.717      2 Template:Broken_ref
-  4.68%   26.100     30 Template:Image_label_small
-  3.88%   21.646      1 Template:Image_label_begin
-  3.73%   20.827     30 Template:Image_label
-  3.41%   18.989      1 Template:Str_number/trim
-  2.33%   13.018      1 Template:Webarchive
+100.00%  635.716      1 -total
+ 55.43%  352.353     38 Template:Cite_web
+  7.44%   47.301      1 Template:NFL_stadiums_map
+  6.43%   40.903      5 Template:Cite_news
+  4.63%   29.413      2 Template:Broken_ref
+  3.47%   22.048      1 Template:Image_label_begin
+  3.08%   19.582      1 Template:Str_number/trim
+  2.98%   18.962     30 Template:Image_label_small
+  2.33%   14.802     30 Template:Image_label
+  1.94%   12.318      1 Template:Webarchive
 -->
 </div>
