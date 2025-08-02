@@ -42,6 +42,11 @@ test:
 clean:
 	find . -type d -name "__pycache__" -exec rm -r {} + || true
 
+# Complete clean including virtual environment
+distclean: clean
+	rm -rf $(VENV)
+	@echo "🧹 Removed virtual environment. Run 'make venv && make install' to recreate."
+
 # === Blitz Shortcuts (Delegates to llm/Makefile) ===
 
 blitz-chat:
@@ -86,4 +91,4 @@ all:
 	@echo "✅ All done!"
 	@echo "👉 Next steps: try 'make blitz-help' or 'make blitz-recap'"
 
-.PHONY: venv install run docker-up docker-down test clean blitz-chat blitz-predict blitz-flag blitz-recap blitz-run blitz-help all
+.PHONY: venv install run docker-up docker-down test clean distclean blitz-chat blitz-predict blitz-flag blitz-recap blitz-run blitz-help all
