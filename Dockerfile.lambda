@@ -9,7 +9,7 @@ ENV NFL_STADIUM_RESOURCES=/tmp/nfl_stadium_resources
 # Set the working directory (Lambda expects everything under /var/task)
 WORKDIR /var/task
 
-# Install dependencies
+# Install dependencies (pinned versions for reliable wheels)
 COPY nfl_predictor/requirements.txt .
 RUN pip3 install --upgrade pip && pip3 install --no-cache-dir -r requirements.txt
 
