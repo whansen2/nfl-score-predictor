@@ -1,25 +1,51 @@
 import os
 import pandas as pd
+import logging
 from datetime import datetime
+from typing import Tuple, Optional, Dict, Any
 
-# Detect if running in AWS Lambda
-def running_in_lambda():
+logger = logging.getLogger(__name__)
+
+def running_in_lambda() -> bool:
+    """Detect if running in AWS Lambda environment."""
     return os.getenv("AWS_EXECUTION_ENV") is not None
 
-# Determine which week's data to use for training
-def get_training_week(week_value):
+def get_training_week(week_value: Any) -> int:
+    """
+    Determine which week's data to use for training.
+    
+    Args:
+        week_value: Week identifier (int or string like "WildCard")
+        
+    Returns:
+        Training week number (defaults to 18 for postseason)
+    """
     try:
         return int(week_value)
     except ValueError:
         return 18  # For postseason (e.g., "WildCard", "SuperBowl", etc.)
 
-# Injury adjustment helper
-def get_injuries_adjustment(injuries_df, home_team, away_team, team_abbreviations, qb_tiers, team_qbs):
+def get_injuries_adjustment(
+    injuries_df: pd.DataFrame, 
+    home_team: str, 
+    away_team: str, 
+    team_abbreviations: Dict[str, str], 
+    qb_tiers: Dict[str, int], 
+    team_qbs: Dict[str, Any]
+) -> Tuple[int, int]:
     """
-    Given a preloaded injuries DataFrame, returns injury-based QB adjustments
-    for both home and away teams.
+    Calculate injury-based QB adjustments for both teams.
     
-    Affects score if a QB is injured and their tier has an associated weight.
+    Args:
+        injuries_df: DataFrame containing injury data
+        home_team: Home team name
+        away_team: Away team name  
+        team_abbreviations: Team name to abbreviation mapping
+        qb_tiers: QB tier to adjustment value mapping
+        team_qbs: Team to QB info mapping
+        
+    Returns:
+        Tuple of (home_adjustment, away_adjustment)
     """
     if not isinstance(injuries_df, pd.DataFrame) or injuries_df.empty:
         return 0, 0
@@ -48,21 +74,34 @@ def get_injuries_adjustment(injuries_df, home_team, away_team, team_abbreviation
 
     return qb_adjust(home_team), qb_adjust(away_team)
 
-# Weather adjustment helper
-def get_weather_adjustment(stad, team_name, game_date, weather_tiers):
+def get_weather_adjustment(
+    stad: Any, 
+    team_name: str, 
+    game_date: str, 
+    weather_tiers: Dict[str, int]
+) -> int:
     """
-    Calculates weather-based score adjustment for a given team and game date.
+    Calculate weather-based score adjustment for a given team and game date.
 
     Weather adjustments are skipped for indoor or retractable-roof stadiums.
     For outdoor games, temperature, wind, rain, and snow are evaluated based on 
     hourly forecast data near presumed kickoff time.
+    
+    Args:
+        stad: NFLStadiums object for weather and stadium data
+        team_name: Name of the team (for stadium lookup)
+        game_date: Game date in YYYY-MM-DD format
+        weather_tiers: Dictionary mapping weather conditions to adjustment values
+        
+    Returns:
+        Weather adjustment points (positive/negative integer)
     """
     try:
         # Skip if indoor or retractable stadium
         stadium_info = stad.get_stadium_by_team(team_name)
         roof_type = stadium_info.get("roofType", "").lower()
         if roof_type in ["fixed", "retractable"]:
-            print(f"{team_name} play in a {roof_type} stadium — skipping weather adjustment.")
+            logger.debug(f"{team_name} play in a {roof_type} stadium — skipping weather adjustment.")
             return 0
 
         forecast = stad.get_weather_forecast_for_stadium(team_name, game_date)
@@ -137,5 +176,5 @@ def get_weather_adjustment(stad, team_name, game_date, weather_tiers):
         return adjustment
 
     except Exception as e:
-        print(f"Weather error: {e}")
+        logger.warning(f"Weather adjustment failed: {e}")
         return 0

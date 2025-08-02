@@ -1,5 +1,25 @@
+"""
+NFL Score Predictor - Main Prediction Engine
+
+This module implements a Linear Regression-based NFL game score predictor with optional
+adjustments for injuries, weather, and upset detection. All configuration is managed
+through constants.py with optional .env overrides.
+
+Key Features:
+- 6-feature Linear Regression model using team performance statistics
+- Optional injury adjustments based on QB tier ratings
+- Optional weather adjustments for outdoor stadiums
+- Upset detection via separate agent module
+- AWS Lambda deployment support
+
+Configuration:
+- All defaults defined in nfl_predictor.utils.constants
+- Only OPENAI_API_KEY required in .env file
+- Other values can be optionally overridden via environment variables
+"""
+
 from dotenv import load_dotenv
-# Load .env values
+# Load .env values (only OPENAI_API_KEY required - all other config in constants.py)
 load_dotenv()
 
 import os
@@ -19,7 +39,21 @@ from nfl_predictor.utils.constants import (
     CONVERSIONS_FILE,
     OFFENSE_FILE,
     DEFENSE_FILE,
-    CONV_AGAINST_FILE
+    CONV_AGAINST_FILE,
+    DEFAULT_FEATURES,
+    HOME_FIELD_ADVANTAGE,
+    TRAIN_TEST_SPLIT_RATIO,
+    RANDOM_STATE,
+    DEFAULT_WEEK_NUMBER,
+    DEFAULT_YEAR_ABBR,
+    DEFAULT_GAME_DATE,
+    DEFAULT_HOME_TEAM,
+    DEFAULT_AWAY_TEAM,
+    DEFAULT_LOG_LEVEL,
+    DEFAULT_VERBOSE_ADJUSTMENTS,
+    DEFAULT_INJURY_ADJUSTMENTS,
+    DEFAULT_WEATHER_ADJUSTMENTS,
+    DEFAULT_UPSETS_AGENT
 )
 from nfl_predictor.utils.helpers import (
     running_in_lambda,
@@ -30,26 +64,29 @@ from nfl_predictor.utils.helpers import (
 from nfl_predictor.utils.env_setup import configure_nfl_stadiums_resource_dir
 from nfl_stadiums import NFLStadiums
 
-# Setup logging
-log_level = os.getenv("LOG_LEVEL", "INFO").upper()
-logging.basicConfig(level=getattr(logging, log_level, logging.INFO))
+# Setup logging with better formatting
+log_level = os.getenv("LOG_LEVEL", DEFAULT_LOG_LEVEL)
+logging.basicConfig(
+    level=getattr(logging, log_level, logging.INFO),
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 
 # Determine working path based on environment
 path = "/var/task/nfl_predictor/data" if running_in_lambda() else os.path.join(os.path.dirname(__file__), "data")
 
-# Control optional logic via .env
-ENABLE_INJURY_ADJUSTMENTS = os.getenv("ENABLE_INJURY_ADJUSTMENTS", "False") == "True"
-ENABLE_WEATHER_ADJUSTMENTS = os.getenv("ENABLE_WEATHER_ADJUSTMENTS", "False") == "True"
-VERBOSE_ADJUSTMENTS = os.getenv("VERBOSE_ADJUSTMENTS", "False") == "True"
-ENABLE_UPSETS_AGENT = os.getenv("ENABLE_UPSETS_AGENT", "False") == "True"
+# Control optional logic via .env with defaults from constants
+ENABLE_INJURY_ADJUSTMENTS = os.getenv("ENABLE_INJURY_ADJUSTMENTS", str(DEFAULT_INJURY_ADJUSTMENTS)).lower() == "true"
+ENABLE_WEATHER_ADJUSTMENTS = os.getenv("ENABLE_WEATHER_ADJUSTMENTS", str(DEFAULT_WEATHER_ADJUSTMENTS)).lower() == "true"
+VERBOSE_ADJUSTMENTS = os.getenv("VERBOSE_ADJUSTMENTS", str(DEFAULT_VERBOSE_ADJUSTMENTS)).lower() == "true"
+ENABLE_UPSETS_AGENT = os.getenv("ENABLE_UPSETS_AGENT", str(DEFAULT_UPSETS_AGENT)).lower() == "true"
 
-# Load .env values for defaults if matchup CSV isn't found
-WEEK_NUMBER = int(os.getenv("WEEK_NUMBER", 18))
-YEAR_ABBR = int(os.getenv("YEAR_ABBR", 24))
-GAME_DATE = os.getenv("GAME_DATE", "2025-02-09")
-HOME_TEAM = os.getenv("HOME_TEAM", "Philadelphia Eagles")
-AWAY_TEAM = os.getenv("AWAY_TEAM", "Kansas City Chiefs")
+# Load .env values for defaults if matchup CSV isn't found (all values have defaults in constants.py)
+WEEK_NUMBER = int(os.getenv("WEEK_NUMBER", DEFAULT_WEEK_NUMBER))
+YEAR_ABBR = int(os.getenv("YEAR_ABBR", DEFAULT_YEAR_ABBR))
+GAME_DATE = os.getenv("GAME_DATE", DEFAULT_GAME_DATE)
+HOME_TEAM = os.getenv("HOME_TEAM", DEFAULT_HOME_TEAM)
+AWAY_TEAM = os.getenv("AWAY_TEAM", DEFAULT_AWAY_TEAM)
 
 # Monkey-patch and get resource dir for nfl_stadiums
 resource_dir = configure_nfl_stadiums_resource_dir()
@@ -86,14 +123,14 @@ def run_predictions():
         df_matchups = pd.read_csv(matchups_path)
         logger.info(f"Loaded {len(df_matchups)} upcoming matchups from CSV")
     else:
-        # Fallback to single matchup from .env
+        # Fallback to single matchup from .env/constants defaults
         df_matchups = pd.DataFrame([{
             "Week": WEEK_NUMBER,
             "Home Team": HOME_TEAM,
             "Away Team": AWAY_TEAM,
             "Game Date": GAME_DATE
         }])
-        logger.warning("No matchup CSV found — using single matchup from .env or defaults")
+        logger.warning("No matchup CSV found — using single matchup from .env/constants defaults")
 
     printed_weeks = set()       # Track weeks already printed to avoid duplicate model metrics
     week_model_cache = {}       # Cache trained models per week to avoid retraining
@@ -127,16 +164,24 @@ def run_predictions():
             df["Tot_1stD/G"] = df["Tot_1stD"] / df["G"]
             df["Avg_RZTD"] = df["RZTD_x"] / df["G"]  # this field is part of the Databricks feature set
 
-            # Python feature set
-            features = ["Sc%_x", "Tot_1stD/G", "Y/P_x", "RZPct_x", "TO%_x", "Sc%_y"]
+            # Enhanced feature set with validation
+            features = DEFAULT_FEATURES
+            
+            # Validate all features exist
+            missing_features = [f for f in features if f not in df.columns]
+            if missing_features:
+                logger.error(f"Missing required features: {missing_features}")
+                continue
 
-            # Databricks feature set (alternate)
-            # features = ["Y/P_x", "Sc%_x", "Tot_1stD/G", "Avg_RZTD"]
+            # Databricks feature set (alternate) - uncomment to use
+            # features = DATABRICKS_FEATURES
 
             # Train/test split and model fitting
             X = df[features]
             y = df["PPG"]
-            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42)
+            X_train, X_test, y_train, y_test = train_test_split(
+                X, y, test_size=TRAIN_TEST_SPLIT_RATIO, random_state=RANDOM_STATE
+            )
             model = LinearRegression()
             model.fit(X_train, y_train)
 
@@ -165,8 +210,8 @@ def run_predictions():
             logger.warning(f"Missing stats for {home_team} or {away_team}")
             continue
 
-        # Predict scores (home team gets +1 bonus)
-        ht_pred = round(model.predict(ht_stats)[0]) + 1
+        # Predict scores (home team gets home field advantage)
+        ht_pred = round(model.predict(ht_stats)[0]) + HOME_FIELD_ADVANTAGE
         at_pred = round(model.predict(at_stats)[0])
 
         # Apply adjustments

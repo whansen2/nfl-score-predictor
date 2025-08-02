@@ -28,8 +28,3 @@ tests/
 
 # Mac OS
 .DS_Store
-
-# === LLM / Blitz additions ===
-llm/models/
-*.gguf
-llm/*.log
