@@ -1,7 +1,10 @@
 import os
 import pandas as pd
+import logging
 from datetime import datetime
 from typing import Tuple, Optional, Dict, Any
+
+logger = logging.getLogger(__name__)
 
 def running_in_lambda() -> bool:
     """Detect if running in AWS Lambda environment."""
@@ -98,7 +101,7 @@ def get_weather_adjustment(
         stadium_info = stad.get_stadium_by_team(team_name)
         roof_type = stadium_info.get("roofType", "").lower()
         if roof_type in ["fixed", "retractable"]:
-            print(f"{team_name} play in a {roof_type} stadium — skipping weather adjustment.")
+            logger.debug(f"{team_name} play in a {roof_type} stadium — skipping weather adjustment.")
             return 0
 
         forecast = stad.get_weather_forecast_for_stadium(team_name, game_date)
@@ -173,5 +176,5 @@ def get_weather_adjustment(
         return adjustment
 
     except Exception as e:
-        print(f"Weather error: {e}")
+        logger.warning(f"Weather adjustment failed: {e}")
         return 0
