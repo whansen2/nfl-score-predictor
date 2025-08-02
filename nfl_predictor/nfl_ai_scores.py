@@ -1,3 +1,23 @@
+"""
+NFL Score Predictor - Main Prediction Engine
+
+This module implements a Linear Regression-based NFL game score predictor with optional
+adjustments for injuries, weather, and upset detection. All configuration is managed
+through constants.py with optional .env overrides.
+
+Key Features:
+- 6-feature Linear Regression model using team performance statistics
+- Optional injury adjustments based on QB tier ratings
+- Optional weather adjustments for outdoor stadiums
+- Upset detection via separate agent module
+- AWS Lambda deployment support
+
+Configuration:
+- All defaults defined in nfl_predictor.utils.constants
+- Only OPENAI_API_KEY required in .env file
+- Other values can be optionally overridden via environment variables
+"""
+
 from dotenv import load_dotenv
 # Load .env values (only OPENAI_API_KEY required - all other config in constants.py)
 load_dotenv()
