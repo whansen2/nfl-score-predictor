@@ -1,26 +1,29 @@
 # NFL Score Predictor
 
 ![Pre-Deploy Checks](https://github.com/whansen2/nfl-score-predictor/actions/workflows/pre-deploy.yml/badge.svg)
-
 ![Deploy Lambda Container](https://github.com/whansen2/nfl-score-predictor/actions/workflows/deploy-lambda.yml/badge.svg)
 
-Predict NFL game scores using real team performance data, injury reports, and weather conditions.
+A production-ready NFL game prediction system that combines machine learning with contextual adjustments to generate accurate score predictions, winner analysis, and over/under estimates.
 
-This project combines machine learning with context-aware adjustments to generate projected scores, determine likely winners, and estimate over/under outcomes.
+## 🎯 Overview
+
+This system uses scikit-learn Linear Regression trained on real NFL team performance data, enhanced with optional injury and weather adjustments. The AI-powered analysis module provides deep strategic insights using OpenAI's GPT-4o-mini.
+
+**🚀 Production Ready**: Fully containerized with AWS Lambda deployment, comprehensive test suite, and robust error handling.
 
 ---
 
-## 📊 Features
+## ✨ Features
 
-- **AI-powered analysis** using OpenAI GPT-4o-mini for deep game insights and strategy discussion
-- **Team performance modeling** using scikit-learn Linear Regression with 6 key statistical features
-- **Weather-aware scoring adjustments** powered by [nfl-stadiums](https://pypi.org/project/nfl-stadiums/) and Open-Meteo
-- **Injury impact modeling** based on quarterback tier ratings
-- **Interactive matchup predictor** that outputs winner, margin, and total points
-- **Upset detection agent** for identifying potential surprise outcomes
-- **AWS Lambda deployment** ready with containerized architecture
-- **Centralized configuration** via constants.py with environment overrides
-- **CSV export** for matchup predictions
+- **🤖 AI-Powered Analysis**: OpenAI GPT-4o-mini integration for strategic insights and matchup discussion
+- **📊 Machine Learning Predictions**: scikit-learn Linear Regression using 6 key statistical features
+- **🌦️ Weather-Aware Adjustments**: Real-time weather impact via [nfl-stadiums](https://pypi.org/project/nfl-stadiums/) and Open-Meteo API
+- **🏥 Injury Impact Modeling**: Quarterback tier-based scoring adjustments (5-tier system)
+- **🎲 Upset Detection**: AI-powered analysis to identify potential surprise outcomes
+- **☁️ AWS Lambda Ready**: Containerized deployment with S3 integration
+- **⚙️ Flexible Configuration**: Constants-first approach with environment overrides
+- **📈 Export & Analytics**: CSV output with comprehensive game statistics
+- **🧪 Test Coverage**: Comprehensive tests ensuring production reliability
 
 ---
 
@@ -55,17 +58,29 @@ nfl-score-predictor/
 │   ├── agents/
 │   │   ├── __init__.py
 │   │   └── upsets_ai_agent.py  # Upset detection logic
-│   ├── data/              # Training data and test files
+│   ├── data/              # Training data and configuration
+│   │   ├── nfl_properties_test.yaml    # Team/QB configurations
+│   │   ├── upcoming_matchups_test.csv  # Game schedule
+│   │   ├── nfl_injuries_test.csv       # Injury reports
+│   │   └── nfl_team_*_thru_week_*.csv  # Performance statistics
 │   └── utils/
 │       ├── __init__.py
 │       ├── constants.py   # All configuration constants and defaults
-│       ├── helpers.py     # Utility functions
+│       ├── helpers.py     # Injury/weather adjustment functions
 │       └── env_setup.py   # Environment configuration
 │
-└── tests/                 # Test suite
-    ├── test_model.py
-    ├── test_injuries.py
-    └── test_weather.py
+├── tests/                 # Comprehensive test suite
+│   ├── test_constants.py
+│   ├── test_environment.py
+│   ├── test_injuries.py
+│   ├── test_injury_and_weather.py
+│   ├── test_lambda_handler.py
+│   ├── test_model.py
+│   ├── test_upsets_agent.py
+│   └── test_weather.py
+│
+├── nfl_stadium_resources/ # Stadium data for weather integration
+└── .github/workflows/     # CI/CD pipelines
 
 ```
 
@@ -73,93 +88,123 @@ nfl-score-predictor/
 
 ## ⚙️ Setup
 
-### Local (virtual environment)
+### Prerequisites
 
-1. Create a virtual environment:
+- Python 3.11+ 
+- OpenAI API key (for AI-powered analysis)
 
-`python3 -m venv nfl_env`
-`source nfl_env/bin/activate`
+### Local Development (Virtual Environment)
 
-2. Install dependencies:
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/whansen2/nfl-score-predictor.git
+   cd nfl-score-predictor
+   ```
 
-`pip install -r nfl_predictor/requirements.txt`
+2. **Create and activate virtual environment:**
+   ```bash
+   make venv
+   source nfl_env/bin/activate
+   ```
 
-For AI-powered analysis features, also install:
+3. **Install dependencies:**
+   ```bash
+   make install
+   ```
 
-`pip install -r llm/requirements.txt`
+4. **Configure environment:**
+   ```bash
+   cp .env.example .env
+   # Edit .env and add your OpenAI API key
+   ```
 
-3. Copy the environment template and add your OpenAI API key:
+5. **Run tests to verify setup:**
+   ```bash
+   make test
+   ```
 
-`cp .env.example .env`
+6. **Run predictions:**
+   ```bash
+   make run
+   ```
 
-Then edit `.env` and add your OpenAI API key:
+---
 
+## Quick Start
+
+```bash
+# Complete setup and run
+make venv && make install
+cp .env.example .env  # Add your OPENAI_API_KEY
+make run
+
+# Run AI analysis
+python llm/blitz.py
 ```
-# Only required variable - OpenAI API key for AI-powered analysis
-OPENAI_API_KEY=your_openai_api_key_here
-```
-
-**Note**: All other configuration values (game parameters, feature flags, etc.) are defined in `nfl_predictor/utils/constants.py`. You can optionally override any of these in `.env` if needed (see `.env.example` for available options).
 
 ---
 
 ## 🔧 Configuration
 
-This project uses a **constants-first approach** for configuration:
+This project uses a **constants-first architecture** for maximum flexibility:
 
-- **`nfl_predictor/utils/constants.py`**: Contains all default values for features, model parameters, file names, etc.
-- **`.env`**: Contains only the required OpenAI API key. Can optionally override any constants.
-- **`.env.example`**: Template showing available environment variables you can override.
+- **`nfl_predictor/utils/constants.py`**: All default values and configuration
+- **`.env`**: Override any constants (only `OPENAI_API_KEY` is required)
+- **`.env.example`**: Template showing all configurable options
 
-### Key Configuration Options
+### Essential Configuration Options
 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `OPENAI_API_KEY` | *(required)* | API key for GPT-4o-mini analysis |
-| `LOG_LEVEL` | `INFO` | Logging verbosity level |
-| `ENABLE_INJURY_ADJUSTMENTS` | `false` | Include QB injury impact in predictions |
-| `ENABLE_WEATHER_ADJUSTMENTS` | `false` | Include weather conditions in scoring |
-| `ENABLE_UPSETS_AGENT` | `true` | Run AI-powered upset analysis |
+| `ENABLE_INJURY_ADJUSTMENTS` | `false` | QB injury impact scoring adjustments |
+| `ENABLE_WEATHER_ADJUSTMENTS` | `false` | Weather-based scoring adjustments |
+| `ENABLE_UPSETS_AGENT` | `true` | AI-powered upset detection |
 | `WEEK_NUMBER` | `18` | NFL week for predictions |
-| `HOME_TEAM` | `Philadelphia Eagles` | Default home team |
-| `AWAY_TEAM` | `Kansas City Chiefs` | Default away team |
+| `YEAR_ABBR` | `24` | Season year (2024 data for training) |
+| `VERBOSE_ADJUSTMENTS` | `false` | Detailed adjustment logging |
 
-See `nfl_predictor/utils/constants.py` for the complete list of configurable values.
+### Feature Flags (Production Ready)
 
-### Local (Docker)
-1. Build the Docker container:
+The system includes battle-tested optional features:
 
-`docker-compose build`
+```bash
+# Enable injury adjustments (5-tier QB rating system)
+ENABLE_INJURY_ADJUSTMENTS=true
 
-2. Run the container:
+# Enable weather adjustments (temperature, wind, precipitation)
+ENABLE_WEATHER_ADJUSTMENTS=true
 
-`docker-compose up`
-
-The container will automatically execute the script and print the predicted scores to the console. Output is saved to a CSV inside the `nfl_predictor/data/` directory.
-
----
-
-## 🛠️ Makefile Commands
-This project includes a Makefile to streamline local development and Docker usage.
-
-### Local (virtual environment)
-
-```
-make venv         # Create a virtual environment (nfl_env)
-make install      # Install dependencies inside the virtual environment
-make run          # Run the prediction script locally using your .env config
-make test         # Run all tests (requires pytest)
-make clean        # Clean up Python cache (__pycache__ directories)
+# Enable verbose logging for adjustments
+VERBOSE_ADJUSTMENTS=true
 ```
 
-### Local (Docker)
+**Note**: These features are thoroughly tested (see `tests/test_injury_and_weather.py`) and ready for production use.
 
-```
-make docker-up    # Build and run the Docker container
-make docker-down  # Stop the running Docker container and network
-```
+### Docker Development
 
-Make sure your `.env` file is properly configured before using `make run` or `make docker-up`.
+1. **Build and run:**
+   ```bash
+   make docker-up
+   ```
+
+2. **Stop containers:**
+   ```bash
+   make docker-down
+   ```
+
+### AWS Lambda Deployment
+
+The system is production-ready for serverless deployment:
+
+1. **Build Lambda container:**
+   ```bash
+   docker build -f Dockerfile.lambda -t nfl-predictor-lambda .
+   ```
+
+2. **Deploy via AWS CLI or GitHub Actions** (see `.github/workflows/deploy-lambda.yml`)
+
+3. **Configure S3 buckets** for input/output files as defined in `constants.py`
 
 ---
 
@@ -167,27 +212,109 @@ Make sure your `.env` file is properly configured before using `make run` or `ma
 
 ### Core Prediction Engine
 
-Run the main prediction script locally (after activating your virtual environment):
+```bash
+# Run predictions with current configuration
+python nfl_predictor/nfl_ai_scores.py
 
-`python nfl_predictor/nfl_ai_scores.py`
+# Or use the Makefile
+make run
+```
 
-Matchups will be predicted based on your configuration — no manual inputs required.
+**Output**: Predictions saved to `nfl_predictor/data/predicted_matchups_test.csv`
 
-### AI-Powered Analysis
+### AI-Powered Analysis (Blitz Module)
 
-For deeper game insights and analysis, use the LLM module:
+```bash
+# Launch interactive analysis chat
+python llm/blitz.py
+```
 
-`python llm/blitz.py`
+Features include:
+- Historical matchup analysis
+- Strategic team insights
+- Injury impact discussion  
+- Weather considerations
+- Upset potential evaluation
 
-This launches an interactive chat interface powered by GPT-4o-mini for discussing matchups, strategies, and predictions.
+### Advanced Usage Examples
+
+```bash
+# Enable all features for comprehensive analysis
+export ENABLE_INJURY_ADJUSTMENTS=true
+export ENABLE_WEATHER_ADJUSTMENTS=true
+export VERBOSE_ADJUSTMENTS=true
+make run
+
+# Specific week prediction
+export WEEK_NUMBER=1
+make run
+
+# Custom logging level
+export LOG_LEVEL=DEBUG
+make run
+```
+
+## 📊 Model & Features
+
+### Core Statistical Features
+
+The Linear Regression model uses 6 key performance indicators:
+
+1. **Sc%_x**: Home team scoring percentage
+2. **Tot_1stD/G**: Total first downs per game  
+3. **Y/P_x**: Yards per play (offense)
+4. **RZPct_x**: Red zone conversion percentage
+5. **TO%_x**: Turnover differential percentage
+6. **Sc%_y**: Away team scoring percentage
+
+### Optional Adjustments
+
+- **Injury Adjustments**: 5-tier QB rating system (-6 to -2 point penalties)
+- **Weather Adjustments**: Temperature, wind, precipitation impact
+- **Home Field Advantage**: +1 point boost for home teams
+
+### AI Analysis Features
+
+- **Matchup Insights**: Historical performance analysis
+- **Upset Detection**: Statistical anomaly identification  
+- **Strategic Discussion**: Interactive chat about game plans
+- **Trend Analysis**: Multi-week performance tracking
 
 ---
 
-## 📌 Data Sources
+## 📌 Data Sources & Architecture
 
-- **Team stats**: [Pro Football Reference](https://www.pro-football-reference.com/)
-- **Weather**: [Open-Meteo](https://open-meteo.com/) via `nfl-stadiums`
-- **Injuries**: Local test CSV (`nfl_injuries_test.csv`)
+### Data Sources
+
+- **Team Statistics**: Pro Football Reference historical performance data
+- **Weather Data**: [Open-Meteo API](https://open-meteo.com/) via `nfl-stadiums` library
+- **Stadium Information**: NFL stadium database with roof types and locations
+- **Injury Reports**: Configurable CSV format for QB injury tracking
+- **Team Configuration**: YAML-based team and quarterback assignments
+
+### Architecture Highlights
+
+- **Serverless Ready**: AWS Lambda containerized deployment
+- **Environment Agnostic**: Works locally, in Docker, and on Lambda
+- **Constants-First**: Centralized configuration with environment overrides
+- **Extensible**: Modular design for easy feature additions
+- **Production Tested**: Comprehensive error handling and logging
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/new-feature`
+3. Run tests: `make test`
+4. Commit changes: `git commit -am 'Add new feature'`
+5. Push to branch: `git push origin feature/new-feature`
+6. Submit a Pull Request
+
+### Development Guidelines
+
+- All new features should include tests
+- Follow the constants-first configuration approach
+- Update documentation for user-facing changes
+- Ensure CI/CD pipeline passes
 
 ---
 

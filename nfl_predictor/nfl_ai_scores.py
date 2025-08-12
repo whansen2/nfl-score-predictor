@@ -46,9 +46,6 @@ from nfl_predictor.utils.constants import (
     RANDOM_STATE,
     DEFAULT_WEEK_NUMBER,
     DEFAULT_YEAR_ABBR,
-    DEFAULT_GAME_DATE,
-    DEFAULT_HOME_TEAM,
-    DEFAULT_AWAY_TEAM,
     DEFAULT_LOG_LEVEL,
     DEFAULT_VERBOSE_ADJUSTMENTS,
     DEFAULT_INJURY_ADJUSTMENTS,
@@ -84,9 +81,6 @@ ENABLE_UPSETS_AGENT = os.getenv("ENABLE_UPSETS_AGENT", str(DEFAULT_UPSETS_AGENT)
 # Load .env values for defaults if matchup CSV isn't found (all values have defaults in constants.py)
 WEEK_NUMBER = int(os.getenv("WEEK_NUMBER", DEFAULT_WEEK_NUMBER))
 YEAR_ABBR = int(os.getenv("YEAR_ABBR", DEFAULT_YEAR_ABBR))
-GAME_DATE = os.getenv("GAME_DATE", DEFAULT_GAME_DATE)
-HOME_TEAM = os.getenv("HOME_TEAM", DEFAULT_HOME_TEAM)
-AWAY_TEAM = os.getenv("AWAY_TEAM", DEFAULT_AWAY_TEAM)
 
 # Monkey-patch and get resource dir for nfl_stadiums
 resource_dir = configure_nfl_stadiums_resource_dir()
@@ -118,19 +112,12 @@ def run_predictions():
     # Matchups CSV path
     matchups_path = os.path.join(path, INPUT_FILE_NAME)
 
-    # Load upcoming matchups from CSV if present
+    # Load upcoming matchups from CSV - required for operation
     if os.path.exists(matchups_path):
         df_matchups = pd.read_csv(matchups_path)
         logger.info(f"Loaded {len(df_matchups)} upcoming matchups from CSV")
     else:
-        # Fallback to single matchup from .env/constants defaults
-        df_matchups = pd.DataFrame([{
-            "Week": WEEK_NUMBER,
-            "Home Team": HOME_TEAM,
-            "Away Team": AWAY_TEAM,
-            "Game Date": GAME_DATE
-        }])
-        logger.warning("No matchup CSV found — using single matchup from .env/constants defaults")
+        raise FileNotFoundError(f"Matchups CSV file not found at {matchups_path}. This file is required for predictions.")
 
     printed_weeks = set()       # Track weeks already printed to avoid duplicate model metrics
     week_model_cache = {}       # Cache trained models per week to avoid retraining
