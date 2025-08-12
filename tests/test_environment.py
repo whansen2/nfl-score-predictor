@@ -133,9 +133,7 @@ class TestConfigurationConsistency:
                 "ENABLE_INJURY_ADJUSTMENTS", 
                 "ENABLE_WEATHER_ADJUSTMENTS",
                 "ENABLE_UPSETS_AGENT",
-                "WEEK_NUMBER",
-                "HOME_TEAM",
-                "AWAY_TEAM"
+                "WEEK_NUMBER"
             ]
             
             for var in expected_vars:

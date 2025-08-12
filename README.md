@@ -121,8 +121,6 @@ This project uses a **constants-first approach** for configuration:
 | `ENABLE_WEATHER_ADJUSTMENTS` | `false` | Include weather conditions in scoring |
 | `ENABLE_UPSETS_AGENT` | `true` | Run AI-powered upset analysis |
 | `WEEK_NUMBER` | `18` | NFL week for predictions |
-| `HOME_TEAM` | `Philadelphia Eagles` | Default home team |
-| `AWAY_TEAM` | `Kansas City Chiefs` | Default away team |
 
 See `nfl_predictor/utils/constants.py` for the complete list of configurable values.
 

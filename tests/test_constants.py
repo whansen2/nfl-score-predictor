@@ -24,9 +24,6 @@ from nfl_predictor.utils.constants import (
     # Prediction defaults
     DEFAULT_WEEK_NUMBER,
     DEFAULT_YEAR_ABBR,
-    DEFAULT_GAME_DATE,
-    DEFAULT_HOME_TEAM,
-    DEFAULT_AWAY_TEAM,
     # Feature flags
     DEFAULT_LOG_LEVEL,
     DEFAULT_VERBOSE_ADJUSTMENTS,
@@ -102,19 +99,6 @@ class TestDefaultValues:
         
         assert isinstance(DEFAULT_YEAR_ABBR, int)
         assert DEFAULT_YEAR_ABBR >= 0
-        
-        assert isinstance(DEFAULT_GAME_DATE, str)
-        # Should be in YYYY-MM-DD format
-        date_parts = DEFAULT_GAME_DATE.split('-')
-        assert len(date_parts) == 3
-        assert len(date_parts[0]) == 4  # Year
-        assert len(date_parts[1]) == 2  # Month
-        assert len(date_parts[2]) == 2  # Day
-        
-        assert isinstance(DEFAULT_HOME_TEAM, str)
-        assert isinstance(DEFAULT_AWAY_TEAM, str)
-        assert len(DEFAULT_HOME_TEAM) > 0
-        assert len(DEFAULT_AWAY_TEAM) > 0
     
     def test_feature_flags(self):
         """Test feature flag defaults."""
@@ -129,6 +113,11 @@ class TestDefaultValues:
 class TestConstantsIntegrity:
     """Test constants work together properly."""
     
-    def test_team_names_different(self):
-        """Ensure default home and away teams are different."""
-        assert DEFAULT_HOME_TEAM != DEFAULT_AWAY_TEAM
+    def test_matchups_csv_exists(self):
+        """Ensure the matchups CSV file exists since it's now required."""
+        import os
+        from nfl_predictor.utils.constants import INPUT_FILE_NAME
+        
+        # This test ensures the required matchups CSV exists in the expected location
+        expected_path = os.path.join("nfl_predictor", "data", INPUT_FILE_NAME)
+        assert os.path.exists(expected_path), f"Required matchups file not found: {expected_path}"

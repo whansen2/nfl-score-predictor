@@ -11,25 +11,25 @@ team_abbreviations:
   Dallas Cowboys: DAL
   Denver Broncos: DEN
   Detroit Lions: DET
-  Green Bay Packers: GNB
+  Green Bay Packers: GB
   Houston Texans: HOU
   Indianapolis Colts: IND
   Jacksonville Jaguars: JAX
   Kansas City Chiefs: KAN
-  Las Vegas Raiders: LVR
+  Las Vegas Raiders: LV
   Los Angeles Chargers: LAC
   Los Angeles Rams: LAR
   Miami Dolphins: MIA
   Minnesota Vikings: MIN
-  New England Patriots: NWE
-  New Orleans Saints: NOR
+  New England Patriots: NE
+  New Orleans Saints: "NO"
   New York Giants: NYG
   New York Jets: NYJ
   Philadelphia Eagles: PHI
   Pittsburgh Steelers: PIT
-  San Francisco 49ers: SFO
+  San Francisco 49ers: SF
   Seattle Seahawks: SEA
-  Tampa Bay Buccaneers: TAM
+  Tampa Bay Buccaneers: TB
   Tennessee Titans: TEN
   Washington Commanders: WAS
 
@@ -43,37 +43,37 @@ qb_tiers:
 
 team_qbs:
   Arizona Cardinals: ["Kyler Murray", "above_average"]
-  Atlanta Falcons: ["Kirk Cousins", "above_average"]
+  Atlanta Falcons: ["Michael Penix Jr.", "average"]
   Baltimore Ravens: ["Lamar Jackson", "elite"]
   Buffalo Bills: ["Josh Allen", "elite"]
-  Carolina Panthers: ["Bryce Young", "average"]
+  Carolina Panthers: ["Bryce Young", "below_average"]
   Chicago Bears: ["Caleb Williams", "average"]
   Cincinnati Bengals: ["Joe Burrow", "elite"]
-  Cleveland Browns: ["Deshaun Watson", "below_average"]
+  Cleveland Browns: ["Joe Flacco", "average"]
   Dallas Cowboys: ["Dak Prescott", "above_average"]
   Denver Broncos: ["Bo Nix", "average"]
   Detroit Lions: ["Jared Goff", "above_average"]
   Green Bay Packers: ["Jordan Love", "above_average"]
   Houston Texans: ["C.J. Stroud", "above_average"]
-  Indianapolis Colts: ["Anthony Richardson", "average"]
-  Jacksonville Jaguars: ["Trevor Lawrence", "elite"]
+  Indianapolis Colts: ["Anthony Richardson Sr.", "below_average"]
+  Jacksonville Jaguars: ["Trevor Lawrence", "above_average"]
   Kansas City Chiefs: ["Patrick Mahomes", "elite"]
-  Las Vegas Raiders: ["Aidan O'Connell", "replacement_level"]
+  Las Vegas Raiders: ["Geno Smith", "average"]
   Los Angeles Chargers: ["Justin Herbert", "elite"]
   Los Angeles Rams: ["Matthew Stafford", "above_average"]
   Miami Dolphins: ["Tua Tagovailoa", "above_average"]
-  Minnesota Vikings: ["Sam Darnold", "above_average"]
+  Minnesota Vikings: ["J.J. McCarthy", "average"]
   New England Patriots: ["Drake Maye", "average"]
-  New Orleans Saints: ["Derek Carr", "average"]
-  New York Giants: ["Daniel Jones", "average"]
-  New York Jets: ["Aaron Rodgers", "elite"]
+  New Orleans Saints: ["Spencer Rattler", "below_average"]
+  New York Giants: ["Russell Wilson", "average"]
+  New York Jets: ["Justin Fields", "average"]
   Philadelphia Eagles: ["Jalen Hurts", "elite"]
-  Pittsburgh Steelers: ["Russell Wilson", "above_average"]
+  Pittsburgh Steelers: ["Aaron Rodgers", "average"]
   San Francisco 49ers: ["Brock Purdy", "average"]
-  Seattle Seahawks: ["Geno Smith", "average"]
+  Seattle Seahawks: ["Sam Darnold", "above_average"]
   Tampa Bay Buccaneers: ["Baker Mayfield", "above_average"]
-  Tennessee Titans: ["Will Levis", "below_average"]
-  Washington Commanders: ["Jayden Daniels", "above_average"]
+  Tennessee Titans: ["Cam Ward", "average"]
+  Washington Commanders: ["Jayden Daniels", "elite"]
 
 # for weather data
 weather_tiers:

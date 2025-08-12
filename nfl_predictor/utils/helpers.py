@@ -66,9 +66,12 @@ def get_injuries_adjustment(
             return 0
 
         team_qb_list = team_injuries.get(abbr, [])
+        qb_name, tier = team_qbs.get(team, [None, "average"])
+        
         for player in team_qb_list:
-            if player["Pos"] == "QB" and player.get("Status", "").lower() in ["questionable", "doubtful", "out"]:
-                qb_name, tier = team_qbs.get(team, [None, "average"])
+            if (player["Pos"] == "QB" and 
+                player.get("Status", "").lower() in ["questionable", "doubtful", "out"] and
+                player["Player"] == qb_name):
                 return qb_tiers.get(tier, 0)
         return 0
 
