@@ -35,9 +35,6 @@ DEFAULT_OUTPUT_BUCKET = "nfl-score-predictor-test-output"
 # Prediction defaults
 DEFAULT_WEEK_NUMBER = 18
 DEFAULT_YEAR_ABBR = 24
-DEFAULT_GAME_DATE = "2025-02-09"
-DEFAULT_HOME_TEAM = "Philadelphia Eagles"
-DEFAULT_AWAY_TEAM = "Kansas City Chiefs"
 
 # Feature flags defaults
 DEFAULT_LOG_LEVEL = "INFO"
