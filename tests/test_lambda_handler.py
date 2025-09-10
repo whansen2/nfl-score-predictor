@@ -19,7 +19,7 @@ class TestLambdaHandler:
             "Records": [{
                 "s3": {
                     "bucket": {"name": "test-input-bucket"},
-                    "object": {"key": "upcoming_matchups_test.csv"}
+                    "object": {"key": "upcoming_matchups.csv"}
                 }
             }]
         }

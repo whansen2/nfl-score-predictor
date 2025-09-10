@@ -95,7 +95,7 @@ class TestDefaultValues:
     def test_prediction_defaults(self):
         """Test prediction default values."""
         assert isinstance(DEFAULT_WEEK_NUMBER, int)
-        assert 1 <= DEFAULT_WEEK_NUMBER <= 18
+        assert 1 <= DEFAULT_WEEK_NUMBER <= 22  # Updated to support regular season + playoffs
         
         assert isinstance(DEFAULT_YEAR_ABBR, int)
         assert DEFAULT_YEAR_ABBR >= 0
@@ -119,5 +119,8 @@ class TestConstantsIntegrity:
         from nfl_predictor.utils.constants import INPUT_FILE_NAME
         
         # This test ensures the required matchups CSV exists in the expected location
-        expected_path = os.path.join("nfl_predictor", "data", INPUT_FILE_NAME)
+        # Get the absolute path from the current file location
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.dirname(current_dir)
+        expected_path = os.path.join(project_root, "nfl_predictor", "data", INPUT_FILE_NAME)
         assert os.path.exists(expected_path), f"Required matchups file not found: {expected_path}"
