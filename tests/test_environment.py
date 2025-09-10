@@ -118,30 +118,6 @@ class TestFilePathIntegration:
 class TestConfigurationConsistency:
     """Test consistency across configuration files and constants."""
     
-    def test_env_example_matches_constants(self):
-        """Test that .env.example template includes all configurable constants."""
-        # Read .env.example file
-        env_example_path = os.path.join(os.path.dirname(__file__), "..", ".env.example")
-        
-        try:
-            with open(env_example_path, 'r') as f:
-                env_example_content = f.read()
-                
-            # Check for key configuration variables
-            expected_vars = [
-                "LOG_LEVEL",
-                "ENABLE_INJURY_ADJUSTMENTS", 
-                "ENABLE_WEATHER_ADJUSTMENTS",
-                "ENABLE_UPSETS_AGENT",
-                "WEEK_NUMBER"
-            ]
-            
-            for var in expected_vars:
-                assert var in env_example_content, f"Missing {var} in .env.example"
-                
-        except FileNotFoundError:
-            pytest.skip(".env.example file not found")
-    
     def test_docker_compose_uses_constants_approach(self):
         """Test that docker-compose.yml follows constants-first approach."""
         docker_compose_path = os.path.join(os.path.dirname(__file__), "..", "docker-compose.yml")

@@ -69,13 +69,13 @@ jobs:
       - name: Wait for Lambda to be ready
         run: sleep 60
 
-      - name: Upload test CSV to S3 if it exists
+      - name: Upload auto CSV to S3 if it exists
         run: |
-          if [ -f "nfl_predictor/data/upcoming_matchups_test.csv" ]; then
+          if [ -f "nfl_predictor/data/upcoming_matchups_auto.csv" ]; then
             echo "CSV found, uploading to S3..."
-            aws s3 cp nfl_predictor/data/upcoming_matchups_test.csv \
-              s3://nfl-score-predictor-test-input/upcoming_matchups_test.csv \
+            aws s3 cp nfl_predictor/data/upcoming_matchups_auto.csv \
+              s3://nfl-score-predictor-test-input/upcoming_matchups_auto.csv \
               --region $AWS_REGION
           else
-            echo "No test CSV found, skipping upload."
+            echo "No auto CSV found, skipping upload."
           fi

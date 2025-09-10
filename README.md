@@ -5,6 +5,8 @@
 
 A production-ready NFL game prediction system that combines machine learning with contextual adjustments to generate accurate score predictions, winner analysis, and over/under estimates.
 
+**🏈 Currently configured for 2025 NFL Season predictions** - easily configurable for any week via environment variables.
+
 ## 🎯 Overview
 
 This system uses scikit-learn Linear Regression trained on real NFL team performance data, enhanced with optional injury and weather adjustments. The AI-powered analysis module provides deep strategic insights using OpenAI's GPT-4o-mini.
@@ -60,9 +62,10 @@ nfl-score-predictor/
 │   │   └── upsets_ai_agent.py  # Upset detection logic
 │   ├── data/              # Training data and configuration
 │   │   ├── nfl_properties_test.yaml    # Team/QB configurations
-│   │   ├── upcoming_matchups_test.csv  # Game schedule
+│   │   ├── upcoming_matchups.csv       # Game schedule
+│   │   ├── standings.csv               # Current team standings
 │   │   ├── nfl_injuries_test.csv       # Injury reports
-│   │   └── nfl_team_*_thru_week_*.csv  # Performance statistics
+│   │   └── nfl_team_*_thru_week_1_25.csv  # Performance statistics
 │   └── utils/
 │       ├── __init__.py
 │       ├── constants.py   # All configuration constants and defaults
@@ -138,7 +141,7 @@ make venv && make install
 cp .env.example .env  # Add your OPENAI_API_KEY
 make run
 
-# Run AI analysis
+# Run AI analysis on predictions
 python llm/blitz.py
 ```
 
@@ -160,8 +163,8 @@ This project uses a **constants-first architecture** for maximum flexibility:
 | `ENABLE_INJURY_ADJUSTMENTS` | `false` | QB injury impact scoring adjustments |
 | `ENABLE_WEATHER_ADJUSTMENTS` | `false` | Weather-based scoring adjustments |
 | `ENABLE_UPSETS_AGENT` | `true` | AI-powered upset detection |
-| `WEEK_NUMBER` | `18` | NFL week for predictions |
-| `YEAR_ABBR` | `24` | Season year (2024 data for training) |
+| `WEEK_NUMBER` | `1` | NFL week for predictions |
+| `YEAR_ABBR` | `25` | Season year (2025 data) |
 | `VERBOSE_ADJUSTMENTS` | `false` | Detailed adjustment logging |
 
 ### Feature Flags (Production Ready)
@@ -222,6 +225,8 @@ make run
 
 **Output**: Predictions saved to `nfl_predictor/data/predicted_matchups_test.csv`
 
+**Input**: Reads from `nfl_predictor/data/upcoming_matchups.csv` and team statistics
+
 ### AI-Powered Analysis (Blitz Module)
 
 ```bash
@@ -246,7 +251,7 @@ export VERBOSE_ADJUSTMENTS=true
 make run
 
 # Specific week prediction
-export WEEK_NUMBER=1
+export WEEK_NUMBER=2
 make run
 
 # Custom logging level

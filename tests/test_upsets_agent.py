@@ -49,12 +49,12 @@ class TestUpsetsAgent:
     def sample_standings(self):
         """Sample standings data for testing."""
         return pd.DataFrame([
-            {"Team": "Kansas City Chiefs", "W": 14, "L": 3},
-            {"Team": "Buffalo Bills", "W": 13, "L": 4},
-            {"Team": "Philadelphia Eagles", "W": 11, "L": 6},
-            {"Team": "Dallas Cowboys", "W": 12, "L": 5},
-            {"Team": "Cincinnati Bengals", "W": 9, "L": 8},
-            {"Team": "Cleveland Browns", "W": 11, "L": 6}
+            {"Tm": "Kansas City Chiefs", "W": 14, "L": 3},
+            {"Tm": "Buffalo Bills", "W": 13, "L": 4},
+            {"Tm": "Philadelphia Eagles", "W": 11, "L": 6},
+            {"Tm": "Dallas Cowboys", "W": 12, "L": 5},
+            {"Tm": "Cincinnati Bengals", "W": 9, "L": 8},
+            {"Tm": "Cleveland Browns", "W": 11, "L": 6}
         ])
     
     def test_upsets_agent_no_standings_file(self, sample_predictions):
@@ -69,7 +69,7 @@ class TestUpsetsAgent:
         """Test agent identifies games with small point differences."""
         with tempfile.TemporaryDirectory() as temp_dir:
             # Create standings file
-            standings_path = os.path.join(temp_dir, "standings_test.csv")
+            standings_path = os.path.join(temp_dir, "standings.csv")
             sample_standings.to_csv(standings_path, index=False)
             
             result = run_upsets_agent(sample_predictions, temp_dir)
@@ -81,7 +81,7 @@ class TestUpsetsAgent:
     def test_upsets_agent_identifies_upsets(self, sample_predictions, sample_standings):
         """Test agent identifies potential upsets based on win records."""
         with tempfile.TemporaryDirectory() as temp_dir:
-            standings_path = os.path.join(temp_dir, "standings_test.csv")
+            standings_path = os.path.join(temp_dir, "standings.csv")
             sample_standings.to_csv(standings_path, index=False)
             
             result = run_upsets_agent(sample_predictions, temp_dir)
@@ -93,7 +93,7 @@ class TestUpsetsAgent:
     def test_upsets_agent_preserves_original_columns(self, sample_predictions, sample_standings):
         """Test agent preserves all original prediction columns."""
         with tempfile.TemporaryDirectory() as temp_dir:
-            standings_path = os.path.join(temp_dir, "standings_test.csv")
+            standings_path = os.path.join(temp_dir, "standings.csv")
             sample_standings.to_csv(standings_path, index=False)
             
             result = run_upsets_agent(sample_predictions, temp_dir)
@@ -118,12 +118,12 @@ class TestUpsetsAgent:
         }])
         
         tie_standings = pd.DataFrame([
-            {"Team": "Team A", "W": 10, "L": 6},
-            {"Team": "Team B", "W": 8, "L": 8}
+            {"Tm": "Team A", "W": 10, "L": 6},
+            {"Tm": "Team B", "W": 8, "L": 8}
         ])
         
         with tempfile.TemporaryDirectory() as temp_dir:
-            standings_path = os.path.join(temp_dir, "standings_test.csv")
+            standings_path = os.path.join(temp_dir, "standings.csv")
             tie_standings.to_csv(standings_path, index=False)
             
             result = run_upsets_agent(tie_predictions, temp_dir)
@@ -136,7 +136,7 @@ class TestUpsetsAgent:
     def test_upsets_agent_logs_summary(self, mock_logger, sample_predictions, sample_standings):
         """Test agent logs summary information."""
         with tempfile.TemporaryDirectory() as temp_dir:
-            standings_path = os.path.join(temp_dir, "standings_test.csv")
+            standings_path = os.path.join(temp_dir, "standings.csv")
             sample_standings.to_csv(standings_path, index=False)
             
             run_upsets_agent(sample_predictions, temp_dir)
@@ -172,11 +172,11 @@ class TestUpsetsAgentEdgeCases:
         }])
         
         standings = pd.DataFrame([
-            {"Team": "Different Team", "W": 10, "L": 6}
+            {"Tm": "Different Team", "W": 10, "L": 6}
         ])
         
         with tempfile.TemporaryDirectory() as temp_dir:
-            standings_path = os.path.join(temp_dir, "standings_test.csv")
+            standings_path = os.path.join(temp_dir, "standings.csv")
             standings.to_csv(standings_path, index=False)
             
             result = run_upsets_agent(predictions, temp_dir)

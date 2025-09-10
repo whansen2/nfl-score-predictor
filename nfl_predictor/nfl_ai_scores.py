@@ -19,7 +19,7 @@ Configuration:
 """
 
 from dotenv import load_dotenv
-# Load .env values (only OPENAI_API_KEY required - all other config in constants.py)
+# Load .env values (all other config in constants.py)
 load_dotenv()
 
 import os
@@ -125,10 +125,10 @@ def run_predictions():
 
     for _, row in df_matchups.iterrows():
         week = row["Week"]
-        home_team = row["Home Team"]
-        away_team = row["Away Team"]
-        game_date = row["Game Date"]
-        training_week = get_training_week(week)  # Determine training week for each matchup
+        home_team = row["Home"]
+        away_team = row["Visitor"]
+        game_date = row["Date"]
+        training_week = get_training_week(week - 1)  # Use previous week's data for predictions
 
         # Train model only once per week and cache it
         if week not in week_model_cache:

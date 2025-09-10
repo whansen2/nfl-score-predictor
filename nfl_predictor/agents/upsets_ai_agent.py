@@ -26,18 +26,18 @@ def run_upsets_agent(df_results: pd.DataFrame, path: str) -> pd.DataFrame:
 
     # Merge win counts
     df_flagged = df_flagged.merge(
-        df_standings[["Team", "W"]],
+        df_standings[["Tm", "W"]],
         left_on="Home Team",
-        right_on="Team",
+        right_on="Tm",
         how="left"
-    ).rename(columns={"W": "Home Wins"}).drop(columns=["Team"])
+    ).rename(columns={"W": "Home Wins"}).drop(columns=["Tm"])
 
     df_flagged = df_flagged.merge(
-        df_standings[["Team", "W"]],
+        df_standings[["Tm", "W"]],
         left_on="Away Team",
-        right_on="Team",
+        right_on="Tm",
         how="left"
-    ).rename(columns={"W": "Away Wins"}).drop(columns=["Team"])
+    ).rename(columns={"W": "Away Wins"}).drop(columns=["Tm"])
 
     # Determine winner
     df_flagged["Predicted Winner"] = df_flagged["Result"].apply(
