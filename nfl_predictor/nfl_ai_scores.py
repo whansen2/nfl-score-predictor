@@ -128,7 +128,7 @@ def run_predictions():
         home_team = row["Home"]
         away_team = row["Visitor"]
         game_date = row["Date"]
-        training_week = get_training_week(week)  # Determine training week for each matchup
+        training_week = get_training_week(week - 1)  # Use previous week's data for predictions
 
         # Train model only once per week and cache it
         if week not in week_model_cache:
