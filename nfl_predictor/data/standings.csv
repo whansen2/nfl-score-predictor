@@ -1,33 +1,33 @@
 Tm,W,L,W-L%
-Arizona Cardinals,2,0,1.000
-Buffalo Bills,2,0,1.000
-Cincinnati Bengals,2,0,1.000
-Green Bay Packers,2,0,1.000
-Indianapolis Colts,2,0,1.000
-Los Angeles Chargers,2,0,1.000
-Los Angeles Rams,2,0,1.000
-Philadelphia Eagles,2,0,1.000
-San Francisco 49ers,2,0,1.000
-Tampa Bay Buccaneers,2,0,1.000
-Atlanta Falcons,1,1,.500
-Baltimore Ravens,1,1,.500
-Dallas Cowboys,1,1,.500
-Denver Broncos,1,1,.500
-Detroit Lions,1,1,.500
-Jacksonville Jaguars,1,1,.500
-Las Vegas Raiders,1,1,.500
-Minnesota Vikings,1,1,.500
-New England Patriots,1,1,.500
-Pittsburgh Steelers,1,1,.500
-Seattle Seahawks,1,1,.500
-Washington Commanders,1,1,.500
-Carolina Panthers,0,2,.000
-Chicago Bears,0,2,.000
-Cleveland Browns,0,2,.000
-Houston Texans,0,2,.000
-Kansas City Chiefs,0,2,.000
-Miami Dolphins,0,2,.000
-New Orleans Saints,0,2,.000
-New York Giants,0,2,.000
-New York Jets,0,2,.000
-Tennessee Titans,0,2,.000
+Buffalo Bills,3,0,1.000
+Indianapolis Colts,3,0,1.000
+Los Angeles Chargers,3,0,1.000
+Philadelphia Eagles,3,0,1.000
+San Francisco 49ers,3,0,1.000
+Tampa Bay Buccaneers,3,0,1.000
+Arizona Cardinals,2,1,.667
+Cincinnati Bengals,2,1,.667
+Detroit Lions,2,1,.667
+Green Bay Packers,2,1,.667
+Jacksonville Jaguars,2,1,.667
+Los Angeles Rams,2,1,.667
+Minnesota Vikings,2,1,.667
+Pittsburgh Steelers,2,1,.667
+Seattle Seahawks,2,1,.667
+Washington Commanders,2,1,.667
+Atlanta Falcons,1,2,.333
+Baltimore Ravens,1,2,.333
+Carolina Panthers,1,2,.333
+Chicago Bears,1,2,.333
+Cleveland Browns,1,2,.333
+Dallas Cowboys,1,2,.333
+Denver Broncos,1,2,.333
+Kansas City Chiefs,1,2,.333
+Las Vegas Raiders,1,2,.333
+New England Patriots,1,2,.333
+Houston Texans,0,3,.000
+Miami Dolphins,0,3,.000
+New Orleans Saints,0,3,.000
+New York Giants,0,3,.000
+New York Jets,0,3,.000
+Tennessee Titans,0,3,.000
