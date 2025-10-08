@@ -1,33 +1,33 @@
 Tm,W,L,T,W-L%
-Buffalo Bills,4,0,0,1.000
-Philadelphia Eagles,4,0,0,1.000
-Detroit Lions,3,1,0,.750
-Indianapolis Colts,3,1,0,.750
-Jacksonville Jaguars,3,1,0,.750
-Los Angeles Chargers,3,1,0,.750
-Los Angeles Rams,3,1,0,.750
+Buffalo Bills,4,1,0,.800
+Detroit Lions,4,1,0,.800
+Indianapolis Colts,4,1,0,.800
+Jacksonville Jaguars,4,1,0,.800
+Philadelphia Eagles,4,1,0,.800
+San Francisco 49ers,4,1,0,.800
+Tampa Bay Buccaneers,4,1,0,.800
 Pittsburgh Steelers,3,1,0,.750
-San Francisco 49ers,3,1,0,.750
-Seattle Seahawks,3,1,0,.750
-Tampa Bay Buccaneers,3,1,0,.750
 Green Bay Packers,2,1,1,.625
-Arizona Cardinals,2,2,0,.500
+Denver Broncos,3,2,0,.600
+Los Angeles Chargers,3,2,0,.600
+Los Angeles Rams,3,2,0,.600
+Minnesota Vikings,3,2,0,.600
+New England Patriots,3,2,0,.600
+Seattle Seahawks,3,2,0,.600
+Washington Commanders,3,2,0,.600
 Atlanta Falcons,2,2,0,.500
 Chicago Bears,2,2,0,.500
-Cincinnati Bengals,2,2,0,.500
-Denver Broncos,2,2,0,.500
-Kansas City Chiefs,2,2,0,.500
-Minnesota Vikings,2,2,0,.500
-New England Patriots,2,2,0,.500
-Washington Commanders,2,2,0,.500
-Dallas Cowboys,1,2,1,.375
-Baltimore Ravens,1,3,0,.250
-Carolina Panthers,1,3,0,.250
-Cleveland Browns,1,3,0,.250
-Houston Texans,1,3,0,.250
-Las Vegas Raiders,1,3,0,.250
-Miami Dolphins,1,3,0,.250
-New York Giants,1,3,0,.250
-New Orleans Saints,0,4,0,.000
-New York Jets,0,4,0,.000
-Tennessee Titans,0,4,0,.000
+Dallas Cowboys,2,2,1,.500
+Arizona Cardinals,2,3,0,.400
+Carolina Panthers,2,3,0,.400
+Cincinnati Bengals,2,3,0,.400
+Houston Texans,2,3,0,.400
+Kansas City Chiefs,2,3,0,.400
+Baltimore Ravens,1,4,0,.200
+Cleveland Browns,1,4,0,.200
+Las Vegas Raiders,1,4,0,.200
+Miami Dolphins,1,4,0,.200
+New York Giants,1,4,0,.200
+New Orleans Saints,1,4,0,.200
+Tennessee Titans,1,4,0,.200
+New York Jets,0,5,0,.000
