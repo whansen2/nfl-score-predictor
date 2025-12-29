@@ -58,8 +58,6 @@ from nfl_predictor.utils.helpers import (
     get_injuries_adjustment,
     get_weather_adjustment,
 )
-from nfl_predictor.utils.env_setup import configure_nfl_stadiums_resource_dir
-from nfl_stadiums import NFLStadiums
 
 # Setup logging with better formatting
 log_level = os.getenv("LOG_LEVEL", DEFAULT_LOG_LEVEL)
@@ -82,16 +80,22 @@ ENABLE_UPSETS_AGENT = os.getenv("ENABLE_UPSETS_AGENT", str(DEFAULT_UPSETS_AGENT)
 WEEK_NUMBER = int(os.getenv("WEEK_NUMBER", DEFAULT_WEEK_NUMBER))
 YEAR_ABBR = int(os.getenv("YEAR_ABBR", DEFAULT_YEAR_ABBR))
 
-# Monkey-patch and get resource dir for nfl_stadiums
-resource_dir = configure_nfl_stadiums_resource_dir()
-
-# Instantiate stadiums object
-stad = NFLStadiums()
-if running_in_lambda():
-    logger.info(f"Using NFL stadium resource dir: {stad._resources_dir}")
-
 # Main prediction logic
 def run_predictions():
+    # Import stadium dependencies (lazy initialization to avoid module-level imports)
+    from nfl_predictor.utils.env_setup import configure_nfl_stadiums_resource_dir
+    from nfl_stadiums import NFLStadiums
+    
+    # Configure resource directory and initialize stadiums (with caching)
+    try:
+        resource_dir = configure_nfl_stadiums_resource_dir()
+        stad = NFLStadiums(use_cache=True, verbose=False)  # Explicitly use cache and reduce verbosity
+        if running_in_lambda():
+            logger.info(f"Using NFL stadium resource dir: {stad._resources_dir}")
+    except Exception as e:
+        logger.error(f"Failed to initialize NFL stadiums: {e}")
+        # Continue without stadium data - weather adjustments will be skipped
+        stad = None
     # Load team, QB, and weather properties
     with open(os.path.join(path, PROPERTIES_FILE_NAME), "r") as file:
         nfl_properties = yaml.safe_load(file)
@@ -209,7 +213,7 @@ def run_predictions():
                 injuries_df, home_team, away_team, team_abbreviations, qb_tiers, team_qbs
             )
 
-        if ENABLE_WEATHER_ADJUSTMENTS:
+        if ENABLE_WEATHER_ADJUSTMENTS and stad is not None:
             wt_adj = get_weather_adjustment(
                 stad, home_team, game_date, weather_tiers
             )
