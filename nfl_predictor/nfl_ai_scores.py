@@ -129,6 +129,9 @@ def run_predictions():
 
     for _, row in df_matchups.iterrows():
         week = row["Week"]
+        # Convert postseason week strings to 19 so training uses week 18 data
+        if not isinstance(week, int):
+            week = 19
         home_team = row["Home"]
         away_team = row["Visitor"]
         game_date = row["Date"]

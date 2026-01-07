@@ -1,17 +1,7 @@
 Week,Visitor,Home,Date
-18,Carolina Panthers,Tampa Bay Buccaneers,2026-01-03
-18,Seattle Seahawks,San Francisco 49ers,2026-01-03
-18,Cleveland Browns,Cincinnati Bengals,2026-01-04
-18,Indianapolis Colts,Houston Texans,2026-01-04
-18,Dallas Cowboys,New York Giants,2026-01-04
-18,Green Bay Packers,Minnesota Vikings,2026-01-04
-18,New Orleans Saints,Atlanta Falcons,2026-01-04
-18,Tennessee Titans,Jacksonville Jaguars,2026-01-04
-18,Washington Commanders,Philadelphia Eagles,2026-01-04
-18,Los Angeles Chargers,Denver Broncos,2026-01-04
-18,New York Jets,Buffalo Bills,2026-01-04
-18,Miami Dolphins,New England Patriots,2026-01-04
-18,Kansas City Chiefs,Las Vegas Raiders,2026-01-04
-18,Detroit Lions,Chicago Bears,2026-01-04
-18,Arizona Cardinals,Los Angeles Rams,2026-01-04
-18,Baltimore Ravens,Pittsburgh Steelers,2026-01-04
+WildCard,Los Angeles Rams,Carolina Panthers,2026-01-10
+WildCard,Green Bay Packers,Chicago Bears,2026-01-10
+WildCard,Buffalo Bills,Jacksonville Jaguars,2026-01-11
+WildCard,San Francisco 49ers,Philadelphia Eagles,2026-01-11
+WildCard,Los Angeles Chargers,New England Patriots,2026-01-11
+WildCard,Houston Texans,Pittsburgh Steelers,2026-01-12
