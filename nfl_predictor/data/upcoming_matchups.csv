@@ -1,7 +1,5 @@
 Week,Visitor,Home,Date
-WildCard,Los Angeles Rams,Carolina Panthers,2026-01-10
-WildCard,Green Bay Packers,Chicago Bears,2026-01-10
-WildCard,Buffalo Bills,Jacksonville Jaguars,2026-01-11
-WildCard,San Francisco 49ers,Philadelphia Eagles,2026-01-11
-WildCard,Los Angeles Chargers,New England Patriots,2026-01-11
-WildCard,Houston Texans,Pittsburgh Steelers,2026-01-12
+Division,Buffalo Bills,Denver Broncos,2026-01-17
+Division,San Francisco 49ers,Seattle Seahawks,2026-01-17
+Division,Houston Texans,New England Patriots,2026-01-18
+Division,Los Angeles Rams,Chicago Bears,2026-01-18
