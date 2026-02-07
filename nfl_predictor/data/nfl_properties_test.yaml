@@ -74,24 +74,3 @@ team_qbs:
   Tampa Bay Buccaneers: ["Baker Mayfield", "above_average"]
   Tennessee Titans: ["Cam Ward", "average"]
   Washington Commanders: ["Jayden Daniels", "elite"]
-
-# for weather data
-weather_tiers:
-  indoor: 0  # Dome games are unaffected by weather
-  clear: 0  # No impact
-  partly_cloudy: 0  # No impact
-  overcast: 0  # No impact
-  light_rain: -1  # Slightly impacts passing, but not significantly
-  moderate_rain: -3  # Impacts passing and handling, moderate adjustment
-  heavy_rain: -5  # Heavy rain can significantly affect scoring, lots of mistakes
-  light_snow: -2  # Slight impact on handling and footing
-  moderate_snow: -4  # More serious impact, lower scoring potential
-  heavy_snow: -6  # Significant impact on gameplay, major reduction in passing
-  wind_0_10_mph: 0  # No impact
-  wind_11_15_mph: -2  # Moderate wind may affect passing and kicking
-  wind_16_20_mph: -4  # Strong wind, affects passing and kicking
-  wind_over_20_mph: -6  # Severe wind, major impact on passing and kicking
-  temperature_above_85: -1  # Heat impacts player endurance, slight adjustment
-  temperature_55_85: 0  # No impact
-  temperature_32_54: 0  # No impact
-  temperature_below_32: -2  # Extreme cold may affect performance, especially in skill positions
