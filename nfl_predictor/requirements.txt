@@ -1,6 +1,7 @@
 # Core dependencies
 pandas==2.2.1
 pyyaml==6.0.1
+scipy==1.12.0  # Pin to avoid source compilation in Lambda (has prebuilt wheels)
 scikit-learn==1.4.1.post1
 
 # Local development and testing
