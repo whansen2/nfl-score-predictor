@@ -9,7 +9,7 @@ A production-ready NFL game prediction system that combines machine learning wit
 
 ## 🎯 Overview
 
-This system uses scikit-learn Linear Regression trained on real NFL team performance data, enhanced with optional injury and weather adjustments. The AI-powered analysis module provides deep strategic insights using OpenAI's GPT-4o-mini.
+This system uses scikit-learn Linear Regression trained on real NFL team performance data, enhanced with optional injury adjustments. The AI-powered analysis module provides deep strategic insights using OpenAI's GPT-4o-mini.
 
 **🚀 Production Ready**: Fully containerized with AWS Lambda deployment, comprehensive test suite, and robust error handling.
 
@@ -19,7 +19,6 @@ This system uses scikit-learn Linear Regression trained on real NFL team perform
 
 - **🤖 AI-Powered Analysis**: OpenAI GPT-4o-mini integration for strategic insights and matchup discussion
 - **📊 Machine Learning Predictions**: scikit-learn Linear Regression using 6 key statistical features
-- **🌦️ Weather-Aware Adjustments**: Real-time weather impact via [nfl-stadiums](https://pypi.org/project/nfl-stadiums/) and Open-Meteo API
 - **🏥 Injury Impact Modeling**: Quarterback tier-based scoring adjustments (5-tier system)
 - **🎲 Upset Detection**: AI-powered analysis to identify potential surprise outcomes
 - **☁️ AWS Lambda Ready**: Containerized deployment with S3 integration
@@ -69,20 +68,16 @@ nfl-score-predictor/
 │   └── utils/
 │       ├── __init__.py
 │       ├── constants.py   # All configuration constants and defaults
-│       ├── helpers.py     # Injury/weather adjustment functions
-│       └── env_setup.py   # Environment configuration
+│       └── helpers.py     # Injury adjustment functions
 │
 ├── tests/                 # Comprehensive test suite
 │   ├── test_constants.py
 │   ├── test_environment.py
 │   ├── test_injuries.py
-│   ├── test_injury_and_weather.py
 │   ├── test_lambda_handler.py
 │   ├── test_model.py
-│   ├── test_upsets_agent.py
-│   └── test_weather.py
+│   └── test_upsets_agent.py
 │
-├── nfl_stadium_resources/ # Stadium data for weather integration
 └── .github/workflows/     # CI/CD pipelines
 
 ```
@@ -161,7 +156,6 @@ This project uses a **constants-first architecture** for maximum flexibility:
 |----------|---------|-------------|
 | `OPENAI_API_KEY` | *(required)* | API key for GPT-4o-mini analysis |
 | `ENABLE_INJURY_ADJUSTMENTS` | `false` | QB injury impact scoring adjustments |
-| `ENABLE_WEATHER_ADJUSTMENTS` | `false` | Weather-based scoring adjustments |
 | `ENABLE_UPSETS_AGENT` | `true` | AI-powered upset detection |
 | `WEEK_NUMBER` | `1` | NFL week for predictions |
 | `YEAR_ABBR` | `25` | Season year (2025 data) |
@@ -175,14 +169,11 @@ The system includes battle-tested optional features:
 # Enable injury adjustments (5-tier QB rating system)
 ENABLE_INJURY_ADJUSTMENTS=true
 
-# Enable weather adjustments (temperature, wind, precipitation)
-ENABLE_WEATHER_ADJUSTMENTS=true
-
 # Enable verbose logging for adjustments
 VERBOSE_ADJUSTMENTS=true
 ```
 
-**Note**: These features are thoroughly tested (see `tests/test_injury_and_weather.py`) and ready for production use.
+**Note**: These features are thoroughly tested (see `tests/test_injuries.py`) and ready for production use.
 
 ### Docker Development
 
@@ -237,8 +228,7 @@ python llm/blitz.py
 Features include:
 - Historical matchup analysis
 - Strategic team insights
-- Injury impact discussion  
-- Weather considerations
+- Injury impact discussion
 - Upset potential evaluation
 
 ### Advanced Usage Examples
@@ -246,7 +236,6 @@ Features include:
 ```bash
 # Enable all features for comprehensive analysis
 export ENABLE_INJURY_ADJUSTMENTS=true
-export ENABLE_WEATHER_ADJUSTMENTS=true
 export VERBOSE_ADJUSTMENTS=true
 make run
 
@@ -275,7 +264,6 @@ The Linear Regression model uses 6 key performance indicators:
 ### Optional Adjustments
 
 - **Injury Adjustments**: 5-tier QB rating system (-6 to -2 point penalties)
-- **Weather Adjustments**: Temperature, wind, precipitation impact
 - **Home Field Advantage**: +1 point boost for home teams
 
 ### AI Analysis Features
@@ -292,8 +280,6 @@ The Linear Regression model uses 6 key performance indicators:
 ### Data Sources
 
 - **Team Statistics**: Pro Football Reference historical performance data
-- **Weather Data**: [Open-Meteo API](https://open-meteo.com/) via `nfl-stadiums` library
-- **Stadium Information**: NFL stadium database with roof types and locations
 - **Injury Reports**: Configurable CSV format for QB injury tracking
 - **Team Configuration**: YAML-based team and quarterback assignments
 
