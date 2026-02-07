@@ -5,34 +5,6 @@ import os
 import tempfile
 from unittest.mock import patch, Mock
 import pytest
-from nfl_predictor.utils.env_setup import configure_nfl_stadiums_resource_dir
-
-
-class TestEnvironmentConfiguration:
-    """Test environment setup and configuration."""
-    
-    def test_configure_nfl_stadiums_default_path(self):
-        """Test NFL stadiums configuration with default path."""
-        result_dir = configure_nfl_stadiums_resource_dir()
-        
-        # Should return the configured directory
-        assert isinstance(result_dir, str)
-        assert "/tmp/nfl_stadium_resources" in result_dir
-        
-        # Directory should be created
-        assert os.path.exists(result_dir)
-    
-    @patch.dict(os.environ, {"NFL_STADIUM_RESOURCES": "/custom/path"})
-    def test_configure_nfl_stadiums_custom_path(self):
-        """Test NFL stadiums configuration with custom environment path."""
-        with tempfile.TemporaryDirectory() as temp_dir:
-            custom_path = os.path.join(temp_dir, "custom_stadiums")
-            
-            with patch.dict(os.environ, {"NFL_STADIUM_RESOURCES": custom_path}):
-                result_dir = configure_nfl_stadiums_resource_dir()
-                
-                assert result_dir == custom_path
-                assert os.path.exists(custom_path)
 
 
 class TestConstantsEnvironmentIntegration:

@@ -123,10 +123,10 @@ def run_predictions():
             try:
                 df_conversions = pd.read_csv(os.path.join(path, CONVERSIONS_FILE.format(week=training_week, year=YEAR_ABBR)))
                 df_offense = pd.read_csv(os.path.join(path, OFFENSE_FILE.format(week=training_week, year=YEAR_ABBR)))
-                df_conversions_against = pd.read_csv(os.path.join(path, CONV_AGAINST_FILE.format(week=WEEK_NUMBER, year=YEAR_ABBR)))
-                df_defense = pd.read_csv(os.path.join(path, DEFENSE_FILE.format(week=WEEK_NUMBER, year=YEAR_ABBR)))
+                df_conversions_against = pd.read_csv(os.path.join(path, CONV_AGAINST_FILE.format(week=training_week, year=YEAR_ABBR)))
+                df_defense = pd.read_csv(os.path.join(path, DEFENSE_FILE.format(week=training_week, year=YEAR_ABBR)))
             except FileNotFoundError as e:
-                logger.warning(f"Missing data file for week {training_week} or {WEEK_NUMBER}: {e}")
+                logger.warning(f"Missing data file for week {training_week}: {e}")
                 continue
 
             # Merge team stat datasets
