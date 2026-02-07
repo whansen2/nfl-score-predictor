@@ -1,9 +1,6 @@
 # Use AWS-provided Python 3.11 base image for Lambda (x86_64)
 FROM public.ecr.aws/lambda/python:3.11
 
-# Respect nfl_stadiums resource location
-ENV NFL_STADIUM_RESOURCES=/tmp/nfl_stadium_resources
-
 # All configuration values have defaults in constants.py
 
 # Set the working directory (Lambda expects everything under /var/task)
@@ -15,9 +12,6 @@ RUN pip3 install --upgrade pip && pip3 install --no-cache-dir -r requirements.tx
 
 # Copy all code including data, utils, and handler
 COPY nfl_predictor /var/task/nfl_predictor
-
-# Copy pre-cached stadium resources to avoid Wikipedia downloads in Lambda
-COPY nfl_stadium_resources /tmp/nfl_stadium_resources
 
 # Lambda entry point
 CMD ["nfl_predictor.lambda_handler.handler"]

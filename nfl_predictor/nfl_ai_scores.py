@@ -2,13 +2,12 @@
 NFL Score Predictor - Main Prediction Engine
 
 This module implements a Linear Regression-based NFL game score predictor with optional
-adjustments for injuries, weather, and upset detection. All configuration is managed
+adjustments for injuries and upset detection. All configuration is managed
 through constants.py with optional .env overrides.
 
 Key Features:
 - 6-feature Linear Regression model using team performance statistics
 - Optional injury adjustments based on QB tier ratings
-- Optional weather adjustments for outdoor stadiums
 - Upset detection via separate agent module
 - AWS Lambda deployment support
 
@@ -49,14 +48,12 @@ from nfl_predictor.utils.constants import (
     DEFAULT_LOG_LEVEL,
     DEFAULT_VERBOSE_ADJUSTMENTS,
     DEFAULT_INJURY_ADJUSTMENTS,
-    DEFAULT_WEATHER_ADJUSTMENTS,
     DEFAULT_UPSETS_AGENT
 )
 from nfl_predictor.utils.helpers import (
     running_in_lambda,
     get_training_week,
     get_injuries_adjustment,
-    get_weather_adjustment,
 )
 
 # Setup logging with better formatting
@@ -72,7 +69,6 @@ path = "/var/task/nfl_predictor/data" if running_in_lambda() else os.path.join(o
 
 # Control optional logic via .env with defaults from constants
 ENABLE_INJURY_ADJUSTMENTS = os.getenv("ENABLE_INJURY_ADJUSTMENTS", str(DEFAULT_INJURY_ADJUSTMENTS)).lower() == "true"
-ENABLE_WEATHER_ADJUSTMENTS = os.getenv("ENABLE_WEATHER_ADJUSTMENTS", str(DEFAULT_WEATHER_ADJUSTMENTS)).lower() == "true"
 VERBOSE_ADJUSTMENTS = os.getenv("VERBOSE_ADJUSTMENTS", str(DEFAULT_VERBOSE_ADJUSTMENTS)).lower() == "true"
 ENABLE_UPSETS_AGENT = os.getenv("ENABLE_UPSETS_AGENT", str(DEFAULT_UPSETS_AGENT)).lower() == "true"
 
@@ -82,28 +78,13 @@ YEAR_ABBR = int(os.getenv("YEAR_ABBR", DEFAULT_YEAR_ABBR))
 
 # Main prediction logic
 def run_predictions():
-    # Import stadium dependencies (lazy initialization to avoid module-level imports)
-    from nfl_predictor.utils.env_setup import configure_nfl_stadiums_resource_dir
-    from nfl_stadiums import NFLStadiums
-    
-    # Configure resource directory and initialize stadiums (with caching)
-    try:
-        resource_dir = configure_nfl_stadiums_resource_dir()
-        stad = NFLStadiums(use_cache=True, verbose=False)  # Explicitly use cache and reduce verbosity
-        if running_in_lambda():
-            logger.info(f"Using NFL stadium resource dir: {stad._resources_dir}")
-    except Exception as e:
-        logger.error(f"Failed to initialize NFL stadiums: {e}")
-        # Continue without stadium data - weather adjustments will be skipped
-        stad = None
-    # Load team, QB, and weather properties
+    # Load team and QB properties
     with open(os.path.join(path, PROPERTIES_FILE_NAME), "r") as file:
         nfl_properties = yaml.safe_load(file)
 
     team_abbreviations = nfl_properties["team_abbreviations"]
     qb_tiers = nfl_properties["qb_tiers"]
     team_qbs = nfl_properties["team_qbs"]
-    weather_tiers = nfl_properties["weather_tiers"]
 
     # Load injuries data (if enabled)
     injuries_df = None
@@ -142,10 +123,10 @@ def run_predictions():
             try:
                 df_conversions = pd.read_csv(os.path.join(path, CONVERSIONS_FILE.format(week=training_week, year=YEAR_ABBR)))
                 df_offense = pd.read_csv(os.path.join(path, OFFENSE_FILE.format(week=training_week, year=YEAR_ABBR)))
-                df_conversions_against = pd.read_csv(os.path.join(path, CONV_AGAINST_FILE.format(week=WEEK_NUMBER, year=YEAR_ABBR)))
-                df_defense = pd.read_csv(os.path.join(path, DEFENSE_FILE.format(week=WEEK_NUMBER, year=YEAR_ABBR)))
+                df_conversions_against = pd.read_csv(os.path.join(path, CONV_AGAINST_FILE.format(week=training_week, year=YEAR_ABBR)))
+                df_defense = pd.read_csv(os.path.join(path, DEFENSE_FILE.format(week=training_week, year=YEAR_ABBR)))
             except FileNotFoundError as e:
-                logger.warning(f"Missing data file for week {training_week} or {WEEK_NUMBER}: {e}")
+                logger.warning(f"Missing data file for week {training_week}: {e}")
                 continue
 
             # Merge team stat datasets
@@ -209,23 +190,18 @@ def run_predictions():
         at_pred = round(model.predict(at_stats)[0])
 
         # Apply adjustments
-        ht_adj, at_adj, wt_adj = 0, 0, 0
+        ht_adj, at_adj = 0, 0
 
         if ENABLE_INJURY_ADJUSTMENTS and injuries_df is not None:
             ht_adj, at_adj = get_injuries_adjustment(
                 injuries_df, home_team, away_team, team_abbreviations, qb_tiers, team_qbs
             )
 
-        if ENABLE_WEATHER_ADJUSTMENTS and stad is not None:
-            wt_adj = get_weather_adjustment(
-                stad, home_team, game_date, weather_tiers
-            )
-
         if VERBOSE_ADJUSTMENTS:
-            logger.info(f"Adjustments - Injury: {ht_adj}/{at_adj}, Weather: {wt_adj}")
+            logger.info(f"Adjustments - Injury: {ht_adj}/{at_adj}")
 
-        ht_pred += ht_adj + wt_adj
-        at_pred += at_adj + wt_adj
+        ht_pred += ht_adj
+        at_pred += at_adj
 
         # Determine outcome and save result
         diff = ht_pred - at_pred

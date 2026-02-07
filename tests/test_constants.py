@@ -28,7 +28,6 @@ from nfl_predictor.utils.constants import (
     DEFAULT_LOG_LEVEL,
     DEFAULT_VERBOSE_ADJUSTMENTS,
     DEFAULT_INJURY_ADJUSTMENTS,
-    DEFAULT_WEATHER_ADJUSTMENTS,
     DEFAULT_UPSETS_AGENT
 )
 
@@ -103,10 +102,9 @@ class TestDefaultValues:
     def test_feature_flags(self):
         """Test feature flag defaults."""
         assert DEFAULT_LOG_LEVEL in ["DEBUG", "INFO", "WARNING", "ERROR"]
-        
+
         assert isinstance(DEFAULT_VERBOSE_ADJUSTMENTS, bool)
         assert isinstance(DEFAULT_INJURY_ADJUSTMENTS, bool)
-        assert isinstance(DEFAULT_WEATHER_ADJUSTMENTS, bool)
         assert isinstance(DEFAULT_UPSETS_AGENT, bool)
 
 
