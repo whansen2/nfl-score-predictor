@@ -14,10 +14,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@b4ffde65f46336ab88eb53be0f37965419b19ee5 # v4
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@0b93645e9fea7318ecaed2b1c82a5438215b42b9 # v5
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
@@ -25,10 +25,10 @@ jobs:
         run: pip install ruff>=0.4
 
       - name: Run ruff lint
-        run: ruff check --select E,F,I,UP,B,SIM nfl_predictor llm
+        run: ruff check --select E,F,I,UP,B,SIM nfl_predictor
 
       - name: Run ruff format check
-        run: ruff format --check nfl_predictor llm
+        run: ruff format --check nfl_predictor
 
   security:
     name: Security Scan
@@ -36,10 +36,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@b4ffde65f46336ab88eb53be0f37965419b19ee5 # v4
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@0b93645e9fea7318ecaed2b1c82a5438215b42b9 # v5
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
@@ -47,7 +47,7 @@ jobs:
         run: pip install bandit[toml]>=1.8
 
       - name: Run bandit security scan
-        run: bandit -c pyproject.toml -r nfl_predictor llm -ll
+        run: bandit -c pyproject.toml -r nfl_predictor -ll
 
   test-python:
     name: Python Unit Tests & Coverage
@@ -55,18 +55,18 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@b4ffde65f46336ab88eb53be0f37965419b19ee5 # v4
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@0b93645e9fea7318ecaed2b1c82a5438215b42b9 # v5
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
       - name: Cache pip
-        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4
+        uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/pyproject.toml') }}
           restore-keys: |
             ${{ runner.os }}-pip-
 
@@ -75,15 +75,14 @@ jobs:
           python -m venv nfl_env
           source nfl_env/bin/activate
           pip install --upgrade pip
-          pip install -r nfl_predictor/requirements.txt
-          pip install pytest-cov>=5.0
+          pip install -e ".[dev]"
 
       - name: Run tests with coverage
         run: |
           source nfl_env/bin/activate
           export WEEK_NUMBER=18
           export YEAR_ABBR=24
-          pytest tests --cov=nfl_predictor --cov=llm --cov-report=term-missing --cov-fail-under=80
+          pytest tests --cov=nfl_predictor --cov-report=term-missing --cov-fail-under=80
 
   docker-test:
     name: Docker Build & Run
@@ -92,10 +91,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@b4ffde65f46336ab88eb53be0f37965419b19ee5 # v4
+        uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@4476873422da7758216827e4ba3a42cffb3c6cc0 # v3
+        uses: docker/setup-buildx-action@v3
 
       - name: Build Docker image
         run: docker compose build
