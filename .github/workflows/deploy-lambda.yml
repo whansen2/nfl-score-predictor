@@ -58,7 +58,7 @@ jobs:
           LATEST_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_NAME:latest
           docker tag $IMAGE_URI $LATEST_URI
           docker push $LATEST_URI
-      
+
       - name: Deploy to Lambda
         run: |
           aws lambda update-function-code \

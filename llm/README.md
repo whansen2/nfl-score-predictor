@@ -5,10 +5,10 @@ Blitz is an intelligent AI assistant that enhances your NFL score predictor with
 ## 🎯 What Blitz Analyzes
 
 Your prediction system uses a **scikit-learn Linear Regression model** with 6 key team statistics:
-- **Conversion rates** (Sc%_x, Sc%_y) 
+- **Conversion rates** (Sc%_x, Sc%_y)
 - **First downs per game** (Tot_1stD/G)
 - **Yards per play** (Y/P_x)
-- **Red zone efficiency** (RZPct_x) 
+- **Red zone efficiency** (RZPct_x)
 - **Turnover rates** (TO%_x)
 
 Blitz helps you understand what these predictions mean for:
@@ -70,7 +70,7 @@ Ask questions like:
 ### Quick Commands
 ```bash
 make predict       # View raw prediction data with stats
-make flag          # Show flagged games (upsets/close calls)  
+make flag          # Show flagged games (upsets/close calls)
 make recap         # AI analysis of flagged games by week
 make run           # Execute flag + recap together
 ```
@@ -95,7 +95,7 @@ make blitz-run
 - **Cost**: $0.150/1M input, $0.600/1M output tokens
 - **Typical Session**: $0.01-0.05 per analysis
 
-**Prompt Engineering**: 
+**Prompt Engineering**:
 - Tailored system prompts for Linear Regression analysis
 - Focus on statistical model outputs, not external NFL knowledge
 - Specialized understanding of your 6-feature model
@@ -122,7 +122,7 @@ You: Why is the Chiefs-Bills game flagged?
    🚩 🚨 Potential Upset: Jets
 
 • The model predicts a close 4-point Jets victory despite Patriots' better record
-• The 38-point total suggests a defensive struggle, well below league average  
+• The 38-point total suggests a defensive struggle, well below league average
 • This upset flag indicates the model sees value in Jets' statistical profile
 ```
 
@@ -143,7 +143,7 @@ You: Why is the Chiefs-Bills game flagged?
 **Dependencies:**
 ```
 openai>=1.3.5           # Modern OpenAI API client (v1.x)
-python-dotenv>=1.0.0    # Environment variable management  
+python-dotenv>=1.0.0    # Environment variable management
 pandas>=2.0.0           # Data analysis for prediction files
 typer>=0.9              # Modern CLI framework
 ```
@@ -167,7 +167,7 @@ typer>=0.9              # Modern CLI framework
 - Run `cd .. && make run` to generate predictions first
 - Ensure `ENABLE_UPSETS_AGENT=true` in `.env` for flagged data
 
-**"OpenAI API failed"**  
+**"OpenAI API failed"**
 - Check `OPENAI_API_KEY` in `.env` file
 - Verify API key has available credits
 - Ensure internet connection for API calls
@@ -188,7 +188,7 @@ make chat
 
 **What makes this different:**
 - ✅ **Model-Specific**: Understands YOUR 6-feature approach
-- ✅ **Grounded Analysis**: No external data speculation  
+- ✅ **Grounded Analysis**: No external data speculation
 - ✅ **Cost-Effective**: gpt-4o-mini optimized for this use case
 - ✅ **Statistical Focus**: Spreads, totals, and model confidence
 

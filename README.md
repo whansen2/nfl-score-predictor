@@ -88,7 +88,7 @@ nfl-score-predictor/
 
 ### Prerequisites
 
-- Python 3.11+ 
+- Python 3.11+
 - OpenAI API key (for AI-powered analysis)
 
 ### Local Development (Virtual Environment)
@@ -255,7 +255,7 @@ make run
 The Linear Regression model uses 6 key performance indicators:
 
 1. **Sc%_x**: Home team scoring percentage
-2. **Tot_1stD/G**: Total first downs per game  
+2. **Tot_1stD/G**: Total first downs per game
 3. **Y/P_x**: Yards per play (offense)
 4. **RZPct_x**: Red zone conversion percentage
 5. **TO%_x**: Turnover differential percentage
@@ -269,7 +269,7 @@ The Linear Regression model uses 6 key performance indicators:
 ### AI Analysis Features
 
 - **Matchup Insights**: Historical performance analysis
-- **Upset Detection**: Statistical anomaly identification  
+- **Upset Detection**: Statistical anomaly identification
 - **Strategic Discussion**: Interactive chat about game plans
 - **Trend Analysis**: Multi-week performance tracking
 

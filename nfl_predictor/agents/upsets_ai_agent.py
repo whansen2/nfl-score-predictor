@@ -1,11 +1,12 @@
-import os
-import pandas as pd
 import logging
+import os
+
+import pandas as pd
 
 from nfl_predictor.utils.constants import STANDINGS_FILE_NAME
-from nfl_predictor.utils.helpers import running_in_lambda
 
 logger = logging.getLogger(__name__)
+
 
 def run_upsets_agent(df_results: pd.DataFrame, path: str) -> pd.DataFrame:
     """
@@ -25,19 +26,21 @@ def run_upsets_agent(df_results: pd.DataFrame, path: str) -> pd.DataFrame:
     df_flagged = df_results.copy()
 
     # Merge win counts
-    df_flagged = df_flagged.merge(
-        df_standings[["Tm", "W"]],
-        left_on="Home Team",
-        right_on="Tm",
-        how="left"
-    ).rename(columns={"W": "Home Wins"}).drop(columns=["Tm"])
+    df_flagged = (
+        df_flagged.merge(
+            df_standings[["Tm", "W"]], left_on="Home Team", right_on="Tm", how="left"
+        )
+        .rename(columns={"W": "Home Wins"})
+        .drop(columns=["Tm"])
+    )
 
-    df_flagged = df_flagged.merge(
-        df_standings[["Tm", "W"]],
-        left_on="Away Team",
-        right_on="Tm",
-        how="left"
-    ).rename(columns={"W": "Away Wins"}).drop(columns=["Tm"])
+    df_flagged = (
+        df_flagged.merge(
+            df_standings[["Tm", "W"]], left_on="Away Team", right_on="Tm", how="left"
+        )
+        .rename(columns={"W": "Away Wins"})
+        .drop(columns=["Tm"])
+    )
 
     # Determine winner
     df_flagged["Predicted Winner"] = df_flagged["Result"].apply(
@@ -49,9 +52,15 @@ def run_upsets_agent(df_results: pd.DataFrame, path: str) -> pd.DataFrame:
         flags = []
         if abs(row["Home Score"] - row["Away Score"]) < 4:
             flags.append("⚠️ Close Call")
-        if row["Predicted Winner"] == row["Home Team"] and row["Home Wins"] < row["Away Wins"]:
+        if (
+            row["Predicted Winner"] == row["Home Team"]
+            and row["Home Wins"] < row["Away Wins"]
+        ):
             flags.append(f"🚨 Potential Upset: {row['Home Team']}")
-        elif row["Predicted Winner"] == row["Away Team"] and row["Away Wins"] < row["Home Wins"]:
+        elif (
+            row["Predicted Winner"] == row["Away Team"]
+            and row["Away Wins"] < row["Home Wins"]
+        ):
             flags.append(f"🚨 Potential Upset: {row['Away Team']}")
         return " + ".join(flags) if flags else ""
 
@@ -60,9 +69,14 @@ def run_upsets_agent(df_results: pd.DataFrame, path: str) -> pd.DataFrame:
     # Summary logs
     close_calls = df_flagged["Upset Flag"].str.contains("Close Call").sum()
     upsets = df_flagged["Upset Flag"].str.contains("Potential Upset").sum()
-    logger.info(f"Upsets Agent summary: {close_calls} close calls, {upsets} potential upsets flagged.")
+    logger.info(
+        f"Upsets Agent summary: {close_calls} close calls, "
+        f"{upsets} potential upsets flagged."
+    )
 
     # Clean up temporary columns
-    df_flagged.drop(columns=["Home Wins", "Away Wins", "Predicted Winner"], inplace=True)
+    df_flagged.drop(
+        columns=["Home Wins", "Away Wins", "Predicted Winner"], inplace=True
+    )
 
     return df_flagged

@@ -1,22 +1,24 @@
-import os
-import pandas as pd
 import logging
-from datetime import datetime
-from typing import Tuple, Optional, Dict, Any
+import os
+from typing import Any
+
+import pandas as pd
 
 logger = logging.getLogger(__name__)
+
 
 def running_in_lambda() -> bool:
     """Detect if running in AWS Lambda environment."""
     return os.getenv("AWS_EXECUTION_ENV") is not None
 
+
 def get_training_week(week_value: Any) -> int:
     """
     Determine which week's data to use for training.
-    
+
     Args:
         week_value: Week identifier (int or string like "WildCard")
-        
+
     Returns:
         Training week number (defaults to 18 for postseason)
     """
@@ -25,25 +27,26 @@ def get_training_week(week_value: Any) -> int:
     except ValueError:
         return 18  # For postseason (e.g., "WildCard", "SuperBowl", etc.)
 
+
 def get_injuries_adjustment(
-    injuries_df: pd.DataFrame, 
-    home_team: str, 
-    away_team: str, 
-    team_abbreviations: Dict[str, str], 
-    qb_tiers: Dict[str, int], 
-    team_qbs: Dict[str, Any]
-) -> Tuple[int, int]:
+    injuries_df: pd.DataFrame,
+    home_team: str,
+    away_team: str,
+    team_abbreviations: dict[str, str],
+    qb_tiers: dict[str, int],
+    team_qbs: dict[str, Any],
+) -> tuple[int, int]:
     """
     Calculate injury-based QB adjustments for both teams.
-    
+
     Args:
         injuries_df: DataFrame containing injury data
         home_team: Home team name
-        away_team: Away team name  
+        away_team: Away team name
         team_abbreviations: Team name to abbreviation mapping
         qb_tiers: QB tier to adjustment value mapping
         team_qbs: Team to QB info mapping
-        
+
     Returns:
         Tuple of (home_adjustment, away_adjustment)
     """
@@ -67,11 +70,14 @@ def get_injuries_adjustment(
 
         team_qb_list = team_injuries.get(abbr, [])
         qb_name, tier = team_qbs.get(team, [None, "average"])
-        
+
         for player in team_qb_list:
-            if (player["Pos"] == "QB" and 
-                player.get("Status", "").lower() in ["questionable", "doubtful", "out"] and
-                player["Player"] == qb_name):
+            if (
+                player["Pos"] == "QB"
+                and player.get("Status", "").lower()
+                in ["questionable", "doubtful", "out"]
+                and player["Player"] == qb_name
+            ):
                 return qb_tiers.get(tier, 0)
         return 0
 

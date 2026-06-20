@@ -17,74 +17,89 @@ Configuration:
 - Other values can be optionally overridden via environment variables
 """
 
-from dotenv import load_dotenv
-# Load .env values (all other config in constants.py)
-load_dotenv()
-
-import os
 import logging
+import os
+from typing import Any
+
 import pandas as pd
 import yaml
-from sklearn.model_selection import train_test_split
+from dotenv import load_dotenv
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, r2_score
+from sklearn.model_selection import train_test_split
+
 from nfl_predictor.agents.upsets_ai_agent import run_upsets_agent
 from nfl_predictor.utils.constants import (
-    INPUT_FILE_NAME,
-    INJURIES_FILE_NAME,
-    PROPERTIES_FILE_NAME,
-    OUTPUT_FILE_NAME,
-    FLAGGED_OUTPUT_FILE_NAME,
-    CONVERSIONS_FILE,
-    OFFENSE_FILE,
-    DEFENSE_FILE,
     CONV_AGAINST_FILE,
+    CONVERSIONS_FILE,
     DEFAULT_FEATURES,
-    HOME_FIELD_ADVANTAGE,
-    TRAIN_TEST_SPLIT_RATIO,
-    RANDOM_STATE,
+    DEFAULT_INJURY_ADJUSTMENTS,
+    DEFAULT_LOG_LEVEL,
+    DEFAULT_UPSETS_AGENT,
+    DEFAULT_VERBOSE_ADJUSTMENTS,
     DEFAULT_WEEK_NUMBER,
     DEFAULT_YEAR_ABBR,
-    DEFAULT_LOG_LEVEL,
-    DEFAULT_VERBOSE_ADJUSTMENTS,
-    DEFAULT_INJURY_ADJUSTMENTS,
-    DEFAULT_UPSETS_AGENT
+    DEFENSE_FILE,
+    FLAGGED_OUTPUT_FILE_NAME,
+    HOME_FIELD_ADVANTAGE,
+    INJURIES_FILE_NAME,
+    INPUT_FILE_NAME,
+    OFFENSE_FILE,
+    OUTPUT_FILE_NAME,
+    PROPERTIES_FILE_NAME,
+    RANDOM_STATE,
+    TRAIN_TEST_SPLIT_RATIO,
 )
 from nfl_predictor.utils.helpers import (
-    running_in_lambda,
-    get_training_week,
     get_injuries_adjustment,
+    get_training_week,
+    running_in_lambda,
 )
+
+# Load .env values (all other config in constants.py)
+load_dotenv()
 
 # Setup logging with better formatting
 log_level = os.getenv("LOG_LEVEL", DEFAULT_LOG_LEVEL)
 logging.basicConfig(
     level=getattr(logging, log_level, logging.INFO),
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
 
 # Determine working path based on environment
-path = "/var/task/nfl_predictor/data" if running_in_lambda() else os.path.join(os.path.dirname(__file__), "data")
+path = (
+    "/var/task/nfl_predictor/data"
+    if running_in_lambda()
+    else os.path.join(os.path.dirname(__file__), "data")
+)
 
 # Control optional logic via .env with defaults from constants
-ENABLE_INJURY_ADJUSTMENTS = os.getenv("ENABLE_INJURY_ADJUSTMENTS", str(DEFAULT_INJURY_ADJUSTMENTS)).lower() == "true"
-VERBOSE_ADJUSTMENTS = os.getenv("VERBOSE_ADJUSTMENTS", str(DEFAULT_VERBOSE_ADJUSTMENTS)).lower() == "true"
-ENABLE_UPSETS_AGENT = os.getenv("ENABLE_UPSETS_AGENT", str(DEFAULT_UPSETS_AGENT)).lower() == "true"
+ENABLE_INJURY_ADJUSTMENTS = (
+    os.getenv("ENABLE_INJURY_ADJUSTMENTS", str(DEFAULT_INJURY_ADJUSTMENTS)).lower()
+    == "true"
+)
+VERBOSE_ADJUSTMENTS = (
+    os.getenv("VERBOSE_ADJUSTMENTS", str(DEFAULT_VERBOSE_ADJUSTMENTS)).lower() == "true"
+)
+ENABLE_UPSETS_AGENT = (
+    os.getenv("ENABLE_UPSETS_AGENT", str(DEFAULT_UPSETS_AGENT)).lower() == "true"
+)
 
-# Load .env values for defaults if matchup CSV isn't found (all values have defaults in constants.py)
+# Load .env values for defaults (all values have defaults in constants.py)
 WEEK_NUMBER = int(os.getenv("WEEK_NUMBER", DEFAULT_WEEK_NUMBER))
 YEAR_ABBR = int(os.getenv("YEAR_ABBR", DEFAULT_YEAR_ABBR))
 
-# Main prediction logic
-def run_predictions():
-    # Load team and QB properties
-    with open(os.path.join(path, PROPERTIES_FILE_NAME), "r") as file:
-        nfl_properties = yaml.safe_load(file)
 
-    team_abbreviations = nfl_properties["team_abbreviations"]
-    qb_tiers = nfl_properties["qb_tiers"]
-    team_qbs = nfl_properties["team_qbs"]
+# Main prediction logic
+def run_predictions() -> pd.DataFrame:
+    # Load team and QB properties
+    with open(os.path.join(path, PROPERTIES_FILE_NAME)) as file:
+        nfl_properties: dict[str, Any] = yaml.safe_load(file)
+
+    team_abbreviations: dict[str, str] = nfl_properties["team_abbreviations"]
+    qb_tiers: dict[str, int] = nfl_properties["qb_tiers"]
+    team_qbs: dict[str, str] = nfl_properties["team_qbs"]
 
     # Load injuries data (if enabled)
     injuries_df = None
@@ -102,11 +117,19 @@ def run_predictions():
         df_matchups = pd.read_csv(matchups_path)
         logger.info(f"Loaded {len(df_matchups)} upcoming matchups from CSV")
     else:
-        raise FileNotFoundError(f"Matchups CSV file not found at {matchups_path}. This file is required for predictions.")
+        msg = (
+            f"Matchups CSV file not found at {matchups_path}. "
+            "This file is required for predictions."
+        )
+        raise FileNotFoundError(msg)
 
-    printed_weeks = set()       # Track weeks already printed to avoid duplicate model metrics
-    week_model_cache = {}       # Cache trained models per week to avoid retraining
-    results = []                # Store final output rows
+    printed_weeks: set[int] = (
+        set()
+    )  # Track weeks already printed to avoid duplicate model metrics
+    week_model_cache: dict[
+        int, tuple[Any, pd.DataFrame, list[str]]
+    ] = {}  # Cache trained models per week
+    results: list[list[Any]] = []  # Store final output rows
 
     for _, row in df_matchups.iterrows():
         week = row["Week"]
@@ -115,16 +138,35 @@ def run_predictions():
             week = 19
         home_team = row["Home"]
         away_team = row["Visitor"]
-        game_date = row["Date"]
-        training_week = get_training_week(week - 1)  # Use previous week's data for predictions
+        training_week = get_training_week(
+            week - 1
+        )  # Use previous week's data for predictions
 
         # Train model only once per week and cache it
         if week not in week_model_cache:
             try:
-                df_conversions = pd.read_csv(os.path.join(path, CONVERSIONS_FILE.format(week=training_week, year=YEAR_ABBR)))
-                df_offense = pd.read_csv(os.path.join(path, OFFENSE_FILE.format(week=training_week, year=YEAR_ABBR)))
-                df_conversions_against = pd.read_csv(os.path.join(path, CONV_AGAINST_FILE.format(week=training_week, year=YEAR_ABBR)))
-                df_defense = pd.read_csv(os.path.join(path, DEFENSE_FILE.format(week=training_week, year=YEAR_ABBR)))
+                df_conversions = pd.read_csv(
+                    os.path.join(
+                        path,
+                        CONVERSIONS_FILE.format(week=training_week, year=YEAR_ABBR),
+                    )
+                )
+                df_offense = pd.read_csv(
+                    os.path.join(
+                        path, OFFENSE_FILE.format(week=training_week, year=YEAR_ABBR)
+                    )
+                )
+                df_conversions_against = pd.read_csv(
+                    os.path.join(
+                        path,
+                        CONV_AGAINST_FILE.format(week=training_week, year=YEAR_ABBR),
+                    )
+                )
+                df_defense = pd.read_csv(
+                    os.path.join(
+                        path, DEFENSE_FILE.format(week=training_week, year=YEAR_ABBR)
+                    )
+                )
             except FileNotFoundError as e:
                 logger.warning(f"Missing data file for week {training_week}: {e}")
                 continue
@@ -137,11 +179,13 @@ def run_predictions():
             # Create engineered features
             df["PPG"] = df["PF"] / df["G"]
             df["Tot_1stD/G"] = df["Tot_1stD"] / df["G"]
-            df["Avg_RZTD"] = df["RZTD_x"] / df["G"]  # this field is part of the Databricks feature set
+            df["Avg_RZTD"] = (
+                df["RZTD_x"] / df["G"]
+            )  # this field is part of the Databricks feature set
 
             # Enhanced feature set with validation
             features = DEFAULT_FEATURES
-            
+
             # Validate all features exist
             missing_features = [f for f in features if f not in df.columns]
             if missing_features:
@@ -164,7 +208,9 @@ def run_predictions():
             if week not in printed_weeks:
                 y_pred = model.predict(X_test)
                 logger.info(f"Training for week {week} data")
-                logger.info("Mean Absolute Error: %.3f", mean_absolute_error(y_test, y_pred))
+                logger.info(
+                    "Mean Absolute Error: %.3f", mean_absolute_error(y_test, y_pred)
+                )
                 logger.info("R² Score: %.3f", r2_score(y_test, y_pred))
                 printed_weeks.add(week)
 
@@ -194,7 +240,12 @@ def run_predictions():
 
         if ENABLE_INJURY_ADJUSTMENTS and injuries_df is not None:
             ht_adj, at_adj = get_injuries_adjustment(
-                injuries_df, home_team, away_team, team_abbreviations, qb_tiers, team_qbs
+                injuries_df,
+                home_team,
+                away_team,
+                team_abbreviations,
+                qb_tiers,
+                team_qbs,
             )
 
         if VERBOSE_ADJUSTMENTS:
@@ -212,9 +263,18 @@ def run_predictions():
         results.append([week, home_team, ht_pred, away_team, at_pred, result, total])
 
     if results:
-        df_results = pd.DataFrame(results, columns=[
-            "Week", "Home Team", "Home Score", "Away Team", "Away Score", "Result", "Over/Under"
-        ])
+        df_results = pd.DataFrame(
+            results,
+            columns=[
+                "Week",
+                "Home Team",
+                "Home Score",
+                "Away Team",
+                "Away Score",
+                "Result",
+                "Over/Under",
+            ],
+        )
 
         # Define outputs
         output_files = [(OUTPUT_FILE_NAME, df_results)]
@@ -238,6 +298,7 @@ def run_predictions():
 
     # No predictions made
     return pd.DataFrame()
+
 
 if __name__ == "__main__":
     run_predictions()
