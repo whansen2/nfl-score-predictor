@@ -1,5 +1,5 @@
-# Use official Python image from Docker Hub
-FROM python:3.10-slim
+# Use official Python 3.11 image from Docker Hub
+FROM python:3.11-slim
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
@@ -8,11 +8,15 @@ ENV PYTHONPATH=/app
 # Set working directory
 WORKDIR /app
 
-# Install requirements
-COPY nfl_predictor/requirements.txt .
-RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
+# Copy project files for dependency installation
+COPY pyproject.toml .
+COPY README.md .
+COPY LICENSE .
 
-# Copy the rest of your application code
+# Install dependencies from pyproject.toml
+RUN pip install --upgrade pip && pip install -e .
+
+# Copy the rest of application code
 COPY nfl_predictor /app/nfl_predictor
 
 # Run the app
