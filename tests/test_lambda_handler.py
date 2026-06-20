@@ -4,6 +4,7 @@ Test suite for AWS Lambda handler functionality.
 
 import json
 import os
+from typing import Any
 from unittest.mock import Mock, patch
 
 import pandas as pd
@@ -16,7 +17,7 @@ class TestLambdaHandler:
     """Test AWS Lambda handler functionality."""
 
     @pytest.fixture
-    def sample_s3_event(self):
+    def sample_s3_event(self) -> dict[str, Any]:
         """Sample S3 event that triggers the Lambda function."""
         return {
             "Records": [
@@ -30,7 +31,7 @@ class TestLambdaHandler:
         }
 
     @pytest.fixture
-    def sample_context(self):
+    def sample_context(self) -> Mock:
         """Mock Lambda context object."""
         context = Mock()
         context.function_name = "test-function"
@@ -43,7 +44,7 @@ class TestLambdaHandler:
         return context
 
     @pytest.fixture
-    def sample_predictions(self):
+    def sample_predictions(self) -> pd.DataFrame:
         """Sample prediction results."""
         return pd.DataFrame(
             [
@@ -68,7 +69,7 @@ class TestLambdaHandler:
         sample_s3_event,
         sample_context,
         sample_predictions,
-    ):
+    ) -> None:
         """Test successful execution of prediction pipeline."""
         # Mock successful prediction results
         mock_run_predictions.return_value = sample_predictions
@@ -94,7 +95,7 @@ class TestLambdaHandler:
     @patch("nfl_predictor.lambda_handler.run_predictions")
     def test_no_predictions_generated(
         self, mock_run_predictions, mock_s3, sample_s3_event, sample_context
-    ):
+    ) -> None:
         """Test handling when no predictions are generated."""
         # Mock empty prediction results
         mock_run_predictions.return_value = pd.DataFrame()
@@ -105,8 +106,8 @@ class TestLambdaHandler:
         # Execute handler
         response = handler(sample_s3_event, sample_context)
 
-        # Verify response
-        assert response["statusCode"] == 200
+        # Verify response - 204 No Content is the appropriate HTTP status
+        assert response["statusCode"] == 204
         body = json.loads(response["body"])
         assert "No predictions generated" in body["message"]
         assert body["predictions_count"] == 0
@@ -118,7 +119,7 @@ class TestLambdaHandler:
     @patch("nfl_predictor.lambda_handler.run_predictions")
     def test_prediction_exception_handling(
         self, mock_run_predictions, mock_s3, sample_s3_event, sample_context
-    ):
+    ) -> None:
         """Test exception handling during prediction execution."""
         # Mock prediction error
         mock_run_predictions.side_effect = Exception("Prediction failed")
@@ -135,7 +136,7 @@ class TestLambdaHandler:
         assert "error" in body
 
     @patch("nfl_predictor.lambda_handler.s3")
-    def test_s3_download_error(self, mock_s3, sample_s3_event, sample_context):
+    def test_s3_download_error(self, mock_s3, sample_s3_event, sample_context) -> None:
         """Test handling of S3 download errors."""
         # Mock S3 download error
         mock_s3.download_file.side_effect = Exception("S3 download failed")
@@ -157,7 +158,7 @@ class TestLambdaHandler:
         sample_s3_event,
         sample_context,
         sample_predictions,
-    ):
+    ) -> None:
         """Test handling of S3 upload errors."""
         # Mock successful predictions
         mock_run_predictions.return_value = sample_predictions
@@ -174,7 +175,7 @@ class TestLambdaHandler:
         body = json.loads(response["body"])
         assert "error" in body
 
-    def test_malformed_event_structure(self, sample_context):
+    def test_malformed_event_structure(self, sample_context) -> None:
         """Test handling of malformed S3 event."""
         malformed_event = {"Records": [{"malformed": "event"}]}
 
@@ -190,7 +191,7 @@ class TestLambdaHandler:
     @patch("nfl_predictor.lambda_handler.run_predictions")
     def test_url_encoded_key_handling(
         self, mock_run_predictions, mock_s3, sample_context, sample_predictions
-    ):
+    ) -> None:
         """Test proper handling of URL-encoded S3 object keys."""
         # Event with URL-encoded key
         encoded_event = {
@@ -230,7 +231,7 @@ class TestLambdaHandler:
         sample_s3_event,
         sample_context,
         sample_predictions,
-    ):
+    ) -> None:
         """Test that environment variables properly override defaults."""
         mock_run_predictions.return_value = sample_predictions
         mock_s3.download_file = Mock()
@@ -251,7 +252,7 @@ class TestLambdaHandlerIntegration:
 
     @patch("nfl_predictor.lambda_handler.s3")
     @patch("nfl_predictor.lambda_handler.run_predictions")
-    def test_constants_integration(self, mock_run_predictions, mock_s3):
+    def test_constants_integration(self, mock_run_predictions, mock_s3) -> None:
         """Test that handler properly uses constants for file names and buckets."""
         from nfl_predictor.utils.constants import INPUT_FILE_NAME, OUTPUT_FILE_NAME
 

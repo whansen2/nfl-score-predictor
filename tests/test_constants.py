@@ -36,7 +36,7 @@ from nfl_predictor.utils.constants import (
 class TestFileNameConstants:
     """Test file name constants are properly defined."""
 
-    def test_file_names_are_strings(self):
+    def test_file_names_are_strings(self) -> None:
         """Ensure all file names are strings."""
         file_names = [
             INPUT_FILE_NAME,
@@ -50,7 +50,7 @@ class TestFileNameConstants:
             assert len(file_name) > 0
             assert file_name.endswith(".csv") or file_name.endswith(".yaml")
 
-    def test_dynamic_file_templates(self):
+    def test_dynamic_file_templates(self) -> None:
         """Test dynamic file templates have proper format placeholders."""
         templates = [CONVERSIONS_FILE, OFFENSE_FILE, DEFENSE_FILE, CONV_AGAINST_FILE]
         for template in templates:
@@ -63,7 +63,7 @@ class TestFileNameConstants:
 class TestModelConstants:
     """Test model configuration constants."""
 
-    def test_default_features_structure(self):
+    def test_default_features_structure(self) -> None:
         """Test DEFAULT_FEATURES is a valid list of feature names."""
         assert isinstance(DEFAULT_FEATURES, list)
         assert len(DEFAULT_FEATURES) == 6
@@ -77,7 +77,7 @@ class TestModelConstants:
         ]
         assert expected_features == DEFAULT_FEATURES
 
-    def test_model_parameters(self):
+    def test_model_parameters(self) -> None:
         """Test model parameters have correct types and ranges."""
         assert isinstance(HOME_FIELD_ADVANTAGE, int)
         assert HOME_FIELD_ADVANTAGE >= 0
@@ -92,14 +92,14 @@ class TestModelConstants:
 class TestDefaultValues:
     """Test default configuration values."""
 
-    def test_aws_configuration(self):
+    def test_aws_configuration(self) -> None:
         """Test AWS configuration defaults."""
         assert isinstance(DEFAULT_INPUT_BUCKET, str)
         assert isinstance(DEFAULT_OUTPUT_BUCKET, str)
         assert "nfl-score-predictor" in DEFAULT_INPUT_BUCKET
         assert "nfl-score-predictor" in DEFAULT_OUTPUT_BUCKET
 
-    def test_prediction_defaults(self):
+    def test_prediction_defaults(self) -> None:
         """Test prediction default values."""
         assert isinstance(DEFAULT_WEEK_NUMBER, int)
         assert (
@@ -109,7 +109,7 @@ class TestDefaultValues:
         assert isinstance(DEFAULT_YEAR_ABBR, int)
         assert DEFAULT_YEAR_ABBR >= 0
 
-    def test_feature_flags(self):
+    def test_feature_flags(self) -> None:
         """Test feature flag defaults."""
         assert DEFAULT_LOG_LEVEL in ["DEBUG", "INFO", "WARNING", "ERROR"]
 
@@ -121,7 +121,7 @@ class TestDefaultValues:
 class TestConstantsIntegrity:
     """Test constants work together properly."""
 
-    def test_matchups_csv_exists(self):
+    def test_matchups_csv_exists(self) -> None:
         """Ensure the matchups CSV file exists since it's now required."""
         import os
 

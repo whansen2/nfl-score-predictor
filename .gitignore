@@ -2,6 +2,10 @@
 __pycache__/
 *.py[cod]
 *.pyo
+*.so
+*.egg-info/
+*.egg
+MANIFEST
 
 # Virtual environments
 nfl_env/
@@ -11,6 +15,10 @@ venv/
 
 # Environment variables (contains API keys)
 .env
+
+# Distribution / build
+build/
+dist/
 
 # VS Code
 .vscode/
@@ -26,9 +34,10 @@ venv/
 .ruff_cache/
 .cache
 .coverage
+.coverage.*
 
 # Output files (keep raw input CSVs, ignore generated output)
 nfl_predictor/data/predicted_matchups_*
 
-# NFL stadium cache is now committed for cloud deployments
-# nfl_stadium_resources/
+# Claude Code
+.claude/

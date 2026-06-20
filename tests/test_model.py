@@ -124,4 +124,3 @@ def test_prediction_pipeline_with_adjustments_param(
     assert isinstance(at_pred, int)
     assert ht_pred > 0
     assert at_pred > 0
-    assert abs(ht_pred - at_pred) >= 0

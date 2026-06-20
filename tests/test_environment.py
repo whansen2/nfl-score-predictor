@@ -12,7 +12,7 @@ class TestConstantsEnvironmentIntegration:
     """Test integration between constants and environment variables."""
 
     @patch.dict(os.environ, {})
-    def test_constants_used_as_defaults(self):
+    def test_constants_used_as_defaults(self) -> None:
         """Test that constants are used when environment variables are not set."""
         from nfl_predictor.utils.constants import DEFAULT_LOG_LEVEL, DEFAULT_WEEK_NUMBER
 
@@ -28,7 +28,7 @@ class TestConstantsEnvironmentIntegration:
         assert week_number == DEFAULT_WEEK_NUMBER
 
     @patch.dict(os.environ, {"LOG_LEVEL": "DEBUG", "WEEK_NUMBER": "10"})
-    def test_environment_overrides_constants(self):
+    def test_environment_overrides_constants(self) -> None:
         """Test that environment variables override constants."""
         from nfl_predictor.utils.constants import DEFAULT_LOG_LEVEL, DEFAULT_WEEK_NUMBER
 
@@ -41,7 +41,7 @@ class TestConstantsEnvironmentIntegration:
         assert log_level != DEFAULT_LOG_LEVEL
         assert week_number != DEFAULT_WEEK_NUMBER
 
-    def test_boolean_environment_conversion(self):
+    def test_boolean_environment_conversion(self) -> None:
         """Test proper conversion of boolean environment variables."""
         from nfl_predictor.utils.constants import DEFAULT_INJURY_ADJUSTMENTS
 
@@ -71,7 +71,7 @@ class TestFilePathIntegration:
     """Test file path handling across different environments."""
 
     @patch("nfl_predictor.utils.helpers.running_in_lambda")
-    def test_path_selection_lambda(self, mock_running_in_lambda):
+    def test_path_selection_lambda(self, mock_running_in_lambda) -> None:
         """Test path selection in Lambda environment."""
         mock_running_in_lambda.return_value = True
 
@@ -87,7 +87,7 @@ class TestFilePathIntegration:
         assert path == "/var/task/nfl_predictor/data"
 
     @patch("nfl_predictor.utils.helpers.running_in_lambda")
-    def test_path_selection_local(self, mock_running_in_lambda):
+    def test_path_selection_local(self, mock_running_in_lambda) -> None:
         """Test path selection in local environment."""
         mock_running_in_lambda.return_value = False
 
@@ -106,7 +106,7 @@ class TestFilePathIntegration:
 class TestConfigurationConsistency:
     """Test consistency across configuration files and constants."""
 
-    def test_docker_compose_uses_constants_approach(self):
+    def test_docker_compose_uses_constants_approach(self) -> None:
         """Test that docker-compose.yml follows constants-first approach."""
         docker_compose_path = os.path.join(
             os.path.dirname(__file__), "..", "docker-compose.yml"

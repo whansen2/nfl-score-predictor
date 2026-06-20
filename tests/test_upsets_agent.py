@@ -4,7 +4,7 @@ Test suite for the upsets AI agent functionality.
 
 import os
 import tempfile
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pandas as pd
 import pytest
@@ -16,7 +16,7 @@ class TestUpsetsAgent:
     """Test the upsets detection agent."""
 
     @pytest.fixture
-    def sample_predictions(self):
+    def sample_predictions(self) -> pd.DataFrame:
         """Sample prediction data for testing."""
         return pd.DataFrame(
             [
@@ -51,7 +51,7 @@ class TestUpsetsAgent:
         )
 
     @pytest.fixture
-    def sample_standings(self):
+    def sample_standings(self) -> pd.DataFrame:
         """Sample standings data for testing."""
         return pd.DataFrame(
             [
@@ -64,7 +64,7 @@ class TestUpsetsAgent:
             ]
         )
 
-    def test_upsets_agent_no_standings_file(self, sample_predictions):
+    def test_upsets_agent_no_standings_file(self, sample_predictions) -> None:
         """Test agent handles missing standings file gracefully."""
         with tempfile.TemporaryDirectory() as temp_dir:
             result = run_upsets_agent(sample_predictions, temp_dir)
@@ -74,7 +74,7 @@ class TestUpsetsAgent:
 
     def test_upsets_agent_identifies_close_calls(
         self, sample_predictions, sample_standings
-    ):
+    ) -> None:
         """Test agent identifies games with small point differences."""
         with tempfile.TemporaryDirectory() as temp_dir:
             # Create standings file
@@ -89,7 +89,9 @@ class TestUpsetsAgent:
             ]
             assert len(close_calls) >= 1  # Should flag 1-point and 4-point games
 
-    def test_upsets_agent_identifies_upsets(self, sample_predictions, sample_standings):
+    def test_upsets_agent_identifies_upsets(
+        self, sample_predictions, sample_standings
+    ) -> None:
         """Test agent identifies potential upsets based on win records."""
         with tempfile.TemporaryDirectory() as temp_dir:
             standings_path = os.path.join(temp_dir, "standings.csv")
@@ -108,7 +110,7 @@ class TestUpsetsAgent:
 
     def test_upsets_agent_preserves_original_columns(
         self, sample_predictions, sample_standings
-    ):
+    ) -> None:
         """Test agent preserves all original prediction columns."""
         with tempfile.TemporaryDirectory() as temp_dir:
             standings_path = os.path.join(temp_dir, "standings.csv")
@@ -123,7 +125,7 @@ class TestUpsetsAgent:
             # New column should be added
             assert "Upset Flag" in result.columns
 
-    def test_upsets_agent_handles_ties(self):
+    def test_upsets_agent_handles_ties(self) -> None:
         """Test agent handles tie games correctly."""
         tie_predictions = pd.DataFrame(
             [
@@ -155,8 +157,8 @@ class TestUpsetsAgent:
 
     @patch("nfl_predictor.agents.upsets_ai_agent.logger")
     def test_upsets_agent_logs_summary(
-        self, mock_logger, sample_predictions, sample_standings
-    ):
+        self, mock_logger: MagicMock, sample_predictions, sample_standings
+    ) -> None:
         """Test agent logs summary information."""
         with tempfile.TemporaryDirectory() as temp_dir:
             standings_path = os.path.join(temp_dir, "standings.csv")
@@ -177,7 +179,7 @@ class TestUpsetsAgent:
 class TestUpsetsAgentEdgeCases:
     """Test edge cases for upsets agent."""
 
-    def test_empty_predictions(self):
+    def test_empty_predictions(self) -> None:
         """Test agent handles empty predictions."""
         empty_df = pd.DataFrame(
             columns=[
@@ -195,7 +197,7 @@ class TestUpsetsAgentEdgeCases:
             result = run_upsets_agent(empty_df, temp_dir)
             assert len(result) == 0
 
-    def test_missing_teams_in_standings(self):
+    def test_missing_teams_in_standings(self) -> None:
         """Test agent handles teams missing from standings."""
         predictions = pd.DataFrame(
             [

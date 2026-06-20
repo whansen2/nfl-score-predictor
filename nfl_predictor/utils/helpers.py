@@ -78,7 +78,7 @@ def get_injuries_adjustment(
 
         team_qb_list = team_injuries.get(abbr, [])
         qb_info = team_qbs.get(team, (None, "average"))
-        qb_name = qb_info[0] if isinstance(qb_info, tuple) else qb_info
+        qb_name = qb_info[0] if isinstance(qb_info, (tuple, list)) else qb_info
 
         for player in team_qb_list:
             if (
