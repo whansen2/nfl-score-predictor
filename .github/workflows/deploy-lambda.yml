@@ -5,6 +5,7 @@ on:
     workflows: ["Pre-Deploy Checks"]
     types:
       - completed
+    branches: [main]
 
 jobs:
   deploy:
@@ -16,14 +17,14 @@ jobs:
       IMAGE_NAME: nfl-score-predictor
       AWS_REGION: us-east-1
       FUNCTION_NAME: nfl_score_predictor
-      AWS_ACCOUNT_ID: 539612316899
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@b4ffde65f46336ab88eb53be0f37965419b19ee5 # v4
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -37,11 +38,10 @@ jobs:
       - name: Generate image tag
         run: echo "IMAGE_TAG=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
 
-      - name: Disable BuildKit + Build Docker image
+      - name: Build Docker image
         run: |
-          export DOCKER_BUILDKIT=0
           IMAGE_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_NAME:$IMAGE_TAG
-          docker build --no-cache \
+          docker build \
             --platform linux/amd64 \
             -f Dockerfile.lambda \
             -t $IMAGE_URI .

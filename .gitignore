@@ -23,6 +23,7 @@ venv/
 
 # Testing / coverage
 .pytest_cache/
+.ruff_cache/
 .cache
 .coverage
 
