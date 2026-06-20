@@ -4,9 +4,8 @@ FROM public.ecr.aws/lambda/python:3.11 as builder
 WORKDIR ${LAMBDA_TASK_ROOT}
 
 # Copy project files
-COPY pyproject.toml .
-COPY README.md .
-COPY LICENSE .
+COPY pyproject.toml README.md LICENSE ./
+COPY nfl_predictor ${LAMBDA_TASK_ROOT}/nfl_predictor
 
 # Install dependencies to layer
 RUN pip install --upgrade pip && \
