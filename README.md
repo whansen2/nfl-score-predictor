@@ -28,13 +28,14 @@ nfl-score-predictor/
 │
 ├── .dockerignore
 ├── .gitignore
+├── .pre-commit-config.yaml # Pre-commit hooks (linting, security, formatting)
 ├── .env                    # Contains only OPENAI_API_KEY
 ├── .env.example           # Template for environment variables
 ├── Dockerfile.local
 ├── Dockerfile.lambda
 ├── docker-compose.yml
 ├── Makefile
-├── pytest.ini
+├── pyproject.toml         # Project metadata and dependencies
 ├── README.md
 ├── LICENSE
 │
@@ -42,7 +43,6 @@ nfl-score-predictor/
 │   ├── __init__.py
 │   ├── nfl_ai_scores.py   # Core prediction script
 │   ├── lambda_handler.py  # AWS Lambda deployment handler
-│   ├── requirements.txt
 │   ├── agents/
 │   │   ├── __init__.py
 │   │   └── upsets_ai_agent.py  # Upset detection logic
