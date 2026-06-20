@@ -7,7 +7,7 @@ VENV = nfl_env
 ACTIVATE = source $(VENV)/bin/activate
 
 # === PATHS ===
-REQS = nfl_predictor/requirements.txt
+REQS = pyproject.toml
 SCRIPT = nfl_predictor/nfl_ai_scores.py
 DATA_DIR = nfl_predictor/data
 TEST_DIR = tests
@@ -20,7 +20,7 @@ venv:
 
 # Install dependencies
 install:
-	$(ACTIVATE) && pip install -r $(REQS)
+	$(ACTIVATE) && pip install -e ".[dev]"
 
 # Run the predictor script locally
 run:
@@ -53,7 +53,7 @@ all:
 	@echo "🔧 Creating virtualenv..."
 	$(MAKE) venv
 	@echo "📦 Installing dependencies..."
-	$(ACTIVATE) && pip install -r $(REQS)
+	$(ACTIVATE) && pip install -e ".[dev]"
 	@echo "🏈 Running predictions..."
 	$(MAKE) run
 	@echo ""
