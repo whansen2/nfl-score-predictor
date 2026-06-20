@@ -7,6 +7,14 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 
+def validate_csv_schema(df: pd.DataFrame, required_cols: list[str]) -> None:
+    """Validate that DataFrame has all required columns."""
+    missing = set(required_cols) - set(df.columns)
+    if missing:
+        msg = f"Missing required columns: {missing}"
+        raise ValueError(msg)
+
+
 def running_in_lambda() -> bool:
     """Detect if running in AWS Lambda environment."""
     return os.getenv("AWS_EXECUTION_ENV") is not None
@@ -69,7 +77,8 @@ def get_injuries_adjustment(
             return 0
 
         team_qb_list = team_injuries.get(abbr, [])
-        qb_name, tier = team_qbs.get(team, [None, "average"])
+        qb_info = team_qbs.get(team, (None, "average"))
+        qb_name = qb_info[0] if isinstance(qb_info, tuple) else qb_info
 
         for player in team_qb_list:
             if (
@@ -78,7 +87,7 @@ def get_injuries_adjustment(
                 in ["questionable", "doubtful", "out"]
                 and player["Player"] == qb_name
             ):
-                return qb_tiers.get(tier, 0)
+                return qb_tiers.get(qb_info[1], 0)
         return 0
 
     return qb_adjust(home_team), qb_adjust(away_team)

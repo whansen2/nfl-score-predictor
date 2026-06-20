@@ -82,7 +82,7 @@ def handler(event, context):
         else:
             logger.warning("Prediction script returned no results — skipping S3 upload")
             return {
-                "statusCode": 200,
+                "statusCode": 204,
                 "body": json.dumps(
                     {
                         "message": (

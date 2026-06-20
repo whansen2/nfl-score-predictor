@@ -116,6 +116,9 @@ def run_predictions() -> pd.DataFrame:
     if os.path.exists(matchups_path):
         df_matchups = pd.read_csv(matchups_path)
         logger.info(f"Loaded {len(df_matchups)} upcoming matchups from CSV")
+        from nfl_predictor.utils.helpers import validate_csv_schema
+
+        validate_csv_schema(df_matchups, ["Week", "Home", "Visitor", "Date"])
     else:
         msg = (
             f"Matchups CSV file not found at {matchups_path}. "
@@ -207,11 +210,16 @@ def run_predictions() -> pd.DataFrame:
             # Log model performance once per week
             if week not in printed_weeks:
                 y_pred = model.predict(X_test)
+                mae = mean_absolute_error(y_test, y_pred)
+                r2 = r2_score(y_test, y_pred)
                 logger.info(f"Training for week {week} data")
-                logger.info(
-                    "Mean Absolute Error: %.3f", mean_absolute_error(y_test, y_pred)
-                )
-                logger.info("R² Score: %.3f", r2_score(y_test, y_pred))
+                logger.info("Mean Absolute Error: %.3f", mae)
+                logger.info("R² Score: %.3f", r2)
+                if r2 < 0.5:
+                    logger.warning(
+                        f"Model quality low for week {week} (R²={r2:.3f}), "
+                        "predictions may be unreliable"
+                    )
                 printed_weeks.add(week)
 
             # Cache trained model
