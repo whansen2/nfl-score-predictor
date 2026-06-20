@@ -9,15 +9,11 @@ ENV PYTHONPATH=/app
 WORKDIR /app
 
 # Copy project files for dependency installation
-COPY pyproject.toml .
-COPY README.md .
-COPY LICENSE .
+COPY pyproject.toml README.md LICENSE ./
+COPY nfl_predictor /app/nfl_predictor
 
 # Install dependencies from pyproject.toml
 RUN pip install --upgrade pip && pip install -e .
-
-# Copy the rest of application code
-COPY nfl_predictor /app/nfl_predictor
 
 # Run the app
 CMD ["python", "nfl_predictor/nfl_ai_scores.py"]
