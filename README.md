@@ -7,17 +7,10 @@ A production-ready NFL game prediction system that combines machine learning wit
 
 **🏈 Currently configured for 2025 NFL Season predictions** - easily configurable for any week via environment variables.
 
-## 🎯 Overview
-
-This system uses scikit-learn Linear Regression trained on real NFL team performance data, enhanced with optional injury adjustments. The AI-powered analysis module provides deep strategic insights using OpenAI's GPT-4o-mini.
-
-**🚀 Production Ready**: Fully containerized with AWS Lambda deployment, comprehensive test suite, and robust error handling.
-
 ---
 
 ## ✨ Features
 
-- **🤖 AI-Powered Analysis**: OpenAI GPT-4o-mini integration for strategic insights and matchup discussion
 - **📊 Machine Learning Predictions**: scikit-learn Linear Regression using 6 key statistical features
 - **🏥 Injury Impact Modeling**: Quarterback tier-based scoring adjustments (5-tier system)
 - **🎲 Upset Detection**: AI-powered analysis to identify potential surprise outcomes
@@ -35,27 +28,21 @@ nfl-score-predictor/
 │
 ├── .dockerignore
 ├── .gitignore
+├── .pre-commit-config.yaml # Pre-commit hooks (linting, security, formatting)
 ├── .env                    # Contains only OPENAI_API_KEY
 ├── .env.example           # Template for environment variables
 ├── Dockerfile.local
 ├── Dockerfile.lambda
 ├── docker-compose.yml
 ├── Makefile
-├── pytest.ini
+├── pyproject.toml         # Project metadata and dependencies
 ├── README.md
 ├── LICENSE
-│
-├── llm/                   # OpenAI-powered analysis module
-│   ├── blitz.py          # GPT-4o-mini integration for game analysis
-│   ├── requirements.txt
-│   ├── Makefile
-│   └── README.md
 │
 ├── nfl_predictor/         # Main prediction engine
 │   ├── __init__.py
 │   ├── nfl_ai_scores.py   # Core prediction script
 │   ├── lambda_handler.py  # AWS Lambda deployment handler
-│   ├── requirements.txt
 │   ├── agents/
 │   │   ├── __init__.py
 │   │   └── upsets_ai_agent.py  # Upset detection logic
@@ -88,8 +75,7 @@ nfl-score-predictor/
 
 ### Prerequisites
 
-- Python 3.11+ 
-- OpenAI API key (for AI-powered analysis)
+- Python 3.11+
 
 ### Local Development (Virtual Environment)
 
@@ -113,7 +99,6 @@ nfl-score-predictor/
 4. **Configure environment:**
    ```bash
    cp .env.example .env
-   # Edit .env and add your OpenAI API key
    ```
 
 5. **Run tests to verify setup:**
@@ -133,11 +118,8 @@ nfl-score-predictor/
 ```bash
 # Complete setup and run
 make venv && make install
-cp .env.example .env  # Add your OPENAI_API_KEY
+cp .env.example .env
 make run
-
-# Run AI analysis on predictions
-python llm/blitz.py
 ```
 
 ---
@@ -147,14 +129,13 @@ python llm/blitz.py
 This project uses a **constants-first architecture** for maximum flexibility:
 
 - **`nfl_predictor/utils/constants.py`**: All default values and configuration
-- **`.env`**: Override any constants (only `OPENAI_API_KEY` is required)
+- **`.env`**: Override any constants as needed
 - **`.env.example`**: Template showing all configurable options
 
 ### Essential Configuration Options
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `OPENAI_API_KEY` | *(required)* | API key for GPT-4o-mini analysis |
 | `ENABLE_INJURY_ADJUSTMENTS` | `false` | QB injury impact scoring adjustments |
 | `ENABLE_UPSETS_AGENT` | `true` | AI-powered upset detection |
 | `WEEK_NUMBER` | `1` | NFL week for predictions |
@@ -218,19 +199,6 @@ make run
 
 **Input**: Reads from `nfl_predictor/data/upcoming_matchups.csv` and team statistics
 
-### AI-Powered Analysis (Blitz Module)
-
-```bash
-# Launch interactive analysis chat
-python llm/blitz.py
-```
-
-Features include:
-- Historical matchup analysis
-- Strategic team insights
-- Injury impact discussion
-- Upset potential evaluation
-
 ### Advanced Usage Examples
 
 ```bash
@@ -255,7 +223,7 @@ make run
 The Linear Regression model uses 6 key performance indicators:
 
 1. **Sc%_x**: Home team scoring percentage
-2. **Tot_1stD/G**: Total first downs per game  
+2. **Tot_1stD/G**: Total first downs per game
 3. **Y/P_x**: Yards per play (offense)
 4. **RZPct_x**: Red zone conversion percentage
 5. **TO%_x**: Turnover differential percentage
@@ -269,7 +237,7 @@ The Linear Regression model uses 6 key performance indicators:
 ### AI Analysis Features
 
 - **Matchup Insights**: Historical performance analysis
-- **Upset Detection**: Statistical anomaly identification  
+- **Upset Detection**: Statistical anomaly identification
 - **Strategic Discussion**: Interactive chat about game plans
 - **Trend Analysis**: Multi-week performance tracking
 

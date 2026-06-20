@@ -2,6 +2,10 @@
 __pycache__/
 *.py[cod]
 *.pyo
+*.so
+*.egg-info/
+*.egg
+MANIFEST
 
 # Virtual environments
 nfl_env/
@@ -18,6 +22,10 @@ venv/
 # Git metadata
 .git
 .gitignore
+
+# Distribution / build
+build/
+dist/
 
 # Logs & output
 *.log

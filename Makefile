@@ -7,7 +7,7 @@ VENV = nfl_env
 ACTIVATE = source $(VENV)/bin/activate
 
 # === PATHS ===
-REQS = nfl_predictor/requirements.txt
+REQS = pyproject.toml
 SCRIPT = nfl_predictor/nfl_ai_scores.py
 DATA_DIR = nfl_predictor/data
 TEST_DIR = tests
@@ -20,7 +20,7 @@ venv:
 
 # Install dependencies
 install:
-	$(ACTIVATE) && pip install -r $(REQS)
+	$(ACTIVATE) && pip install -e ".[dev]"
 
 # Run the predictor script locally
 run:
@@ -47,48 +47,16 @@ distclean: clean
 	rm -rf $(VENV)
 	@echo "🧹 Removed virtual environment. Run 'make venv && make install' to recreate."
 
-# === Blitz Shortcuts (Delegates to llm/Makefile) ===
-
-blitz-chat:
-	$(MAKE) -C llm chat
-
-blitz-predict:
-	$(MAKE) -C llm predict
-
-blitz-flag:
-	$(MAKE) -C llm flag
-
-blitz-recap:
-	$(MAKE) -C llm recap
-
-blitz-run:
-	$(MAKE) -C llm run
-
-# Blitz help menu
-blitz-help:
-	@echo ""
-	@echo "🧠 Blitz - Local LLM Assistant Commands:"
-	@echo "----------------------------------------"
-	@echo "make blitz-chat      💬  Chat with Blitz about predictions"
-	@echo "make blitz-predict   🧮  Run Blitz's copy of predictions"
-	@echo "make blitz-flag      🚨  See close calls or upsets"
-	@echo "make blitz-recap     📰  Get a weekly game recap"
-	@echo "make blitz-run       🔁  Flag upsets and recap the week"
-	@echo ""
-
 # === Full Setup ===
 
 all:
 	@echo "🔧 Creating virtualenv..."
 	$(MAKE) venv
-	@echo "📦 Installing predictor dependencies..."
-	$(ACTIVATE) && pip install -r $(REQS)
-	@echo "🤖 Installing Blitz (LLM) dependencies..."
-	$(MAKE) -C llm install
+	@echo "📦 Installing dependencies..."
+	$(ACTIVATE) && pip install -e ".[dev]"
 	@echo "🏈 Running predictions..."
 	$(MAKE) run
 	@echo ""
 	@echo "✅ All done!"
-	@echo "👉 Next steps: try 'make blitz-help' or 'make blitz-recap'"
 
-.PHONY: venv install run docker-up docker-down test clean distclean blitz-chat blitz-predict blitz-flag blitz-recap blitz-run blitz-help all
+.PHONY: venv install run docker-up docker-down test clean distclean all
