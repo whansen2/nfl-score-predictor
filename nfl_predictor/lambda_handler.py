@@ -7,7 +7,6 @@ import boto3
 
 from nfl_predictor.nfl_ai_scores import run_predictions
 from nfl_predictor.utils.constants import (
-    DEFAULT_INPUT_BUCKET,
     DEFAULT_OUTPUT_BUCKET,
     FLAGGED_OUTPUT_FILE_NAME,
     INPUT_FILE_NAME,
@@ -22,7 +21,6 @@ logger.setLevel(logging.INFO)
 s3 = boto3.client("s3")
 
 # Environment variables with defaults from constants
-INPUT_BUCKET = os.getenv("INPUT_BUCKET", DEFAULT_INPUT_BUCKET)
 OUTPUT_BUCKET = os.getenv("OUTPUT_BUCKET", DEFAULT_OUTPUT_BUCKET)
 
 # Paths in Lambda (only /tmp is writable)

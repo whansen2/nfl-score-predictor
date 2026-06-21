@@ -31,9 +31,11 @@ def get_training_week(week_value: Any) -> int:
         Training week number (defaults to 18 for postseason)
     """
     try:
-        return int(week_value)
+        week = int(week_value)
     except (TypeError, ValueError):
         return 18  # For postseason (e.g., "WildCard", "SuperBowl", etc.)
+
+    return week if week > 0 else 18
 
 
 def resolve_weeks(week_value: Any) -> tuple[int, int]:
@@ -41,6 +43,7 @@ def resolve_weeks(week_value: Any) -> tuple[int, int]:
     Normalize matchup week values and derive training week.
 
     Numeric matchup weeks use previous-week training data.
+    Week 1 falls back to week 18 data because no week 0 dataset exists.
     Postseason labels map to week 19 with training week 18.
     """
     try:

@@ -9,15 +9,11 @@ from nfl_predictor.utils.constants import (
     # Model configuration
     DEFAULT_FEATURES,
     DEFAULT_INJURY_ADJUSTMENTS,
-    # AWS configuration
-    DEFAULT_INPUT_BUCKET,
     # Feature flags
     DEFAULT_LOG_LEVEL,
     DEFAULT_OUTPUT_BUCKET,
     DEFAULT_UPSETS_AGENT,
     DEFAULT_VERBOSE_ADJUSTMENTS,
-    # Prediction defaults
-    DEFAULT_WEEK_NUMBER,
     DEFAULT_YEAR_ABBR,
     DEFENSE_FILE,
     FLAGGED_OUTPUT_FILE_NAME,
@@ -92,20 +88,13 @@ class TestModelConstants:
 class TestDefaultValues:
     """Test default configuration values."""
 
-    def test_aws_configuration(self) -> None:
-        """Test AWS configuration defaults."""
-        assert isinstance(DEFAULT_INPUT_BUCKET, str)
+    def test_output_bucket_configuration(self) -> None:
+        """Test Lambda output bucket default."""
         assert isinstance(DEFAULT_OUTPUT_BUCKET, str)
-        assert "nfl-score-predictor" in DEFAULT_INPUT_BUCKET
         assert "nfl-score-predictor" in DEFAULT_OUTPUT_BUCKET
 
     def test_prediction_defaults(self) -> None:
         """Test prediction default values."""
-        assert isinstance(DEFAULT_WEEK_NUMBER, int)
-        assert (
-            1 <= DEFAULT_WEEK_NUMBER <= 22
-        )  # Updated to support regular season + playoffs
-
         assert isinstance(DEFAULT_YEAR_ABBR, int)
         assert DEFAULT_YEAR_ABBR >= 0
 

@@ -23,17 +23,14 @@ DEFENSE_FILE = "nfl_team_defense_thru_week_{week}_{year}.csv"
 
 # Model configuration constants
 DEFAULT_FEATURES = ["Sc%_x", "Tot_1stD/G", "Y/P_x", "RZPct_x", "TO%_x", "Sc%_y"]
-DATABRICKS_FEATURES = ["Y/P_x", "Sc%_x", "Tot_1stD/G", "Avg_RZTD"]
 HOME_FIELD_ADVANTAGE = 1
 TRAIN_TEST_SPLIT_RATIO = 0.33
 RANDOM_STATE = 42
 
 # AWS configuration
-DEFAULT_INPUT_BUCKET = "nfl-score-predictor-test-input"
 DEFAULT_OUTPUT_BUCKET = "nfl-score-predictor-test-output"
 
 # Prediction defaults
-DEFAULT_WEEK_NUMBER = 1
 DEFAULT_YEAR_ABBR = 25  # 2025 season
 
 # Feature flags defaults

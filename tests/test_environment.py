@@ -14,32 +14,26 @@ class TestConstantsEnvironmentIntegration:
     @patch.dict(os.environ, {})
     def test_constants_used_as_defaults(self) -> None:
         """Test that constants are used when environment variables are not set."""
-        from nfl_predictor.utils.constants import DEFAULT_LOG_LEVEL, DEFAULT_WEEK_NUMBER
+        from nfl_predictor.utils.constants import DEFAULT_LOG_LEVEL
 
         # Clear environment variables
         os.environ.pop("LOG_LEVEL", None)
-        os.environ.pop("WEEK_NUMBER", None)
 
         # Test that defaults are used
         log_level = os.getenv("LOG_LEVEL", DEFAULT_LOG_LEVEL)
-        week_number = int(os.getenv("WEEK_NUMBER", DEFAULT_WEEK_NUMBER))
 
         assert log_level == DEFAULT_LOG_LEVEL
-        assert week_number == DEFAULT_WEEK_NUMBER
 
-    @patch.dict(os.environ, {"LOG_LEVEL": "DEBUG", "WEEK_NUMBER": "10"})
+    @patch.dict(os.environ, {"LOG_LEVEL": "DEBUG"})
     def test_environment_overrides_constants(self) -> None:
         """Test that environment variables override constants."""
-        from nfl_predictor.utils.constants import DEFAULT_LOG_LEVEL, DEFAULT_WEEK_NUMBER
+        from nfl_predictor.utils.constants import DEFAULT_LOG_LEVEL
 
         log_level = os.getenv("LOG_LEVEL", DEFAULT_LOG_LEVEL)
-        week_number = int(os.getenv("WEEK_NUMBER", DEFAULT_WEEK_NUMBER))
 
         assert log_level == "DEBUG"
-        assert week_number == 10
         # Should be different from defaults
         assert log_level != DEFAULT_LOG_LEVEL
-        assert week_number != DEFAULT_WEEK_NUMBER
 
     def test_boolean_environment_conversion(self) -> None:
         """Test proper conversion of boolean environment variables."""

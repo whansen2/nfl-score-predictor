@@ -138,6 +138,36 @@ def test_run_predictions_uses_numeric_week_for_training_data(
     assert results.iloc[0]["Week"] == 2
 
 
+def test_run_predictions_uses_week_18_data_for_week_1_matchups(
+    tmp_path, monkeypatch
+) -> None:
+    _write_properties_file(tmp_path)
+    _write_weekly_stats(tmp_path, week=18, year=DEFAULT_YEAR_ABBR)
+
+    matchups = pd.DataFrame(
+        [
+            {
+                "Week": 1,
+                "Visitor": "AwayTeam",
+                "Home": "HomeTeam",
+                "Date": "2026-09-08",
+            }
+        ]
+    )
+    matchups_path = tmp_path / INPUT_FILE_NAME
+    matchups.to_csv(matchups_path, index=False)
+
+    monkeypatch.setattr(scores, "path", str(tmp_path))
+    monkeypatch.setattr(scores, "ENABLE_UPSETS_AGENT", False)
+    monkeypatch.setattr(scores, "ENABLE_INJURY_ADJUSTMENTS", False)
+    monkeypatch.setattr(scores, "YEAR_ABBR", DEFAULT_YEAR_ABBR)
+
+    results = scores.run_predictions(matchups_path=str(matchups_path))
+
+    assert len(results) == 1
+    assert results.iloc[0]["Week"] == 1
+
+
 def test_run_predictions_raises_for_missing_matchup_columns(
     tmp_path, monkeypatch
 ) -> None:
