@@ -9,6 +9,7 @@ from nfl_predictor.nfl_ai_scores import run_predictions
 from nfl_predictor.utils.constants import (
     DEFAULT_INPUT_BUCKET,
     DEFAULT_OUTPUT_BUCKET,
+    FLAGGED_OUTPUT_FILE_NAME,
     INPUT_FILE_NAME,
     OUTPUT_FILE_NAME,
 )
@@ -28,6 +29,7 @@ OUTPUT_BUCKET = os.getenv("OUTPUT_BUCKET", DEFAULT_OUTPUT_BUCKET)
 TMP_DIR = "/tmp"  # nosec - Lambda environment constraint
 INPUT_LOCAL_PATH = os.path.join(TMP_DIR, INPUT_FILE_NAME)
 OUTPUT_LOCAL_PATH = os.path.join(TMP_DIR, OUTPUT_FILE_NAME)
+FLAGGED_OUTPUT_LOCAL_PATH = os.path.join(TMP_DIR, FLAGGED_OUTPUT_FILE_NAME)
 
 
 def handler(event, context):
@@ -53,12 +55,17 @@ def handler(event, context):
 
         # Ensure we have valid results before upload
         if results is not None and not results.empty:
-            logger.info(f"Generated {len(results)} predictions")
+            flagged_results = None
+            base_results = results
 
-            # Write prediction results to /tmp
-            results.to_csv(OUTPUT_LOCAL_PATH, index=False)
+            if FLAGGED_OUTPUT_FILE_NAME and "Upset Flag" in results.columns:
+                flagged_results = results
+                base_results = results.drop(columns=["Upset Flag"])
 
-            # Upload the CSV to the output S3 bucket
+            logger.info(f"Generated {len(base_results)} predictions")
+
+            # Write and upload the base prediction results.
+            base_results.to_csv(OUTPUT_LOCAL_PATH, index=False)
             s3.upload_file(
                 OUTPUT_LOCAL_PATH,
                 OUTPUT_BUCKET,
@@ -69,15 +76,31 @@ def handler(event, context):
                 f"Uploaded predictions to s3://{OUTPUT_BUCKET}/{OUTPUT_FILE_NAME}"
             )
 
+            response_body = {
+                "message": f"Successfully processed {len(base_results)} predictions",
+                "output_location": f"s3://{OUTPUT_BUCKET}/{OUTPUT_FILE_NAME}",
+                "sample_predictions": base_results.head(5).to_dict(orient="records"),
+            }
+
+            if flagged_results is not None:
+                flagged_results.to_csv(FLAGGED_OUTPUT_LOCAL_PATH, index=False)
+                s3.upload_file(
+                    FLAGGED_OUTPUT_LOCAL_PATH,
+                    OUTPUT_BUCKET,
+                    FLAGGED_OUTPUT_FILE_NAME,
+                    ExtraArgs={"ContentType": "text/csv"},
+                )
+                logger.info(
+                    "Uploaded flagged predictions to "
+                    f"s3://{OUTPUT_BUCKET}/{FLAGGED_OUTPUT_FILE_NAME}"
+                )
+                response_body["flagged_output_location"] = (
+                    f"s3://{OUTPUT_BUCKET}/{FLAGGED_OUTPUT_FILE_NAME}"
+                )
+
             return {
                 "statusCode": 200,
-                "body": json.dumps(
-                    {
-                        "message": f"Successfully processed {len(results)} predictions",
-                        "output_location": f"s3://{OUTPUT_BUCKET}/{OUTPUT_FILE_NAME}",
-                        "sample_predictions": results.head(5).to_dict(orient="records"),
-                    }
-                ),
+                "body": json.dumps(response_body),
             }
         else:
             logger.warning("Prediction script returned no results — skipping S3 upload")

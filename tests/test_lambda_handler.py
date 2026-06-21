@@ -12,6 +12,7 @@ import pandas as pd
 import pytest
 
 from nfl_predictor.lambda_handler import INPUT_LOCAL_PATH, handler
+from nfl_predictor.utils.constants import FLAGGED_OUTPUT_FILE_NAME, OUTPUT_FILE_NAME
 
 
 class TestLambdaHandler:
@@ -61,6 +62,15 @@ class TestLambdaHandler:
             ]
         )
 
+    @pytest.fixture
+    def sample_flagged_predictions(
+        self, sample_predictions: pd.DataFrame
+    ) -> pd.DataFrame:
+        """Sample flagged prediction results."""
+        return sample_predictions.assign(Upset_Flag="⚠️ Close Call").rename(
+            columns={"Upset_Flag": "Upset Flag"}
+        )
+
     @patch("nfl_predictor.lambda_handler.s3")
     @patch("nfl_predictor.lambda_handler.run_predictions")
     def test_successful_prediction_execution(
@@ -92,6 +102,33 @@ class TestLambdaHandler:
         mock_s3.download_file.assert_called_once()
         mock_s3.upload_file.assert_called_once()
         mock_run_predictions.assert_called_once_with(matchups_path=INPUT_LOCAL_PATH)
+
+    @patch("nfl_predictor.lambda_handler.s3")
+    @patch("nfl_predictor.lambda_handler.run_predictions")
+    def test_flagged_predictions_upload_base_and_flagged_outputs(
+        self,
+        mock_run_predictions,
+        mock_s3,
+        sample_s3_event,
+        sample_context,
+        sample_flagged_predictions,
+    ) -> None:
+        """Test flagged predictions upload both base and flagged CSVs."""
+        mock_run_predictions.return_value = sample_flagged_predictions
+
+        mock_s3.download_file = Mock()
+        mock_s3.upload_file = Mock()
+
+        response = handler(sample_s3_event, sample_context)
+
+        assert response["statusCode"] == 200
+        body = json.loads(response["body"])
+        assert body["output_location"].endswith(OUTPUT_FILE_NAME)
+        assert body["flagged_output_location"].endswith(FLAGGED_OUTPUT_FILE_NAME)
+        assert "Upset Flag" not in body["sample_predictions"][0]
+
+        upload_keys = [call.args[2] for call in mock_s3.upload_file.call_args_list]
+        assert upload_keys == [OUTPUT_FILE_NAME, FLAGGED_OUTPUT_FILE_NAME]
 
     @patch("nfl_predictor.lambda_handler.s3")
     @patch("nfl_predictor.lambda_handler.run_predictions")

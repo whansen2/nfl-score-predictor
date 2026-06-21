@@ -4,7 +4,7 @@ NFL Score Predictor Configuration Constants
 This file contains all default configuration values for the NFL predictor system.
 Values can be optionally overridden via environment variables in .env file.
 
-Only OPENAI_API_KEY is required in .env - all other values have sensible defaults here.
+Environment variables are optional; these defaults are used when overrides are not set.
 """
 
 # Base filenames
