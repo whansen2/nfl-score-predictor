@@ -5,7 +5,7 @@
 
 A production-ready NFL game prediction system that combines machine learning with contextual adjustments to generate accurate score predictions, winner analysis, and over/under estimates.
 
-**🏈 Currently configured for 2025 NFL Season predictions** - easily configurable for any week via environment variables.
+**🏈 Currently configured for 2025 NFL Season predictions** with matchup-driven week selection from the input CSV.
 
 ---
 
@@ -13,7 +13,7 @@ A production-ready NFL game prediction system that combines machine learning wit
 
 - **📊 Machine Learning Predictions**: scikit-learn Linear Regression using 6 key statistical features
 - **🏥 Injury Impact Modeling**: Quarterback tier-based scoring adjustments (5-tier system)
-- **🎲 Upset Detection**: AI-powered analysis to identify potential surprise outcomes
+- **🎲 Upset Detection**: Rule-based close-call and upset flagging using standings data
 - **☁️ AWS Lambda Ready**: Containerized deployment with S3 integration
 - **⚙️ Flexible Configuration**: Constants-first approach with environment overrides
 - **📈 Export & Analytics**: CSV output with comprehensive game statistics
@@ -29,8 +29,8 @@ nfl-score-predictor/
 ├── .dockerignore
 ├── .gitignore
 ├── .pre-commit-config.yaml # Pre-commit hooks (linting, security, formatting)
-├── .env                    # Contains only OPENAI_API_KEY
-├── .env.example           # Template for environment variables
+├── .env                    # Optional local overrides and local API keys
+├── .env.example           # Template for optional environment variables
 ├── Dockerfile.local
 ├── Dockerfile.lambda
 ├── docker-compose.yml
@@ -45,7 +45,7 @@ nfl-score-predictor/
 │   ├── lambda_handler.py  # AWS Lambda deployment handler
 │   ├── agents/
 │   │   ├── __init__.py
-│   │   └── upsets_ai_agent.py  # Upset detection logic
+│   │   └── upsets_ai_agent.py  # Rule-based upset flagging logic
 │   ├── data/              # Training data and configuration
 │   │   ├── nfl_properties_test.yaml    # Team/QB configurations
 │   │   ├── upcoming_matchups.csv       # Game schedule
@@ -63,6 +63,7 @@ nfl-score-predictor/
 │   ├── test_injuries.py
 │   ├── test_lambda_handler.py
 │   ├── test_model.py
+│   ├── test_nfl_ai_scores.py
 │   └── test_upsets_agent.py
 │
 └── .github/workflows/     # CI/CD pipelines
@@ -88,7 +89,7 @@ nfl-score-predictor/
 2. **Create and activate virtual environment:**
    ```bash
    make venv
-   source nfl_env/bin/activate
+   source .venv/bin/activate
    ```
 
 3. **Install dependencies:**
@@ -96,10 +97,14 @@ nfl-score-predictor/
    make install
    ```
 
-4. **Configure environment:**
+4. **Configure environment (optional):**
    ```bash
    cp .env.example .env
    ```
+
+   The predictor runs with defaults from `nfl_predictor/utils/constants.py`. The
+   template retains an `OPENAI_API_KEY` placeholder for local use, but the current
+   prediction pipeline does not require it.
 
 5. **Run tests to verify setup:**
    ```bash
@@ -119,6 +124,7 @@ nfl-score-predictor/
 # Complete setup and run
 make venv && make install
 cp .env.example .env
+make test
 make run
 ```
 
@@ -129,7 +135,7 @@ make run
 This project uses a **constants-first architecture** for maximum flexibility:
 
 - **`nfl_predictor/utils/constants.py`**: All default values and configuration
-- **`.env`**: Override any constants as needed
+- **`.env`**: Optional local overrides
 - **`.env.example`**: Template showing all configurable options
 
 ### Essential Configuration Options
@@ -137,10 +143,13 @@ This project uses a **constants-first architecture** for maximum flexibility:
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `ENABLE_INJURY_ADJUSTMENTS` | `false` | QB injury impact scoring adjustments |
-| `ENABLE_UPSETS_AGENT` | `true` | AI-powered upset detection |
-| `WEEK_NUMBER` | `1` | NFL week for predictions |
+| `ENABLE_UPSETS_AGENT` | `true` | Rule-based upset and close-call flagging |
 | `YEAR_ABBR` | `25` | Season year (2025 data) |
 | `VERBOSE_ADJUSTMENTS` | `false` | Detailed adjustment logging |
+| `LOG_LEVEL` | `INFO` | Application logging level |
+
+The prediction week is read from each row in `nfl_predictor/data/upcoming_matchups.csv`.
+`WEEK_NUMBER` is not currently used by the CLI prediction flow.
 
 ### Feature Flags (Production Ready)
 
@@ -207,10 +216,6 @@ export ENABLE_INJURY_ADJUSTMENTS=true
 export VERBOSE_ADJUSTMENTS=true
 make run
 
-# Specific week prediction
-export WEEK_NUMBER=2
-make run
-
 # Custom logging level
 export LOG_LEVEL=DEBUG
 make run
@@ -234,12 +239,11 @@ The Linear Regression model uses 6 key performance indicators:
 - **Injury Adjustments**: 5-tier QB rating system (-6 to -2 point penalties)
 - **Home Field Advantage**: +1 point boost for home teams
 
-### AI Analysis Features
+### Upset Flagging Features
 
-- **Matchup Insights**: Historical performance analysis
-- **Upset Detection**: Statistical anomaly identification
-- **Strategic Discussion**: Interactive chat about game plans
-- **Trend Analysis**: Multi-week performance tracking
+- **Close Calls**: Flags games with projected margins under 4 points
+- **Potential Upsets**: Flags predicted winners with fewer recorded wins
+- **Standings-Based Context**: Uses `standings.csv` to add simple record comparisons
 
 ---
 
