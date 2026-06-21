@@ -75,7 +75,7 @@ nfl-score-predictor/
 
 ### Prerequisites
 
-- Python 3.11+
+- Python 3.12+
 
 ### Local Development (Virtual Environment)
 
