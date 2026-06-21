@@ -10,7 +10,7 @@ from unittest.mock import Mock, patch
 import pandas as pd
 import pytest
 
-from nfl_predictor.lambda_handler import handler
+from nfl_predictor.lambda_handler import INPUT_LOCAL_PATH, handler
 
 
 class TestLambdaHandler:
@@ -90,6 +90,7 @@ class TestLambdaHandler:
         # Verify S3 operations were called
         mock_s3.download_file.assert_called_once()
         mock_s3.upload_file.assert_called_once()
+        mock_run_predictions.assert_called_once_with(matchups_path=INPUT_LOCAL_PATH)
 
     @patch("nfl_predictor.lambda_handler.s3")
     @patch("nfl_predictor.lambda_handler.run_predictions")

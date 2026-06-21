@@ -49,7 +49,7 @@ def handler(event, context):
         logger.info(f"Downloaded input CSV to: {INPUT_LOCAL_PATH}")
 
         # Run the prediction pipeline
-        results = run_predictions()
+        results = run_predictions(matchups_path=INPUT_LOCAL_PATH)
 
         # Ensure we have valid results before upload
         if results is not None and not results.empty:
