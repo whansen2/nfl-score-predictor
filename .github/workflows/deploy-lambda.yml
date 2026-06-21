@@ -12,6 +12,7 @@ jobs:
     name: Build and Deploy Lambda Image
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    timeout-minutes: 30
 
     env:
       IMAGE_NAME: nfl-score-predictor
