@@ -1,10 +1,12 @@
 from unittest.mock import patch
 
+import numpy as np
 import pandas as pd
 import pytest
 from sklearn.linear_model import LinearRegression
 
 from nfl_predictor.utils.constants import DEFAULT_FEATURES, HOME_FIELD_ADVANTAGE
+from nfl_predictor.utils.helpers import resolve_weeks
 
 
 # Parameterized test for different combinations of injuries and team stats
@@ -124,3 +126,16 @@ def test_prediction_pipeline_with_adjustments_param(
     assert isinstance(at_pred, int)
     assert ht_pred > 0
     assert at_pred > 0
+
+
+@pytest.mark.parametrize(
+    "week_value, expected",
+    [
+        (2, (2, 1)),
+        ("3", (3, 2)),
+        (np.int64(4), (4, 3)),
+        ("SuperBowl", (19, 18)),
+    ],
+)
+def test_resolve_weeks_handles_numeric_and_postseason_values(week_value, expected):
+    assert resolve_weeks(week_value) == expected

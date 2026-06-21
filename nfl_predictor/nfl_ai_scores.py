@@ -52,7 +52,7 @@ from nfl_predictor.utils.constants import (
 )
 from nfl_predictor.utils.helpers import (
     get_injuries_adjustment,
-    get_training_week,
+    resolve_weeks,
     running_in_lambda,
 )
 
@@ -92,7 +92,7 @@ YEAR_ABBR = int(os.getenv("YEAR_ABBR", DEFAULT_YEAR_ABBR))
 
 
 # Main prediction logic
-def run_predictions() -> pd.DataFrame:
+def run_predictions(matchups_path: str | None = None) -> pd.DataFrame:
     # Load team and QB properties
     with open(os.path.join(path, PROPERTIES_FILE_NAME)) as file:
         nfl_properties: dict[str, Any] = yaml.safe_load(file)
@@ -110,7 +110,8 @@ def run_predictions() -> pd.DataFrame:
             logger.warning("Injury adjustments enabled but injuries file not found.")
 
     # Matchups CSV path
-    matchups_path = os.path.join(path, INPUT_FILE_NAME)
+    if matchups_path is None:
+        matchups_path = os.path.join(path, INPUT_FILE_NAME)
 
     # Load upcoming matchups from CSV - required for operation
     if os.path.exists(matchups_path):
@@ -135,15 +136,9 @@ def run_predictions() -> pd.DataFrame:
     results: list[list[Any]] = []  # Store final output rows
 
     for _, row in df_matchups.iterrows():
-        week = row["Week"]
-        # Convert postseason week strings to 19 so training uses week 18 data
-        if not isinstance(week, int):
-            week = 19
+        week, training_week = resolve_weeks(row["Week"])
         home_team = row["Home"]
         away_team = row["Visitor"]
-        training_week = get_training_week(
-            week - 1
-        )  # Use previous week's data for predictions
 
         # Train model only once per week and cache it
         if week not in week_model_cache:
