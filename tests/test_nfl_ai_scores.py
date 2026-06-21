@@ -10,7 +10,6 @@ from nfl_predictor.utils.constants import (
     CONVERSIONS_FILE,
     DEFAULT_YEAR_ABBR,
     DEFENSE_FILE,
-    FLAGGED_OUTPUT_FILE_NAME,
     INJURIES_FILE_NAME,
     INPUT_FILE_NAME,
     OFFENSE_FILE,
@@ -128,7 +127,6 @@ def test_run_predictions_uses_numeric_week_for_training_data(
     matchups.to_csv(matchups_path, index=False)
 
     monkeypatch.setattr(scores, "path", str(tmp_path))
-    monkeypatch.setattr(scores, "ENABLE_UPSETS_AGENT", False)
     monkeypatch.setattr(scores, "ENABLE_INJURY_ADJUSTMENTS", False)
     monkeypatch.setattr(scores, "YEAR_ABBR", DEFAULT_YEAR_ABBR)
 
@@ -158,7 +156,6 @@ def test_run_predictions_uses_week_18_data_for_week_1_matchups(
     matchups.to_csv(matchups_path, index=False)
 
     monkeypatch.setattr(scores, "path", str(tmp_path))
-    monkeypatch.setattr(scores, "ENABLE_UPSETS_AGENT", False)
     monkeypatch.setattr(scores, "ENABLE_INJURY_ADJUSTMENTS", False)
     monkeypatch.setattr(scores, "YEAR_ABBR", DEFAULT_YEAR_ABBR)
 
@@ -214,7 +211,6 @@ def test_run_predictions_uses_default_matchups_path_and_warns_when_injuries_miss
     matchups.to_csv(tmp_path / INPUT_FILE_NAME, index=False)
 
     monkeypatch.setattr(scores, "path", str(tmp_path))
-    monkeypatch.setattr(scores, "ENABLE_UPSETS_AGENT", False)
     monkeypatch.setattr(scores, "ENABLE_INJURY_ADJUSTMENTS", True)
     monkeypatch.setattr(scores, "YEAR_ABBR", DEFAULT_YEAR_ABBR)
 
@@ -246,7 +242,6 @@ def test_run_predictions_returns_empty_when_weekly_data_missing(
     matchups.to_csv(matchups_path, index=False)
 
     monkeypatch.setattr(scores, "path", str(tmp_path))
-    monkeypatch.setattr(scores, "ENABLE_UPSETS_AGENT", False)
     monkeypatch.setattr(scores, "ENABLE_INJURY_ADJUSTMENTS", False)
     monkeypatch.setattr(scores, "YEAR_ABBR", DEFAULT_YEAR_ABBR)
 
@@ -290,7 +285,6 @@ def test_run_predictions_returns_empty_when_required_feature_missing(
     )
 
     monkeypatch.setattr(scores, "path", str(tmp_path))
-    monkeypatch.setattr(scores, "ENABLE_UPSETS_AGENT", False)
     monkeypatch.setattr(scores, "ENABLE_INJURY_ADJUSTMENTS", False)
     monkeypatch.setattr(scores, "YEAR_ABBR", DEFAULT_YEAR_ABBR)
 
@@ -320,7 +314,6 @@ def test_run_predictions_skips_invalid_matchup_teams(tmp_path, monkeypatch) -> N
     matchups.to_csv(matchups_path, index=False)
 
     monkeypatch.setattr(scores, "path", str(tmp_path))
-    monkeypatch.setattr(scores, "ENABLE_UPSETS_AGENT", False)
     monkeypatch.setattr(scores, "ENABLE_INJURY_ADJUSTMENTS", False)
     monkeypatch.setattr(scores, "YEAR_ABBR", DEFAULT_YEAR_ABBR)
 
@@ -356,7 +349,6 @@ def test_run_predictions_applies_verbose_injury_adjustments(
     )
 
     monkeypatch.setattr(scores, "path", str(tmp_path))
-    monkeypatch.setattr(scores, "ENABLE_UPSETS_AGENT", False)
     monkeypatch.setattr(scores, "YEAR_ABBR", DEFAULT_YEAR_ABBR)
 
     monkeypatch.setattr(scores, "ENABLE_INJURY_ADJUSTMENTS", False)
@@ -374,40 +366,6 @@ def test_run_predictions_applies_verbose_injury_adjustments(
     assert adjusted.iloc[0]["Home Score"] == baseline.iloc[0]["Home Score"] - 4
     assert adjusted.iloc[0]["Away Score"] == baseline.iloc[0]["Away Score"] - 2
     mock_logger.info.assert_any_call("Adjustments - Injury: -4/-2")
-
-
-def test_run_predictions_writes_flagged_output_locally(tmp_path, monkeypatch) -> None:
-    _write_properties_file(tmp_path)
-    _write_weekly_stats(tmp_path, week=1, year=DEFAULT_YEAR_ABBR)
-
-    matchups = pd.DataFrame(
-        [
-            {
-                "Week": 2,
-                "Visitor": "AwayTeam",
-                "Home": "HomeTeam",
-                "Date": "2026-09-15",
-            }
-        ]
-    )
-    matchups_path = tmp_path / INPUT_FILE_NAME
-    matchups.to_csv(matchups_path, index=False)
-
-    monkeypatch.setattr(scores, "path", str(tmp_path))
-    monkeypatch.setattr(scores, "ENABLE_UPSETS_AGENT", True)
-    monkeypatch.setattr(scores, "ENABLE_INJURY_ADJUSTMENTS", False)
-    monkeypatch.setattr(scores, "YEAR_ABBR", DEFAULT_YEAR_ABBR)
-
-    def _flag_output(df_results: pd.DataFrame, _: str) -> pd.DataFrame:
-        return df_results.assign(**{"Upset Flag": "⚠️ Close Call"})
-
-    monkeypatch.setattr(scores, "run_upsets_agent", _flag_output)
-
-    results = scores.run_predictions(matchups_path=str(matchups_path))
-
-    assert "Upset Flag" in results.columns
-    assert (tmp_path / OUTPUT_FILE_NAME).exists()
-    assert (tmp_path / FLAGGED_OUTPUT_FILE_NAME).exists()
 
 
 def test_run_predictions_logs_generated_files_in_lambda_environment(
@@ -430,24 +388,15 @@ def test_run_predictions_logs_generated_files_in_lambda_environment(
     matchups.to_csv(matchups_path, index=False)
 
     monkeypatch.setattr(scores, "path", str(tmp_path))
-    monkeypatch.setattr(scores, "ENABLE_UPSETS_AGENT", True)
     monkeypatch.setattr(scores, "ENABLE_INJURY_ADJUSTMENTS", False)
     monkeypatch.setattr(scores, "YEAR_ABBR", DEFAULT_YEAR_ABBR)
     monkeypatch.setattr(scores, "running_in_lambda", lambda: True)
 
-    def _flag_output(df_results: pd.DataFrame, _: str) -> pd.DataFrame:
-        return df_results.assign(**{"Upset Flag": "⚠️ Close Call"})
-
-    monkeypatch.setattr(scores, "run_upsets_agent", _flag_output)
-
     with patch.object(scores, "logger") as mock_logger:
         results = scores.run_predictions(matchups_path=str(matchups_path))
 
-    assert "Upset Flag" in results.columns
+    assert len(results.columns) == 7
     assert not (tmp_path / OUTPUT_FILE_NAME).exists()
     mock_logger.info.assert_any_call(
         f"{OUTPUT_FILE_NAME} generated successfully in Lambda environment."
-    )
-    mock_logger.info.assert_any_call(
-        f"{FLAGGED_OUTPUT_FILE_NAME} generated successfully in Lambda environment."
     )

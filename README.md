@@ -13,7 +13,6 @@ A production-ready NFL game prediction system that combines machine learning wit
 
 - **📊 Machine Learning Predictions**: scikit-learn Linear Regression using 6 key statistical features
 - **🏥 Injury Impact Modeling**: Quarterback tier-based scoring adjustments (5-tier system)
-- **🎲 Upset Detection**: Rule-based close-call and upset flagging using standings data
 - **☁️ AWS Lambda Ready**: Containerized deployment with S3 integration
 - **⚙️ Flexible Configuration**: Constants-first approach with environment overrides
 - **📈 Export & Analytics**: CSV output with comprehensive game statistics
@@ -43,13 +42,9 @@ nfl-score-predictor/
 │   ├── __init__.py
 │   ├── nfl_ai_scores.py   # Core prediction script
 │   ├── lambda_handler.py  # AWS Lambda deployment handler
-│   ├── agents/
-│   │   ├── __init__.py
-│   │   └── upsets_ai_agent.py  # Rule-based upset flagging logic
 │   ├── data/              # Training data and configuration
 │   │   ├── nfl_properties_test.yaml    # Team/QB configurations
 │   │   ├── upcoming_matchups.csv       # Game schedule
-│   │   ├── standings.csv               # Current team standings
 │   │   ├── nfl_injuries_test.csv       # Injury reports
 │   │   └── nfl_team_*_thru_week_1_25.csv  # Performance statistics
 │   └── utils/
@@ -64,7 +59,6 @@ nfl-score-predictor/
 │   ├── test_lambda_handler.py
 │   ├── test_model.py
 │   ├── test_nfl_ai_scores.py
-│   └── test_upsets_agent.py
 │
 └── .github/workflows/     # CI/CD pipelines
 
@@ -141,7 +135,6 @@ This project uses a **constants-first architecture** for maximum flexibility:
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `ENABLE_INJURY_ADJUSTMENTS` | `false` | QB injury impact scoring adjustments |
-| `ENABLE_UPSETS_AGENT` | `true` | Rule-based upset and close-call flagging |
 | `YEAR_ABBR` | `25` | Season year (2025 data) |
 | `VERBOSE_ADJUSTMENTS` | `false` | Detailed adjustment logging |
 | `LOG_LEVEL` | `INFO` | Application logging level |
@@ -236,14 +229,6 @@ The Linear Regression model uses 6 key performance indicators:
 
 - **Injury Adjustments**: 5-tier QB rating system (-6 to -2 point penalties)
 - **Home Field Advantage**: +1 point boost for home teams
-
-### Upset Flagging Features
-
-- **Close Calls**: Flags games with projected margins under 4 points
-- **Potential Upsets**: Flags predicted winners with fewer recorded wins
-- **Standings-Based Context**: Uses `standings.csv` to add simple record comparisons
-
----
 
 ## 📌 Data Sources & Architecture
 
