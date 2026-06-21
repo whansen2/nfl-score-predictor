@@ -13,8 +13,8 @@ Key Features:
 
 Configuration:
 - All defaults defined in nfl_predictor.utils.constants
-- Only OPENAI_API_KEY required in .env file
-- Other values can be optionally overridden via environment variables
+- Optional .env overrides are supported for local development
+- The core prediction pipeline runs without any required API keys
 """
 
 import logging
@@ -56,7 +56,7 @@ from nfl_predictor.utils.helpers import (
     running_in_lambda,
 )
 
-# Load .env values (all other config in constants.py)
+# Load optional .env overrides (all defaults live in constants.py)
 load_dotenv()
 
 # Setup logging with better formatting
