@@ -2,6 +2,7 @@
 Test suite for AWS Lambda handler functionality.
 """
 
+import importlib
 import json
 import os
 from typing import Any
@@ -220,32 +221,40 @@ class TestLambdaHandler:
         call_args = mock_s3.download_file.call_args[0]
         assert call_args[1] == "folder/file with spaces.csv"  # Should be decoded
 
-    @patch("nfl_predictor.lambda_handler.s3")
-    @patch("nfl_predictor.lambda_handler.run_predictions")
-    @patch.dict(
-        os.environ, {"INPUT_BUCKET": "custom-input", "OUTPUT_BUCKET": "custom-output"}
-    )
     def test_environment_variable_override(
         self,
-        mock_run_predictions,
-        mock_s3,
         sample_s3_event,
         sample_context,
         sample_predictions,
     ) -> None:
         """Test that environment variables properly override defaults."""
-        mock_run_predictions.return_value = sample_predictions
-        mock_s3.download_file = Mock()
-        mock_s3.upload_file = Mock()
+        import nfl_predictor.lambda_handler as lambda_handler_module
 
-        # Execute handler
-        handler(sample_s3_event, sample_context)
+        with patch.dict(
+            os.environ,
+            {"INPUT_BUCKET": "custom-input", "OUTPUT_BUCKET": "custom-output"},
+            clear=False,
+        ):
+            reloaded_module = importlib.reload(lambda_handler_module)
+            with (
+                patch.object(reloaded_module, "s3") as mock_s3,
+                patch.object(
+                    reloaded_module, "run_predictions"
+                ) as mock_run_predictions,
+            ):
+                mock_run_predictions.return_value = sample_predictions
+                mock_s3.download_file = Mock()
+                mock_s3.upload_file = Mock()
 
-        # Verify custom bucket was used for upload
-        upload_call_args = mock_s3.upload_file.call_args[0]
-        assert (
-            upload_call_args[1] == "nfl-score-predictor-test-output"
-        )  # Should use the test bucket
+                # Execute handler
+                reloaded_module.handler(sample_s3_event, sample_context)
+
+                # Verify custom bucket from environment was used for upload
+                upload_call_args = mock_s3.upload_file.call_args[0]
+                assert upload_call_args[1] == "custom-output"
+
+        # Restore module state for subsequent tests
+        importlib.reload(lambda_handler_module)
 
 
 class TestLambdaHandlerIntegration:

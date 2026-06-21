@@ -104,9 +104,12 @@ class TestUpsetsAgent:
             upset_flags = result[
                 result["Upset Flag"].str.contains("Potential Upset", na=False)
             ]
+            assert len(upset_flags) >= 1
             assert (
-                len(upset_flags) >= 0
-            )  # May or may not have upsets depending on specific scenarios
+                upset_flags["Upset Flag"]
+                .str.contains("Potential Upset: Cincinnati Bengals")
+                .any()
+            )
 
     def test_upsets_agent_preserves_original_columns(
         self, sample_predictions, sample_standings
