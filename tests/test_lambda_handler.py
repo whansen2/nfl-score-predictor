@@ -264,12 +264,12 @@ class TestLambdaHandler:
         sample_context,
         sample_predictions,
     ) -> None:
-        """Test that environment variables properly override defaults."""
+        """Test that output bucket environment variable overrides the default."""
         import nfl_predictor.lambda_handler as lambda_handler_module
 
         with patch.dict(
             os.environ,
-            {"INPUT_BUCKET": "custom-input", "OUTPUT_BUCKET": "custom-output"},
+            {"OUTPUT_BUCKET": "custom-output"},
             clear=False,
         ):
             reloaded_module = importlib.reload(lambda_handler_module)

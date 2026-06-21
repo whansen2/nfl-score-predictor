@@ -102,9 +102,7 @@ nfl-score-predictor/
    cp .env.example .env
    ```
 
-   The predictor runs with defaults from `nfl_predictor/utils/constants.py`. The
-   template retains an `OPENAI_API_KEY` placeholder for local use, but the current
-   prediction pipeline does not require it.
+   The predictor runs with defaults from `nfl_predictor/utils/constants.py`.
 
 5. **Run tests to verify setup:**
    ```bash
@@ -147,9 +145,9 @@ This project uses a **constants-first architecture** for maximum flexibility:
 | `YEAR_ABBR` | `25` | Season year (2025 data) |
 | `VERBOSE_ADJUSTMENTS` | `false` | Detailed adjustment logging |
 | `LOG_LEVEL` | `INFO` | Application logging level |
+| `OUTPUT_BUCKET` | `nfl-score-predictor-test-output` | Lambda output bucket override |
 
 The prediction week is read from each row in `nfl_predictor/data/upcoming_matchups.csv`.
-`WEEK_NUMBER` is not currently used by the CLI prediction flow.
 
 ### Feature Flags (Production Ready)
 
