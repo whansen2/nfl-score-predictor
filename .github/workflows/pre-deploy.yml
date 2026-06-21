@@ -91,7 +91,6 @@ jobs:
       - name: Run tests with coverage
         run: |
           source nfl_env/bin/activate
-          export WEEK_NUMBER=18
           export YEAR_ABBR=24
           pytest tests --cov=nfl_predictor --cov-report=term-missing --cov-report=xml:coverage.xml --junitxml=pytest-report.xml
 

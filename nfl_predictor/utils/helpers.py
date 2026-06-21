@@ -31,7 +31,7 @@ def get_training_week(week_value: Any) -> int:
         Training week number (defaults to 18 for postseason)
     """
     try:
-        return int(week_value)
+        return max(1, int(week_value))
     except (TypeError, ValueError):
         return 18  # For postseason (e.g., "WildCard", "SuperBowl", etc.)
 

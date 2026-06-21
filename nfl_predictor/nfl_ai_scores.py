@@ -37,7 +37,6 @@ from nfl_predictor.utils.constants import (
     DEFAULT_LOG_LEVEL,
     DEFAULT_UPSETS_AGENT,
     DEFAULT_VERBOSE_ADJUSTMENTS,
-    DEFAULT_WEEK_NUMBER,
     DEFAULT_YEAR_ABBR,
     DEFENSE_FILE,
     FLAGGED_OUTPUT_FILE_NAME,
@@ -87,7 +86,6 @@ ENABLE_UPSETS_AGENT = (
 )
 
 # Load .env values for defaults (all values have defaults in constants.py)
-WEEK_NUMBER = int(os.getenv("WEEK_NUMBER", DEFAULT_WEEK_NUMBER))
 YEAR_ABBR = int(os.getenv("YEAR_ABBR", DEFAULT_YEAR_ABBR))
 
 
@@ -177,11 +175,6 @@ def run_predictions(matchups_path: str | None = None) -> pd.DataFrame:
             # Create engineered features
             df["PPG"] = df["PF"] / df["G"]
             df["Tot_1stD/G"] = df["Tot_1stD"] / df["G"]
-            df["Avg_RZTD"] = (
-                df["RZTD_x"] / df["G"]
-            )  # this field is part of the Databricks feature set
-
-            # Enhanced feature set with validation
             features = DEFAULT_FEATURES
 
             # Validate all features exist
@@ -189,9 +182,6 @@ def run_predictions(matchups_path: str | None = None) -> pd.DataFrame:
             if missing_features:
                 logger.error(f"Missing required features: {missing_features}")
                 continue
-
-            # Databricks feature set (alternate) - uncomment to use
-            # features = DATABRICKS_FEATURES
 
             # Train/test split and model fitting
             X = df[features]

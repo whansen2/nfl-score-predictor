@@ -87,7 +87,7 @@ class TestUpsetsAgent:
             close_calls = result[
                 result["Upset Flag"].str.contains("Close Call", na=False)
             ]
-            assert len(close_calls) >= 1  # Should flag 1-point and 4-point games
+            assert len(close_calls) >= 1  # Should flag 1-point games
 
     def test_upsets_agent_identifies_upsets(
         self, sample_predictions, sample_standings
