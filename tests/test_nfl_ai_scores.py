@@ -48,24 +48,48 @@ def _write_weekly_stats(tmp_path, week: int, year: int) -> None:
                 "Y/P": 5.8,
                 "TO%": 10.0,
             },
+            {
+                "Tm": "ThirdTeam",
+                "PF": 400,
+                "G": 17,
+                "Tot_1stD": 350,
+                "Sc%": 44.0,
+                "Y/P": 6.0,
+                "TO%": 9.0,
+            },
+            {
+                "Tm": "FourthTeam",
+                "PF": 360,
+                "G": 17,
+                "Tot_1stD": 330,
+                "Sc%": 40.0,
+                "Y/P": 5.6,
+                "TO%": 11.0,
+            },
         ]
     )
     conversions = pd.DataFrame(
         [
             {"Tm": "HomeTeam", "RZTD": 30, "RZPct": 60.0},
             {"Tm": "AwayTeam", "RZTD": 25, "RZPct": 55.0},
+            {"Tm": "ThirdTeam", "RZTD": 28, "RZPct": 58.0},
+            {"Tm": "FourthTeam", "RZTD": 23, "RZPct": 53.0},
         ]
     )
     conversions_against = pd.DataFrame(
         [
             {"Tm": "HomeTeam", "RZTD": 20, "RZPct": 50.0},
             {"Tm": "AwayTeam", "RZTD": 22, "RZPct": 52.0},
+            {"Tm": "ThirdTeam", "RZTD": 21, "RZPct": 51.0},
+            {"Tm": "FourthTeam", "RZTD": 24, "RZPct": 54.0},
         ]
     )
     defense = pd.DataFrame(
         [
             {"Tm": "HomeTeam", "Sc%": 35.0, "Y/P": 5.0, "TO%": 12.0},
             {"Tm": "AwayTeam", "Sc%": 38.0, "Y/P": 5.3, "TO%": 11.0},
+            {"Tm": "ThirdTeam", "Sc%": 36.0, "Y/P": 5.1, "TO%": 10.0},
+            {"Tm": "FourthTeam", "Sc%": 39.0, "Y/P": 5.4, "TO%": 9.0},
         ]
     )
 
