@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "nfl-score-predictor"
 version = "0.1.0"
-description = "Linear Regression-based NFL game score predictor with injury adjustments and upset detection"
+description = "Linear Regression-based NFL game score predictor with injury adjustments"
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.12"
@@ -19,7 +19,7 @@ dependencies = [
 ]
 
 [tool.setuptools]
-packages = ["nfl_predictor", "nfl_predictor.agents", "nfl_predictor.utils"]
+packages = ["nfl_predictor", "nfl_predictor.utils"]
 
 [project.optional-dependencies]
 dev = [

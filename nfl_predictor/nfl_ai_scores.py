@@ -2,13 +2,12 @@
 NFL Score Predictor - Main Prediction Engine
 
 This module implements a Linear Regression-based NFL game score predictor with optional
-adjustments for injuries and upset detection. All configuration is managed
+adjustments for injuries. All configuration is managed
 through constants.py with optional .env overrides.
 
 Key Features:
 - 6-feature Linear Regression model using team performance statistics
 - Optional injury adjustments based on QB tier ratings
-- Upset detection via separate agent module
 - AWS Lambda deployment support
 
 Configuration:
@@ -28,18 +27,15 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, r2_score
 from sklearn.model_selection import train_test_split
 
-from nfl_predictor.agents.upsets_ai_agent import run_upsets_agent
 from nfl_predictor.utils.constants import (
     CONV_AGAINST_FILE,
     CONVERSIONS_FILE,
     DEFAULT_FEATURES,
     DEFAULT_INJURY_ADJUSTMENTS,
     DEFAULT_LOG_LEVEL,
-    DEFAULT_UPSETS_AGENT,
     DEFAULT_VERBOSE_ADJUSTMENTS,
     DEFAULT_YEAR_ABBR,
     DEFENSE_FILE,
-    FLAGGED_OUTPUT_FILE_NAME,
     HOME_FIELD_ADVANTAGE,
     INJURIES_FILE_NAME,
     INPUT_FILE_NAME,
@@ -80,9 +76,6 @@ ENABLE_INJURY_ADJUSTMENTS = (
 )
 VERBOSE_ADJUSTMENTS = (
     os.getenv("VERBOSE_ADJUSTMENTS", str(DEFAULT_VERBOSE_ADJUSTMENTS)).lower() == "true"
-)
-ENABLE_UPSETS_AGENT = (
-    os.getenv("ENABLE_UPSETS_AGENT", str(DEFAULT_UPSETS_AGENT)).lower() == "true"
 )
 
 # Load .env values for defaults (all values have defaults in constants.py)
@@ -269,25 +262,17 @@ def run_predictions(matchups_path: str | None = None) -> pd.DataFrame:
             ],
         )
 
-        # Define outputs
-        output_files = [(OUTPUT_FILE_NAME, df_results)]
-
-        # Optionally run Upsets Agent and add to outputs
-        if ENABLE_UPSETS_AGENT:
-            df_flagged = run_upsets_agent(df_results, path)
-            output_files.append((FLAGGED_OUTPUT_FILE_NAME, df_flagged))
-
         # Handle writing based on environment
         if not running_in_lambda():
-            for filename, df_out in output_files:
-                output_path = os.path.join(path, filename)
-                df_out.to_csv(output_path, index=False)
-                logger.info(f"Saved output to {output_path}")
+            output_path = os.path.join(path, OUTPUT_FILE_NAME)
+            df_results.to_csv(output_path, index=False)
+            logger.info(f"Saved output to {output_path}")
         else:
-            for filename, _ in output_files:
-                logger.info(f"{filename} generated successfully in Lambda environment.")
+            logger.info(
+                f"{OUTPUT_FILE_NAME} generated successfully in Lambda environment."
+            )
 
-        return df_flagged if ENABLE_UPSETS_AGENT else df_results
+        return df_results
 
     # No predictions made
     return pd.DataFrame()
