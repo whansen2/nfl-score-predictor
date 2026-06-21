@@ -12,11 +12,9 @@ from nfl_predictor.utils.constants import (
     # Feature flags
     DEFAULT_LOG_LEVEL,
     DEFAULT_OUTPUT_BUCKET,
-    DEFAULT_UPSETS_AGENT,
     DEFAULT_VERBOSE_ADJUSTMENTS,
     DEFAULT_YEAR_ABBR,
     DEFENSE_FILE,
-    FLAGGED_OUTPUT_FILE_NAME,
     HOME_FIELD_ADVANTAGE,
     INJURIES_FILE_NAME,
     # File names
@@ -39,7 +37,6 @@ class TestFileNameConstants:
             INJURIES_FILE_NAME,
             PROPERTIES_FILE_NAME,
             OUTPUT_FILE_NAME,
-            FLAGGED_OUTPUT_FILE_NAME,
         ]
         for file_name in file_names:
             assert isinstance(file_name, str)
@@ -104,7 +101,6 @@ class TestDefaultValues:
 
         assert isinstance(DEFAULT_VERBOSE_ADJUSTMENTS, bool)
         assert isinstance(DEFAULT_INJURY_ADJUSTMENTS, bool)
-        assert isinstance(DEFAULT_UPSETS_AGENT, bool)
 
 
 class TestConstantsIntegrity:
