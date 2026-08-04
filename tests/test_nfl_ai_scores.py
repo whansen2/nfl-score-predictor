@@ -223,6 +223,50 @@ def test_run_predictions_uses_default_matchups_path_and_warns_when_injuries_miss
     )
 
 
+def test_run_predictions_disables_injury_adjustments_for_invalid_injuries_schema(
+    tmp_path, monkeypatch
+) -> None:
+    _write_properties_file(tmp_path)
+    _write_weekly_stats(tmp_path, week=1, year=DEFAULT_YEAR_ABBR)
+
+    matchups = pd.DataFrame(
+        [
+            {
+                "Week": 2,
+                "Visitor": "AwayTeam",
+                "Home": "HomeTeam",
+                "Date": "2026-09-15",
+            }
+        ]
+    )
+    matchups_path = tmp_path / INPUT_FILE_NAME
+    matchups.to_csv(matchups_path, index=False)
+
+    pd.DataFrame(
+        [
+            {
+                "Player": "Home QB",
+                "Tm": "HOM",
+                "Pos": "QB",
+                "Status": "Out",
+            }
+        ]
+    ).to_csv(tmp_path / INJURIES_FILE_NAME, index=False)
+
+    monkeypatch.setattr(scores, "path", str(tmp_path))
+    monkeypatch.setattr(scores, "ENABLE_INJURY_ADJUSTMENTS", True)
+    monkeypatch.setattr(scores, "YEAR_ABBR", DEFAULT_YEAR_ABBR)
+
+    with patch.object(scores, "logger") as mock_logger:
+        results = scores.run_predictions(matchups_path=str(matchups_path))
+
+    assert len(results) == 1
+    mock_logger.warning.assert_any_call(
+        "Injury adjustments disabled due to invalid injuries file schema: %s",
+        "Missing required columns: {'Injury Comment'}",
+    )
+
+
 def test_run_predictions_returns_empty_when_weekly_data_missing(
     tmp_path, monkeypatch
 ) -> None:

@@ -1,4 +1,3 @@
-import json
 import logging
 import os
 from urllib.parse import unquote_plus
@@ -66,29 +65,21 @@ def handler(event, context):
             )
 
             response_body = {
+                "status": "success",
                 "message": f"Successfully processed {len(results)} predictions",
                 "output_location": f"s3://{OUTPUT_BUCKET}/{OUTPUT_FILE_NAME}",
                 "sample_predictions": results.head(5).to_dict(orient="records"),
             }
 
-            return {
-                "statusCode": 200,
-                "body": json.dumps(response_body),
-            }
+            return response_body
         else:
             logger.warning("Prediction script returned no results — skipping S3 upload")
             return {
-                "statusCode": 204,
-                "body": json.dumps(
-                    {
-                        "message": (
-                            "No predictions generated - check input data and logs"
-                        ),
-                        "predictions_count": 0,
-                    }
-                ),
+                "status": "no_predictions",
+                "message": "No predictions generated - check input data and logs",
+                "predictions_count": 0,
             }
 
     except Exception as e:
         logger.exception("Unhandled error during Lambda execution")
-        return {"statusCode": 500, "body": json.dumps({"error": str(e)})}
+        return {"status": "error", "error": str(e)}

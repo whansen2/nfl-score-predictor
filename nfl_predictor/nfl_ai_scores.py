@@ -49,6 +49,7 @@ from nfl_predictor.utils.helpers import (
     get_injuries_adjustment,
     resolve_weeks,
     running_in_lambda,
+    validate_csv_schema,
 )
 
 # Load optional .env overrides (all defaults live in constants.py)
@@ -81,6 +82,8 @@ VERBOSE_ADJUSTMENTS = (
 # Load .env values for defaults (all values have defaults in constants.py)
 YEAR_ABBR = int(os.getenv("YEAR_ABBR", DEFAULT_YEAR_ABBR))
 
+INJURY_REQUIRED_COLUMNS = ["Player", "Tm", "Pos", "Status", "Injury Comment"]
+
 
 # Main prediction logic
 def run_predictions(matchups_path: str | None = None) -> pd.DataFrame:
@@ -97,6 +100,12 @@ def run_predictions(matchups_path: str | None = None) -> pd.DataFrame:
     if ENABLE_INJURY_ADJUSTMENTS:
         try:
             injuries_df = pd.read_csv(os.path.join(path, INJURIES_FILE_NAME))
+            validate_csv_schema(injuries_df, INJURY_REQUIRED_COLUMNS)
+        except ValueError as e:
+            logger.warning(
+                f"Injury adjustments disabled due to invalid injuries file schema: {e}"
+            )
+            injuries_df = None
         except FileNotFoundError:
             logger.warning("Injury adjustments enabled but injuries file not found.")
 
@@ -108,8 +117,6 @@ def run_predictions(matchups_path: str | None = None) -> pd.DataFrame:
     if os.path.exists(matchups_path):
         df_matchups = pd.read_csv(matchups_path)
         logger.info(f"Loaded {len(df_matchups)} upcoming matchups from CSV")
-        from nfl_predictor.utils.helpers import validate_csv_schema
-
         validate_csv_schema(df_matchups, ["Week", "Home", "Visitor", "Date"])
     else:
         msg = (

@@ -3,7 +3,6 @@ Test suite for AWS Lambda handler functionality.
 """
 
 import importlib
-import json
 import os
 from typing import Any
 from unittest.mock import Mock, patch
@@ -83,10 +82,9 @@ class TestLambdaHandler:
         response = handler(sample_s3_event, sample_context)
 
         # Verify response
-        assert response["statusCode"] == 200
-        body = json.loads(response["body"])
-        assert "Successfully processed 1 predictions" in body["message"]
-        assert "sample_predictions" in body
+        assert response["status"] == "success"
+        assert "Successfully processed 1 predictions" in response["message"]
+        assert "sample_predictions" in response
 
         # Verify S3 operations were called
         mock_s3.download_file.assert_called_once()
@@ -108,11 +106,10 @@ class TestLambdaHandler:
         # Execute handler
         response = handler(sample_s3_event, sample_context)
 
-        # Verify response - 204 No Content is the appropriate HTTP status
-        assert response["statusCode"] == 204
-        body = json.loads(response["body"])
-        assert "No predictions generated" in body["message"]
-        assert body["predictions_count"] == 0
+        # Verify response for event-driven non-HTTP invocation
+        assert response["status"] == "no_predictions"
+        assert "No predictions generated" in response["message"]
+        assert response["predictions_count"] == 0
 
         # Verify no upload was attempted
         mock_s3.upload_file.assert_not_called()
@@ -133,9 +130,8 @@ class TestLambdaHandler:
         response = handler(sample_s3_event, sample_context)
 
         # Verify error response
-        assert response["statusCode"] == 500
-        body = json.loads(response["body"])
-        assert "error" in body
+        assert response["status"] == "error"
+        assert "error" in response
 
     @patch("nfl_predictor.lambda_handler.s3")
     def test_s3_download_error(self, mock_s3, sample_s3_event, sample_context) -> None:
@@ -147,9 +143,8 @@ class TestLambdaHandler:
         response = handler(sample_s3_event, sample_context)
 
         # Verify error response
-        assert response["statusCode"] == 500
-        body = json.loads(response["body"])
-        assert "error" in body
+        assert response["status"] == "error"
+        assert "error" in response
 
     @patch("nfl_predictor.lambda_handler.s3")
     @patch("nfl_predictor.lambda_handler.run_predictions")
@@ -173,9 +168,8 @@ class TestLambdaHandler:
         response = handler(sample_s3_event, sample_context)
 
         # Verify error response
-        assert response["statusCode"] == 500
-        body = json.loads(response["body"])
-        assert "error" in body
+        assert response["status"] == "error"
+        assert "error" in response
 
     def test_malformed_event_structure(self, sample_context) -> None:
         """Test handling of malformed S3 event."""
@@ -185,9 +179,8 @@ class TestLambdaHandler:
         response = handler(malformed_event, sample_context)
 
         # Verify error response
-        assert response["statusCode"] == 500
-        body = json.loads(response["body"])
-        assert "error" in body
+        assert response["status"] == "error"
+        assert "error" in response
 
     @patch("nfl_predictor.lambda_handler.s3")
     @patch("nfl_predictor.lambda_handler.run_predictions")
@@ -215,7 +208,7 @@ class TestLambdaHandler:
         response = handler(encoded_event, sample_context)
 
         # Verify successful execution
-        assert response["statusCode"] == 200
+        assert response["status"] == "success"
 
         # Verify S3 download was called with decoded key
         call_args = mock_s3.download_file.call_args[0]
