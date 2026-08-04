@@ -142,7 +142,7 @@ This project uses a **constants-first architecture** for maximum flexibility:
 
 The prediction week is read from each row in `nfl_predictor/data/upcoming_matchups.csv`.
 
-### Feature Flags (Production Ready)
+### Feature Flags
 
 The system includes battle-tested optional features:
 
@@ -154,7 +154,7 @@ ENABLE_INJURY_ADJUSTMENTS=true
 VERBOSE_ADJUSTMENTS=true
 ```
 
-**Note**: These features are thoroughly tested (see `tests/test_injuries.py`) and ready for production use.
+**Note**: These features are thoroughly tested (see `tests/test_injuries.py`) and ready.
 
 ### Docker Development
 
@@ -245,22 +245,6 @@ The Linear Regression model uses 6 key performance indicators:
 - **Constants-First**: Centralized configuration with environment overrides
 - **Extensible**: Modular design for easy feature additions
 - **Production Tested**: Comprehensive error handling and logging
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/new-feature`
-3. Run tests: `make test`
-4. Commit changes: `git commit -am 'Add new feature'`
-5. Push to branch: `git push origin feature/new-feature`
-6. Submit a Pull Request
-
-### Development Guidelines
-
-- All new features should include tests
-- Follow the constants-first configuration approach
-- Update documentation for user-facing changes
-- Ensure CI/CD pipeline passes
 
 ---
 
