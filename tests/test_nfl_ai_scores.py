@@ -262,8 +262,8 @@ def test_run_predictions_disables_injury_adjustments_for_invalid_injuries_schema
 
     assert len(results) == 1
     mock_logger.warning.assert_any_call(
-        "Injury adjustments disabled due to invalid injuries file schema: %s",
-        "Missing required columns: {'Injury Comment'}",
+        "Injury adjustments disabled due to invalid injuries file schema: "
+        "Missing required columns: {'Injury Comment'}"
     )
 
 
