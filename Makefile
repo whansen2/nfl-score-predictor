@@ -35,9 +35,11 @@ docker-down:
 test:
 	$(PYTHON_BIN) -m pytest $(TEST_DIR)
 
-# Clean Python cache
+# Clean local caches and coverage artifacts
 clean:
 	find . -type d -name "__pycache__" -exec rm -r {} + || true
+	rm -rf .pytest_cache .ruff_cache htmlcov
+	rm -f .coverage .coverage.*
 
 # Complete clean including virtual environment
 distclean: clean

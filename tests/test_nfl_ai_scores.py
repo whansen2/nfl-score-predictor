@@ -1,3 +1,4 @@
+import importlib
 from unittest.mock import patch
 
 import pandas as pd
@@ -140,6 +141,7 @@ def test_run_predictions_uses_week_18_data_for_week_1_matchups(
     tmp_path, monkeypatch
 ) -> None:
     _write_properties_file(tmp_path)
+    current_year = DEFAULT_YEAR_ABBR + 1
     _write_weekly_stats(tmp_path, week=18, year=DEFAULT_YEAR_ABBR)
 
     matchups = pd.DataFrame(
@@ -157,7 +159,7 @@ def test_run_predictions_uses_week_18_data_for_week_1_matchups(
 
     monkeypatch.setattr(scores, "path", str(tmp_path))
     monkeypatch.setattr(scores, "ENABLE_INJURY_ADJUSTMENTS", False)
-    monkeypatch.setattr(scores, "YEAR_ABBR", DEFAULT_YEAR_ABBR)
+    monkeypatch.setattr(scores, "YEAR_ABBR", current_year)
 
     results = scores.run_predictions(matchups_path=str(matchups_path))
 
@@ -221,6 +223,62 @@ def test_run_predictions_uses_default_matchups_path_and_warns_when_injuries_miss
     mock_logger.warning.assert_any_call(
         "Injury adjustments enabled but injuries file not found."
     )
+
+
+def test_run_predictions_accepts_injuries_file_without_injury_comment(
+    tmp_path, monkeypatch
+) -> None:
+    _write_properties_file(tmp_path)
+    _write_weekly_stats(tmp_path, week=1, year=DEFAULT_YEAR_ABBR)
+
+    matchups = pd.DataFrame(
+        [
+            {
+                "Week": 2,
+                "Visitor": "AwayTeam",
+                "Home": "HomeTeam",
+                "Date": "2026-09-15",
+            }
+        ]
+    )
+    matchups_path = tmp_path / INPUT_FILE_NAME
+    matchups.to_csv(matchups_path, index=False)
+
+    pd.DataFrame(
+        [
+            {
+                "Player": "Home QB",
+                "Tm": "HOM",
+                "Pos": "QB",
+                "Status": "Out",
+            }
+        ]
+    ).to_csv(tmp_path / INJURIES_FILE_NAME, index=False)
+
+    monkeypatch.setattr(scores, "path", str(tmp_path))
+    monkeypatch.setattr(scores, "YEAR_ABBR", DEFAULT_YEAR_ABBR)
+
+    monkeypatch.setattr(scores, "ENABLE_INJURY_ADJUSTMENTS", False)
+    baseline = scores.run_predictions(matchups_path=str(matchups_path))
+
+    monkeypatch.setattr(scores, "ENABLE_INJURY_ADJUSTMENTS", True)
+    results = scores.run_predictions(matchups_path=str(matchups_path))
+
+    assert len(results) == 1
+    assert results.iloc[0]["Home Score"] == baseline.iloc[0]["Home Score"] - 4
+
+
+def test_run_predictions_uses_default_year_when_env_value_is_invalid(
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("YEAR_ABBR", "invalid")
+
+    reloaded_scores = importlib.reload(scores)
+
+    assert reloaded_scores.YEAR_ABBR == DEFAULT_YEAR_ABBR
+
+    monkeypatch.delenv("YEAR_ABBR", raising=False)
+    importlib.reload(scores)
 
 
 def test_run_predictions_returns_empty_when_weekly_data_missing(

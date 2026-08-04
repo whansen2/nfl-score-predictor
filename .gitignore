@@ -35,6 +35,9 @@ dist/
 .cache
 .coverage
 .coverage.*
+htmlcov/
+coverage.xml
+pytest-report.xml
 
 # Output files (keep raw input CSVs, ignore generated output)
 nfl_predictor/data/predicted_matchups_*

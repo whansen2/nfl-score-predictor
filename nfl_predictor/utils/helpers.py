@@ -54,6 +54,21 @@ def resolve_weeks(week_value: Any) -> tuple[int, int]:
     return week, get_training_week(week - 1)
 
 
+def get_training_year(week_value: Any, current_year_abbr: int) -> int:
+    """
+    Determine which season year to use for training data.
+
+    Week 1 uses the prior season's week 18 data. Other regular-season and
+    postseason matchups use the current season year.
+    """
+    try:
+        week = int(week_value)
+    except (TypeError, ValueError):
+        return current_year_abbr
+
+    return current_year_abbr - 1 if week == 1 else current_year_abbr
+
+
 def get_injuries_adjustment(
     injuries_df: pd.DataFrame,
     home_team: str,
@@ -83,7 +98,7 @@ def get_injuries_adjustment(
     injuries_df = injuries_df.dropna(subset=["Status", "Pos"])
 
     # Only keep relevant fields
-    relevant_columns = ["Player", "Pos", "Status", "Injury Comment"]
+    relevant_columns = ["Player", "Pos", "Status"]
     team_injuries = {
         team: group[relevant_columns].to_dict(orient="records")
         for team, group in injuries_df.groupby("Tm")
