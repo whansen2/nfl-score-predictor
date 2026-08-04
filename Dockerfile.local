@@ -15,7 +15,7 @@ COPY nfl_predictor /app/nfl_predictor
 # Install dependencies from pyproject.toml
 RUN pip install --upgrade pip && pip install -e .
 
-# Run the local container as a non-root user.
+# Run the local container as a non-root user
 RUN useradd --create-home --shell /usr/sbin/nologin appuser && chown -R appuser:appuser /app
 
 USER appuser
