@@ -1,7 +1,11 @@
 import numpy as np
 import pytest
 
-from nfl_predictor.utils.helpers import get_training_week, resolve_weeks
+from nfl_predictor.utils.helpers import (
+    get_training_week,
+    get_training_year,
+    resolve_weeks,
+)
 
 
 @pytest.mark.parametrize(
@@ -32,3 +36,18 @@ def test_get_training_week_clamps_regular_season_floor_and_postseason_defaults(
     week_value, expected
 ):
     assert get_training_week(week_value) == expected
+
+
+@pytest.mark.parametrize(
+    "week_value, current_year_abbr, expected",
+    [
+        (1, 26, 25),
+        (2, 26, 26),
+        (18, 26, 26),
+        ("WildCard", 26, 26),
+    ],
+)
+def test_get_training_year_rolls_week_one_back_one_season(
+    week_value, current_year_abbr, expected
+):
+    assert get_training_year(week_value, current_year_abbr) == expected

@@ -141,6 +141,7 @@ def test_run_predictions_uses_week_18_data_for_week_1_matchups(
     tmp_path, monkeypatch
 ) -> None:
     _write_properties_file(tmp_path)
+    current_year = DEFAULT_YEAR_ABBR + 1
     _write_weekly_stats(tmp_path, week=18, year=DEFAULT_YEAR_ABBR)
 
     matchups = pd.DataFrame(
@@ -158,7 +159,7 @@ def test_run_predictions_uses_week_18_data_for_week_1_matchups(
 
     monkeypatch.setattr(scores, "path", str(tmp_path))
     monkeypatch.setattr(scores, "ENABLE_INJURY_ADJUSTMENTS", False)
-    monkeypatch.setattr(scores, "YEAR_ABBR", DEFAULT_YEAR_ABBR)
+    monkeypatch.setattr(scores, "YEAR_ABBR", current_year)
 
     results = scores.run_predictions(matchups_path=str(matchups_path))
 

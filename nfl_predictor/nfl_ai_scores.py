@@ -47,6 +47,7 @@ from nfl_predictor.utils.constants import (
 )
 from nfl_predictor.utils.helpers import (
     get_injuries_adjustment,
+    get_training_year,
     resolve_weeks,
     running_in_lambda,
     validate_csv_schema,
@@ -148,32 +149,38 @@ def run_predictions(matchups_path: str | None = None) -> pd.DataFrame:
 
     for _, row in df_matchups.iterrows():
         week, training_week = resolve_weeks(row["Week"])
+        training_year = get_training_year(row["Week"], YEAR_ABBR)
         home_team = row["Home"]
         away_team = row["Visitor"]
 
         # Train model only once per week and cache it
-        if week not in week_model_cache:
+        cache_key = (week, training_year)
+        if cache_key not in week_model_cache:
             try:
                 df_conversions = pd.read_csv(
                     os.path.join(
                         path,
-                        CONVERSIONS_FILE.format(week=training_week, year=YEAR_ABBR),
+                        CONVERSIONS_FILE.format(week=training_week, year=training_year),
                     )
                 )
                 df_offense = pd.read_csv(
                     os.path.join(
-                        path, OFFENSE_FILE.format(week=training_week, year=YEAR_ABBR)
+                        path,
+                        OFFENSE_FILE.format(week=training_week, year=training_year),
                     )
                 )
                 df_conversions_against = pd.read_csv(
                     os.path.join(
                         path,
-                        CONV_AGAINST_FILE.format(week=training_week, year=YEAR_ABBR),
+                        CONV_AGAINST_FILE.format(
+                            week=training_week, year=training_year
+                        ),
                     )
                 )
                 df_defense = pd.read_csv(
                     os.path.join(
-                        path, DEFENSE_FILE.format(week=training_week, year=YEAR_ABBR)
+                        path,
+                        DEFENSE_FILE.format(week=training_week, year=training_year),
                     )
                 )
             except FileNotFoundError as e:
@@ -221,9 +228,9 @@ def run_predictions(matchups_path: str | None = None) -> pd.DataFrame:
                 printed_weeks.add(week)
 
             # Cache trained model
-            week_model_cache[week] = (model, df, features)
+            week_model_cache[cache_key] = (model, df, features)
         else:
-            model, df, features = week_model_cache[week]
+            model, df, features = week_model_cache[cache_key]
 
         # Verify teams are in dataset
         if home_team not in df["Tm"].values or away_team not in df["Tm"].values:
