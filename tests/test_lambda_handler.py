@@ -121,30 +121,22 @@ class TestLambdaHandler:
     ) -> None:
         """Test exception handling during prediction execution."""
         # Mock prediction error
-        mock_run_predictions.side_effect = Exception("Prediction failed")
+        mock_run_predictions.side_effect = RuntimeError("Prediction failed")
 
         # Mock S3 download
         mock_s3.download_file = Mock()
 
-        # Execute handler
-        response = handler(sample_s3_event, sample_context)
-
-        # Verify error response
-        assert response["status"] == "error"
-        assert "error" in response
+        with pytest.raises(RuntimeError, match="Prediction failed"):
+            handler(sample_s3_event, sample_context)
 
     @patch("nfl_predictor.lambda_handler.s3")
     def test_s3_download_error(self, mock_s3, sample_s3_event, sample_context) -> None:
         """Test handling of S3 download errors."""
         # Mock S3 download error
-        mock_s3.download_file.side_effect = Exception("S3 download failed")
+        mock_s3.download_file.side_effect = RuntimeError("S3 download failed")
 
-        # Execute handler
-        response = handler(sample_s3_event, sample_context)
-
-        # Verify error response
-        assert response["status"] == "error"
-        assert "error" in response
+        with pytest.raises(RuntimeError, match="S3 download failed"):
+            handler(sample_s3_event, sample_context)
 
     @patch("nfl_predictor.lambda_handler.s3")
     @patch("nfl_predictor.lambda_handler.run_predictions")
@@ -162,25 +154,17 @@ class TestLambdaHandler:
 
         # Mock S3 operations - download succeeds, upload fails
         mock_s3.download_file = Mock()
-        mock_s3.upload_file.side_effect = Exception("S3 upload failed")
+        mock_s3.upload_file.side_effect = RuntimeError("S3 upload failed")
 
-        # Execute handler
-        response = handler(sample_s3_event, sample_context)
-
-        # Verify error response
-        assert response["status"] == "error"
-        assert "error" in response
+        with pytest.raises(RuntimeError, match="S3 upload failed"):
+            handler(sample_s3_event, sample_context)
 
     def test_malformed_event_structure(self, sample_context) -> None:
         """Test handling of malformed S3 event."""
         malformed_event = {"Records": [{"malformed": "event"}]}
 
-        # Execute handler
-        response = handler(malformed_event, sample_context)
-
-        # Verify error response
-        assert response["status"] == "error"
-        assert "error" in response
+        with pytest.raises(KeyError):
+            handler(malformed_event, sample_context)
 
     @patch("nfl_predictor.lambda_handler.s3")
     @patch("nfl_predictor.lambda_handler.run_predictions")

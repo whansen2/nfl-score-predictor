@@ -63,6 +63,19 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+
+def _get_int_env(name: str, default: int) -> int:
+    value = os.getenv(name)
+    if value is None:
+        return default
+
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        logger.warning("Invalid %s value %r; using default %s", name, value, default)
+        return default
+
+
 # Determine working path based on environment
 path = (
     "/var/task/nfl_predictor/data"
@@ -80,9 +93,9 @@ VERBOSE_ADJUSTMENTS = (
 )
 
 # Load .env values for defaults (all values have defaults in constants.py)
-YEAR_ABBR = int(os.getenv("YEAR_ABBR", DEFAULT_YEAR_ABBR))
+YEAR_ABBR = _get_int_env("YEAR_ABBR", DEFAULT_YEAR_ABBR)
 
-INJURY_REQUIRED_COLUMNS = ["Player", "Tm", "Pos", "Status", "Injury Comment"]
+INJURY_REQUIRED_COLUMNS = ["Player", "Tm", "Pos", "Status"]
 
 
 # Main prediction logic

@@ -80,6 +80,6 @@ def handler(event, context):
                 "predictions_count": 0,
             }
 
-    except Exception as e:
+    except Exception:
         logger.exception("Unhandled error during Lambda execution")
-        return {"status": "error", "error": str(e)}
+        raise

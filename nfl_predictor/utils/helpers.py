@@ -83,7 +83,7 @@ def get_injuries_adjustment(
     injuries_df = injuries_df.dropna(subset=["Status", "Pos"])
 
     # Only keep relevant fields
-    relevant_columns = ["Player", "Pos", "Status", "Injury Comment"]
+    relevant_columns = ["Player", "Pos", "Status"]
     team_injuries = {
         team: group[relevant_columns].to_dict(orient="records")
         for team, group in injuries_df.groupby("Tm")

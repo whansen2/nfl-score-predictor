@@ -1,3 +1,4 @@
+import importlib
 from unittest.mock import patch
 
 import pandas as pd
@@ -223,7 +224,7 @@ def test_run_predictions_uses_default_matchups_path_and_warns_when_injuries_miss
     )
 
 
-def test_run_predictions_disables_injury_adjustments_for_invalid_injuries_schema(
+def test_run_predictions_accepts_injuries_file_without_injury_comment(
     tmp_path, monkeypatch
 ) -> None:
     _write_properties_file(tmp_path)
@@ -254,17 +255,29 @@ def test_run_predictions_disables_injury_adjustments_for_invalid_injuries_schema
     ).to_csv(tmp_path / INJURIES_FILE_NAME, index=False)
 
     monkeypatch.setattr(scores, "path", str(tmp_path))
-    monkeypatch.setattr(scores, "ENABLE_INJURY_ADJUSTMENTS", True)
     monkeypatch.setattr(scores, "YEAR_ABBR", DEFAULT_YEAR_ABBR)
 
-    with patch.object(scores, "logger") as mock_logger:
-        results = scores.run_predictions(matchups_path=str(matchups_path))
+    monkeypatch.setattr(scores, "ENABLE_INJURY_ADJUSTMENTS", False)
+    baseline = scores.run_predictions(matchups_path=str(matchups_path))
+
+    monkeypatch.setattr(scores, "ENABLE_INJURY_ADJUSTMENTS", True)
+    results = scores.run_predictions(matchups_path=str(matchups_path))
 
     assert len(results) == 1
-    mock_logger.warning.assert_any_call(
-        "Injury adjustments disabled due to invalid injuries file schema: "
-        "Missing required columns: {'Injury Comment'}"
-    )
+    assert results.iloc[0]["Home Score"] == baseline.iloc[0]["Home Score"] - 4
+
+
+def test_run_predictions_uses_default_year_when_env_value_is_invalid(
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("YEAR_ABBR", "invalid")
+
+    reloaded_scores = importlib.reload(scores)
+
+    assert reloaded_scores.YEAR_ABBR == DEFAULT_YEAR_ABBR
+
+    monkeypatch.delenv("YEAR_ABBR", raising=False)
+    importlib.reload(scores)
 
 
 def test_run_predictions_returns_empty_when_weekly_data_missing(
