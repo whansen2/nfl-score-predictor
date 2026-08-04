@@ -97,6 +97,8 @@ VERBOSE_ADJUSTMENTS = (
 YEAR_ABBR = _get_int_env("YEAR_ABBR", DEFAULT_YEAR_ABBR)
 
 INJURY_REQUIRED_COLUMNS = ["Player", "Tm", "Pos", "Status"]
+WeekModelCacheKey = tuple[int, int]
+WeekModelCacheValue = tuple[LinearRegression, pd.DataFrame, list[str]]
 
 
 # Main prediction logic
@@ -143,8 +145,8 @@ def run_predictions(matchups_path: str | None = None) -> pd.DataFrame:
         set()
     )  # Track weeks already printed to avoid duplicate model metrics
     week_model_cache: dict[
-        int, tuple[Any, pd.DataFrame, list[str]]
-    ] = {}  # Cache trained models per week
+        WeekModelCacheKey, WeekModelCacheValue
+    ] = {}  # Cache trained models per week/year
     results: list[list[Any]] = []  # Store final output rows
 
     for _, row in df_matchups.iterrows():

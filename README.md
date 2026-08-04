@@ -5,7 +5,7 @@
 
 A production-ready NFL game prediction system that combines machine learning with contextual adjustments to generate accurate score predictions, winner analysis, and over/under estimates.
 
-**🏈 Currently configured for 2025 NFL Season predictions** with matchup-driven week selection from the input CSV.
+**🏈 Currently configured for 2025 season data** with matchup-driven week selection from the input CSV.
 
 ---
 
@@ -28,7 +28,7 @@ nfl-score-predictor/
 ├── .dockerignore
 ├── .gitignore
 ├── .pre-commit-config.yaml # Pre-commit hooks (linting, security, formatting)
-├── .env                    # Optional local overrides and local API keys
+├── .env                    # Optional local overrides
 ├── .env.example           # Template for optional environment variables
 ├── Dockerfile.local
 ├── Dockerfile.lambda
@@ -54,7 +54,6 @@ nfl-score-predictor/
 │
 ├── tests/                 # Comprehensive test suite
 │   ├── test_constants.py
-│   ├── test_environment.py
 │   ├── test_injuries.py
 │   ├── test_lambda_handler.py
 │   ├── test_model.py
@@ -141,6 +140,7 @@ This project uses a **constants-first architecture** for maximum flexibility:
 | `OUTPUT_BUCKET` | `nfl-score-predictor-test-output` | Lambda output bucket override |
 
 The prediction week is read from each row in `nfl_predictor/data/upcoming_matchups.csv`.
+For week 1 matchups, the pipeline automatically trains from prior-season week 18 data.
 
 ### Feature Flags
 
@@ -154,7 +154,7 @@ ENABLE_INJURY_ADJUSTMENTS=true
 VERBOSE_ADJUSTMENTS=true
 ```
 
-**Note**: These features are thoroughly tested (see `tests/test_injuries.py`) and ready.
+**Note**: These features are thoroughly tested (see `tests/test_injuries.py`) and production-ready.
 
 ### Docker Development
 
