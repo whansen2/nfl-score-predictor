@@ -33,7 +33,6 @@ nfl-score-predictor/
 │   └── deploy-lambda.yml
 ├── .gitignore
 ├── .pre-commit-config.yaml    # Pre-commit hooks (linting, security, formatting)
-├── AI_IDEAS.md                # Planned AI enhancements (aspirational)
 ├── Dockerfile.lambda
 ├── Dockerfile.local
 ├── docker-compose.yml
