@@ -105,7 +105,7 @@ def run_predictions(matchups_path: str | None = None) -> pd.DataFrame:
 
     team_abbreviations: dict[str, str] = nfl_properties["team_abbreviations"]
     qb_tiers: dict[str, int] = nfl_properties["qb_tiers"]
-    team_qbs: dict[str, str] = nfl_properties["team_qbs"]
+    team_qbs: dict[str, list[str]] = nfl_properties["team_qbs"]
 
     # Load injuries data (if enabled)
     injuries_df = None

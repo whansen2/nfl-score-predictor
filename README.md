@@ -119,7 +119,6 @@ nfl-score-predictor/
 ```bash
 # Complete setup and run
 make venv && make install
-cp .env.example .env
 make test
 make run
 ```
@@ -179,7 +178,7 @@ The system is production-ready for serverless deployment:
 
 1. **Build Lambda container:**
    ```bash
-   docker build -f Dockerfile.lambda -t nfl-predictor-lambda .
+   docker build --platform linux/amd64 -f Dockerfile.lambda -t nfl-predictor-lambda .
    ```
 
 2. **Deploy via AWS CLI or GitHub Actions** (see `.github/workflows/deploy-lambda.yml`)
