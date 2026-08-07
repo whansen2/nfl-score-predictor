@@ -216,14 +216,16 @@ make run
 
 ### Core Statistical Features
 
-The Linear Regression model uses 6 key performance indicators:
+The Linear Regression model uses 6 key performance indicators (all team-aggregate, not matchup-specific):
 
-1. **Sc%_x**: Home team scoring percentage
+1. **Sc%_x**: Team offensive scoring percentage
 2. **Tot_1stD/G**: Total first downs per game
-3. **Y/P_x**: Yards per play (offense)
+3. **Y/P_x**: Yards per play (team offense)
 4. **RZPct_x**: Red zone conversion percentage
 5. **TO%_x**: Turnover differential percentage
-6. **Sc%_y**: Away team scoring percentage
+6. **Sc%_y**: Team defensive scoring percentage
+
+Note: The model predicts each team's expected scoring independently based on its season stats; opponent identity does not affect the prediction. Predictions reflect each team's aggregate offensive/defensive efficiency.
 
 ### Optional Adjustments
 
