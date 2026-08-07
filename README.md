@@ -48,7 +48,7 @@ nfl-score-predictor/
 │   ├── agents/                # Reserved for future AI agents
 │   ├── data/                  # Training data and configuration
 │   │   ├── nfl_properties_test.yaml                       # Team/QB configurations
-│   │   ├── upcoming_matchups.csv                          # Game schedule
+│   │   ├── upcoming_matchups_auto.csv                     # Game schedule
 │   │   ├── nfl_injuries_test.csv                          # Injury reports
 │   │   ├── nfl_team_offense_thru_week_{1..18}_25.csv      # Weekly offense stats
 │   │   ├── nfl_team_defense_thru_week_{1..18}_25.csv      # Weekly defense stats
@@ -144,7 +144,7 @@ This project uses a **constants-first architecture** for maximum flexibility:
 | `LOG_LEVEL` | `INFO` | Application logging level |
 | `OUTPUT_BUCKET` | `nfl-score-predictor-test-output` | Lambda output bucket override |
 
-The prediction week is read from each row in `nfl_predictor/data/upcoming_matchups.csv`.
+The prediction week is read from each row in `nfl_predictor/data/upcoming_matchups_auto.csv`.
 For week 1 matchups, the pipeline automatically trains from prior-season week 18 data.
 
 ### Feature Flags
@@ -202,7 +202,7 @@ make run
 
 **Output**: Predictions saved to `nfl_predictor/data/predicted_matchups_test.csv`
 
-**Input**: Reads from `nfl_predictor/data/upcoming_matchups.csv` and team statistics
+**Input**: Reads from `nfl_predictor/data/upcoming_matchups_auto.csv` and team statistics
 
 ### Advanced Usage Examples
 

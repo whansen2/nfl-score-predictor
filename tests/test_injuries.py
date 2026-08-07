@@ -124,3 +124,42 @@ def test_team_qb_entries_are_resolved_or_fully_tbd() -> None:
         invalid_entries.append((team, qb_name, tier_label))
 
     assert not invalid_entries, f"Invalid QB entry shape(s): {invalid_entries}"
+
+
+def test_get_injuries_adjustment_raises_on_malformed_team_qbs_entry(tmp_path) -> None:
+    """Bare-string team_qbs entry (missing tier) must raise, not silently return 0."""
+    team_name, opponent = next(iter(team_qbs)), None
+    for candidate in team_qbs:
+        if candidate != team_name:
+            opponent = candidate
+            break
+    assert opponent is not None
+
+    df = pd.DataFrame(
+        [
+            {
+                "Player": "Some QB",
+                "Tm": team_abbreviations[team_name],
+                "Pos": "QB",
+                "Status": "Out",
+            }
+        ]
+    )
+    injury_file = tmp_path / "injuries_malformed.csv"
+    df.to_csv(injury_file, index=False)
+    df_loaded = pd.read_csv(injury_file)
+
+    malformed_team_qbs = {
+        team_name: "bare_string_instead_of_list",
+        opponent: team_qbs[opponent],
+    }
+
+    with pytest.raises(ValueError, match="Invalid team_qbs entry"):
+        get_injuries_adjustment(
+            df_loaded,
+            home_team=team_name,
+            away_team=opponent,
+            team_abbreviations=team_abbreviations,
+            qb_tiers=qb_tiers,
+            team_qbs=malformed_team_qbs,
+        )

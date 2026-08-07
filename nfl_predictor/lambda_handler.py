@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 from urllib.parse import unquote_plus
@@ -12,7 +13,7 @@ from nfl_predictor.utils.constants import (
 )
 
 # Setup logging
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 # S3 client
@@ -68,7 +69,9 @@ def handler(event, context):
                 "status": "success",
                 "message": f"Successfully processed {len(results)} predictions",
                 "output_location": f"s3://{OUTPUT_BUCKET}/{OUTPUT_FILE_NAME}",
-                "sample_predictions": results.head(5).to_dict(orient="records"),
+                "sample_predictions": json.loads(
+                    results.head(5).to_json(orient="records")
+                ),
             }
 
             return response_body

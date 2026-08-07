@@ -127,7 +127,7 @@ def test_run_predictions_uses_numeric_week_for_training_data(
     matchups_path = tmp_path / INPUT_FILE_NAME
     matchups.to_csv(matchups_path, index=False)
 
-    monkeypatch.setattr(scores, "path", str(tmp_path))
+    monkeypatch.setattr(scores, "DATA_DIR", str(tmp_path))
     monkeypatch.setattr(scores, "ENABLE_INJURY_ADJUSTMENTS", False)
     monkeypatch.setattr(scores, "YEAR_ABBR", DEFAULT_YEAR_ABBR)
 
@@ -157,7 +157,7 @@ def test_run_predictions_uses_week_18_data_for_week_1_matchups(
     matchups_path = tmp_path / INPUT_FILE_NAME
     matchups.to_csv(matchups_path, index=False)
 
-    monkeypatch.setattr(scores, "path", str(tmp_path))
+    monkeypatch.setattr(scores, "DATA_DIR", str(tmp_path))
     monkeypatch.setattr(scores, "ENABLE_INJURY_ADJUSTMENTS", False)
     monkeypatch.setattr(scores, "YEAR_ABBR", current_year)
 
@@ -176,7 +176,7 @@ def test_run_predictions_raises_for_missing_matchup_columns(
     matchups_path = tmp_path / INPUT_FILE_NAME
     matchups.to_csv(matchups_path, index=False)
 
-    monkeypatch.setattr(scores, "path", str(tmp_path))
+    monkeypatch.setattr(scores, "DATA_DIR", str(tmp_path))
 
     with pytest.raises(ValueError, match="Missing required columns"):
         scores.run_predictions(matchups_path=str(matchups_path))
@@ -188,7 +188,7 @@ def test_run_predictions_raises_for_missing_matchups_file(
     _write_properties_file(tmp_path)
     missing_matchups_path = tmp_path / "missing_matchups.csv"
 
-    monkeypatch.setattr(scores, "path", str(tmp_path))
+    monkeypatch.setattr(scores, "DATA_DIR", str(tmp_path))
 
     with pytest.raises(FileNotFoundError, match="Matchups CSV file not found"):
         scores.run_predictions(matchups_path=str(missing_matchups_path))
@@ -212,7 +212,7 @@ def test_run_predictions_uses_default_matchups_path_and_warns_when_injuries_miss
     )
     matchups.to_csv(tmp_path / INPUT_FILE_NAME, index=False)
 
-    monkeypatch.setattr(scores, "path", str(tmp_path))
+    monkeypatch.setattr(scores, "DATA_DIR", str(tmp_path))
     monkeypatch.setattr(scores, "ENABLE_INJURY_ADJUSTMENTS", True)
     monkeypatch.setattr(scores, "YEAR_ABBR", DEFAULT_YEAR_ABBR)
 
@@ -255,7 +255,7 @@ def test_run_predictions_accepts_injuries_file_without_injury_comment(
         ]
     ).to_csv(tmp_path / INJURIES_FILE_NAME, index=False)
 
-    monkeypatch.setattr(scores, "path", str(tmp_path))
+    monkeypatch.setattr(scores, "DATA_DIR", str(tmp_path))
     monkeypatch.setattr(scores, "YEAR_ABBR", DEFAULT_YEAR_ABBR)
 
     monkeypatch.setattr(scores, "ENABLE_INJURY_ADJUSTMENTS", False)
@@ -299,7 +299,7 @@ def test_run_predictions_returns_empty_when_weekly_data_missing(
     matchups_path = tmp_path / INPUT_FILE_NAME
     matchups.to_csv(matchups_path, index=False)
 
-    monkeypatch.setattr(scores, "path", str(tmp_path))
+    monkeypatch.setattr(scores, "DATA_DIR", str(tmp_path))
     monkeypatch.setattr(scores, "ENABLE_INJURY_ADJUSTMENTS", False)
     monkeypatch.setattr(scores, "YEAR_ABBR", DEFAULT_YEAR_ABBR)
 
@@ -343,7 +343,7 @@ def test_run_predictions_returns_empty_when_required_feature_missing(
         tmp_path / DEFENSE_FILE.format(week=1, year=DEFAULT_YEAR_ABBR), index=False
     )
 
-    monkeypatch.setattr(scores, "path", str(tmp_path))
+    monkeypatch.setattr(scores, "DATA_DIR", str(tmp_path))
     monkeypatch.setattr(scores, "ENABLE_INJURY_ADJUSTMENTS", False)
     monkeypatch.setattr(scores, "YEAR_ABBR", DEFAULT_YEAR_ABBR)
 
@@ -372,7 +372,7 @@ def test_run_predictions_skips_invalid_matchup_teams(tmp_path, monkeypatch) -> N
     matchups_path = tmp_path / INPUT_FILE_NAME
     matchups.to_csv(matchups_path, index=False)
 
-    monkeypatch.setattr(scores, "path", str(tmp_path))
+    monkeypatch.setattr(scores, "DATA_DIR", str(tmp_path))
     monkeypatch.setattr(scores, "ENABLE_INJURY_ADJUSTMENTS", False)
     monkeypatch.setattr(scores, "YEAR_ABBR", DEFAULT_YEAR_ABBR)
 
@@ -407,7 +407,7 @@ def test_run_predictions_applies_verbose_injury_adjustments(
         tmp_path / INJURIES_FILE_NAME, index=False
     )
 
-    monkeypatch.setattr(scores, "path", str(tmp_path))
+    monkeypatch.setattr(scores, "DATA_DIR", str(tmp_path))
     monkeypatch.setattr(scores, "YEAR_ABBR", DEFAULT_YEAR_ABBR)
 
     monkeypatch.setattr(scores, "ENABLE_INJURY_ADJUSTMENTS", False)
@@ -446,7 +446,7 @@ def test_run_predictions_logs_generated_files_in_lambda_environment(
     matchups_path = tmp_path / INPUT_FILE_NAME
     matchups.to_csv(matchups_path, index=False)
 
-    monkeypatch.setattr(scores, "path", str(tmp_path))
+    monkeypatch.setattr(scores, "DATA_DIR", str(tmp_path))
     monkeypatch.setattr(scores, "ENABLE_INJURY_ADJUSTMENTS", False)
     monkeypatch.setattr(scores, "YEAR_ABBR", DEFAULT_YEAR_ABBR)
     monkeypatch.setattr(scores, "running_in_lambda", lambda: True)

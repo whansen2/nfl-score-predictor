@@ -77,12 +77,8 @@ def _get_int_env(name: str, default: int) -> int:
         return default
 
 
-# Determine working path based on environment
-path = (
-    "/var/task/nfl_predictor/data"
-    if running_in_lambda()
-    else os.path.join(os.path.dirname(__file__), "data")
-)
+# Directory containing team stats, matchups, and injury CSVs
+DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 
 # Control optional logic via .env with defaults from constants
 ENABLE_INJURY_ADJUSTMENTS = (
@@ -104,7 +100,7 @@ WeekModelCacheValue = tuple[LinearRegression, pd.DataFrame, list[str]]
 # Main prediction logic
 def run_predictions(matchups_path: str | None = None) -> pd.DataFrame:
     # Load team and QB properties
-    with open(os.path.join(path, PROPERTIES_FILE_NAME)) as file:
+    with open(os.path.join(DATA_DIR, PROPERTIES_FILE_NAME)) as file:
         nfl_properties: dict[str, Any] = yaml.safe_load(file)
 
     team_abbreviations: dict[str, str] = nfl_properties["team_abbreviations"]
@@ -115,7 +111,7 @@ def run_predictions(matchups_path: str | None = None) -> pd.DataFrame:
     injuries_df = None
     if ENABLE_INJURY_ADJUSTMENTS:
         try:
-            injuries_df = pd.read_csv(os.path.join(path, INJURIES_FILE_NAME))
+            injuries_df = pd.read_csv(os.path.join(DATA_DIR, INJURIES_FILE_NAME))
             validate_csv_schema(injuries_df, INJURY_REQUIRED_COLUMNS)
         except ValueError as e:
             logger.warning(
@@ -128,7 +124,7 @@ def run_predictions(matchups_path: str | None = None) -> pd.DataFrame:
 
     # Matchups CSV path
     if matchups_path is None:
-        matchups_path = os.path.join(path, INPUT_FILE_NAME)
+        matchups_path = os.path.join(DATA_DIR, INPUT_FILE_NAME)
 
     # Load upcoming matchups from CSV - required for operation
     if os.path.exists(matchups_path):
@@ -142,13 +138,12 @@ def run_predictions(matchups_path: str | None = None) -> pd.DataFrame:
         )
         raise FileNotFoundError(msg)
 
-    printed_weeks: set[int] = (
-        set()
-    )  # Track weeks already printed to avoid duplicate model metrics
-    week_model_cache: dict[
-        WeekModelCacheKey, WeekModelCacheValue
-    ] = {}  # Cache trained models per week/year
-    results: list[list[Any]] = []  # Store final output rows
+    # Track weeks already printed to avoid duplicate model metrics
+    printed_weeks: set[int] = set()
+    # Cache trained models per (week, year)
+    week_model_cache: dict[WeekModelCacheKey, WeekModelCacheValue] = {}
+    # Final output rows
+    results: list[list[Any]] = []
 
     for _, row in df_matchups.iterrows():
         week, training_week = resolve_weeks(row["Week"])
@@ -162,19 +157,19 @@ def run_predictions(matchups_path: str | None = None) -> pd.DataFrame:
             try:
                 df_conversions = pd.read_csv(
                     os.path.join(
-                        path,
+                        DATA_DIR,
                         CONVERSIONS_FILE.format(week=training_week, year=training_year),
                     )
                 )
                 df_offense = pd.read_csv(
                     os.path.join(
-                        path,
+                        DATA_DIR,
                         OFFENSE_FILE.format(week=training_week, year=training_year),
                     )
                 )
                 df_conversions_against = pd.read_csv(
                     os.path.join(
-                        path,
+                        DATA_DIR,
                         CONV_AGAINST_FILE.format(
                             week=training_week, year=training_year
                         ),
@@ -182,7 +177,7 @@ def run_predictions(matchups_path: str | None = None) -> pd.DataFrame:
                 )
                 df_defense = pd.read_csv(
                     os.path.join(
-                        path,
+                        DATA_DIR,
                         DEFENSE_FILE.format(week=training_week, year=training_year),
                     )
                 )
@@ -296,7 +291,7 @@ def run_predictions(matchups_path: str | None = None) -> pd.DataFrame:
 
         # Handle writing based on environment
         if not running_in_lambda():
-            output_path = os.path.join(path, OUTPUT_FILE_NAME)
+            output_path = os.path.join(DATA_DIR, OUTPUT_FILE_NAME)
             df_results.to_csv(output_path, index=False)
             logger.info("Saved output to %s", output_path)
         else:
