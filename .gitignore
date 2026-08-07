@@ -4,7 +4,6 @@ __pycache__/
 *.so
 *.egg-info/
 *.egg
-MANIFEST
 
 # Virtual environments
 nfl_env/
@@ -31,7 +30,7 @@ dist/
 # Testing / coverage
 .pytest_cache/
 .ruff_cache/
-.cache
+.cache/
 .coverage
 .coverage.*
 htmlcov/

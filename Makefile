@@ -25,7 +25,7 @@ run:
 
 # Run Docker container
 docker-up:
-	docker compose up
+	LOCAL_UID=$$(id -u) LOCAL_GID=$$(id -g) docker compose up
 
 # Stop Docker container
 docker-down:

@@ -4,7 +4,6 @@ __pycache__/
 *.so
 *.egg-info/
 *.egg
-MANIFEST
 
 # Virtual environments
 nfl_env/
