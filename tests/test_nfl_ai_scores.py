@@ -308,7 +308,8 @@ def test_run_predictions_returns_empty_when_weekly_data_missing(
 
     assert results.empty
     warning_message = mock_logger.warning.call_args_list[0].args[0]
-    assert "Missing data file for week 1" in warning_message
+    assert "Missing data file for week" in warning_message
+    assert mock_logger.warning.call_args_list[0].args[1] == 1
 
 
 def test_run_predictions_returns_empty_when_required_feature_missing(
@@ -380,7 +381,7 @@ def test_run_predictions_skips_invalid_matchup_teams(tmp_path, monkeypatch) -> N
 
     assert results.empty
     mock_logger.warning.assert_any_call(
-        "Skipping invalid matchup: UnknownTeam vs AwayTeam"
+        "Skipping invalid matchup: %s vs %s", "UnknownTeam", "AwayTeam"
     )
 
 
@@ -423,7 +424,7 @@ def test_run_predictions_applies_verbose_injury_adjustments(
 
     assert adjusted.iloc[0]["Home Score"] == baseline.iloc[0]["Home Score"] - 4
     assert adjusted.iloc[0]["Away Score"] == baseline.iloc[0]["Away Score"] - 2
-    mock_logger.info.assert_any_call("Adjustments - Injury: -4/-2")
+    mock_logger.info.assert_any_call("Adjustments - Injury: %s/%s", -4, -2)
 
 
 def test_run_predictions_logs_generated_files_in_lambda_environment(
@@ -456,5 +457,5 @@ def test_run_predictions_logs_generated_files_in_lambda_environment(
     assert len(results.columns) == 7
     assert not (tmp_path / OUTPUT_FILE_NAME).exists()
     mock_logger.info.assert_any_call(
-        f"{OUTPUT_FILE_NAME} generated successfully in Lambda environment."
+        "%s generated successfully in Lambda environment.", OUTPUT_FILE_NAME
     )

@@ -119,7 +119,8 @@ def run_predictions(matchups_path: str | None = None) -> pd.DataFrame:
             validate_csv_schema(injuries_df, INJURY_REQUIRED_COLUMNS)
         except ValueError as e:
             logger.warning(
-                f"Injury adjustments disabled due to invalid injuries file schema: {e}"
+                "Injury adjustments disabled due to invalid injuries file schema: %s",
+                e,
             )
             injuries_df = None
         except FileNotFoundError:
@@ -132,7 +133,7 @@ def run_predictions(matchups_path: str | None = None) -> pd.DataFrame:
     # Load upcoming matchups from CSV - required for operation
     if os.path.exists(matchups_path):
         df_matchups = pd.read_csv(matchups_path)
-        logger.info(f"Loaded {len(df_matchups)} upcoming matchups from CSV")
+        logger.info("Loaded %s upcoming matchups from CSV", len(df_matchups))
         validate_csv_schema(df_matchups, ["Week", "Home", "Visitor", "Date"])
     else:
         msg = (
@@ -186,7 +187,7 @@ def run_predictions(matchups_path: str | None = None) -> pd.DataFrame:
                     )
                 )
             except FileNotFoundError as e:
-                logger.warning(f"Missing data file for week {training_week}: {e}")
+                logger.warning("Missing data file for week %s: %s", training_week, e)
                 continue
 
             # Merge team stat datasets
@@ -202,7 +203,7 @@ def run_predictions(matchups_path: str | None = None) -> pd.DataFrame:
             # Validate all features exist
             missing_features = [f for f in features if f not in df.columns]
             if missing_features:
-                logger.error(f"Missing required features: {missing_features}")
+                logger.error("Missing required features: %s", missing_features)
                 continue
 
             # Train/test split and model fitting
@@ -219,13 +220,15 @@ def run_predictions(matchups_path: str | None = None) -> pd.DataFrame:
                 y_pred = model.predict(X_test)
                 mae = mean_absolute_error(y_test, y_pred)
                 r2 = r2_score(y_test, y_pred)
-                logger.info(f"Training for week {week} data")
+                logger.info("Training for week %s data", week)
                 logger.info("Mean Absolute Error: %.3f", mae)
                 logger.info("R² Score: %.3f", r2)
                 if r2 < 0.5:
                     logger.warning(
-                        f"Model quality low for week {week} (R²={r2:.3f}), "
-                        "predictions may be unreliable"
+                        "Model quality low for week %s (R²=%.3f), "
+                        "predictions may be unreliable",
+                        week,
+                        r2,
                     )
                 printed_weeks.add(week)
 
@@ -236,14 +239,14 @@ def run_predictions(matchups_path: str | None = None) -> pd.DataFrame:
 
         # Verify teams are in dataset
         if home_team not in df["Tm"].values or away_team not in df["Tm"].values:
-            logger.warning(f"Skipping invalid matchup: {home_team} vs {away_team}")
+            logger.warning("Skipping invalid matchup: %s vs %s", home_team, away_team)
             continue
 
         # Extract features for prediction
         ht_stats = df.loc[df["Tm"] == home_team, features]
         at_stats = df.loc[df["Tm"] == away_team, features]
         if ht_stats.empty or at_stats.empty:
-            logger.warning(f"Missing stats for {home_team} or {away_team}")
+            logger.warning("Missing stats for %s or %s", home_team, away_team)
             continue
 
         # Predict scores (home team gets home field advantage)
@@ -264,7 +267,7 @@ def run_predictions(matchups_path: str | None = None) -> pd.DataFrame:
             )
 
         if VERBOSE_ADJUSTMENTS:
-            logger.info(f"Adjustments - Injury: {ht_adj}/{at_adj}")
+            logger.info("Adjustments - Injury: %s/%s", ht_adj, at_adj)
 
         ht_pred += ht_adj
         at_pred += at_adj
@@ -295,10 +298,10 @@ def run_predictions(matchups_path: str | None = None) -> pd.DataFrame:
         if not running_in_lambda():
             output_path = os.path.join(path, OUTPUT_FILE_NAME)
             df_results.to_csv(output_path, index=False)
-            logger.info(f"Saved output to {output_path}")
+            logger.info("Saved output to %s", output_path)
         else:
             logger.info(
-                f"{OUTPUT_FILE_NAME} generated successfully in Lambda environment."
+                "%s generated successfully in Lambda environment.", OUTPUT_FILE_NAME
             )
 
         return df_results

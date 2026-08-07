@@ -26,41 +26,47 @@ A production-ready NFL game prediction system that combines machine learning wit
 nfl-score-predictor/
 │
 ├── .dockerignore
+├── .env                       # Optional local overrides (gitignored)
+├── .env.example               # Template for optional environment variables
+├── .github/workflows/         # CI/CD pipelines
+│   ├── pre-deploy.yml
+│   └── deploy-lambda.yml
 ├── .gitignore
-├── .pre-commit-config.yaml # Pre-commit hooks (linting, security, formatting)
-├── .env                    # Optional local overrides
-├── .env.example           # Template for optional environment variables
-├── Dockerfile.local
+├── .pre-commit-config.yaml    # Pre-commit hooks (linting, security, formatting)
+├── AI_IDEAS.md                # Planned AI enhancements (aspirational)
 ├── Dockerfile.lambda
+├── Dockerfile.local
 ├── docker-compose.yml
-├── Makefile
-├── pyproject.toml         # Project metadata and dependencies
-├── README.md
 ├── LICENSE
+├── Makefile
+├── README.md
+├── pyproject.toml             # Project metadata and dependencies
 │
-├── nfl_predictor/         # Main prediction engine
+├── nfl_predictor/             # Main prediction engine
 │   ├── __init__.py
-│   ├── nfl_ai_scores.py   # Core prediction script
-│   ├── lambda_handler.py  # AWS Lambda deployment handler
-│   ├── data/              # Training data and configuration
-│   │   ├── nfl_properties_test.yaml    # Team/QB configurations
-│   │   ├── upcoming_matchups.csv       # Game schedule
-│   │   ├── nfl_injuries_test.csv       # Injury reports
-│   │   └── nfl_team_*_thru_week_1_25.csv  # Performance statistics
+│   ├── nfl_ai_scores.py       # Core prediction script
+│   ├── lambda_handler.py      # AWS Lambda deployment handler
+│   ├── agents/                # Reserved for future AI agents
+│   ├── data/                  # Training data and configuration
+│   │   ├── nfl_properties_test.yaml                       # Team/QB configurations
+│   │   ├── upcoming_matchups.csv                          # Game schedule
+│   │   ├── nfl_injuries_test.csv                          # Injury reports
+│   │   ├── nfl_team_offense_thru_week_{1..18}_25.csv      # Weekly offense stats
+│   │   ├── nfl_team_defense_thru_week_{1..18}_25.csv      # Weekly defense stats
+│   │   ├── nfl_conversions_thru_week_{1..18}_25.csv       # Weekly offensive conversions
+│   │   ├── nfl_conversions_against_thru_week_{1..18}_25.csv  # Weekly defensive conversions
+│   │   └── standings_thru_week_{1..18}_25.csv             # Weekly standings snapshots
 │   └── utils/
 │       ├── __init__.py
-│       ├── constants.py   # All configuration constants and defaults
-│       └── helpers.py     # Injury adjustment functions
+│       ├── constants.py       # All configuration constants and defaults
+│       └── helpers.py         # Injury adjustment functions
 │
-├── tests/                 # Comprehensive test suite
-│   ├── test_constants.py
-│   ├── test_injuries.py
-│   ├── test_lambda_handler.py
-│   ├── test_model.py
-│   ├── test_nfl_ai_scores.py
-│
-└── .github/workflows/     # CI/CD pipelines
-
+└── tests/                     # Comprehensive test suite
+    ├── test_constants.py
+    ├── test_injuries.py
+    ├── test_lambda_handler.py
+    ├── test_model.py
+    └── test_nfl_ai_scores.py
 ```
 
 ---
