@@ -21,13 +21,15 @@ dependencies = [
 [tool.setuptools]
 packages = ["nfl_predictor", "nfl_predictor.utils"]
 
+[tool.setuptools.package-data]
+nfl_predictor = ["data/*.csv", "data/*.yaml"]
+
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0",
     "pytest-cov>=5.0",
     "ruff>=0.4",
     "bandit[toml]>=1.8",
-    "mypy>=1.10",
 ]
 
 [tool.pytest.ini_options]
