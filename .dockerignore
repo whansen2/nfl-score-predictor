@@ -1,11 +1,9 @@
 # Byte-compiled / optimized / cache
 __pycache__/
 *.py[cod]
-*.pyo
 *.so
 *.egg-info/
 *.egg
-MANIFEST
 
 # Virtual environments
 nfl_env/

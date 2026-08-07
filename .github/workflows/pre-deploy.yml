@@ -83,15 +83,14 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m venv nfl_env
-          source nfl_env/bin/activate
+          python -m venv .venv
+          source .venv/bin/activate
           pip install --upgrade pip
           pip install -e ".[dev]"
 
       - name: Run tests with coverage
         run: |
-          source nfl_env/bin/activate
-          export YEAR_ABBR=24
+          source .venv/bin/activate
           pytest tests --cov=nfl_predictor --cov-report=term-missing --cov-report=xml:coverage.xml --junitxml=pytest-report.xml
 
       - name: Upload coverage and test report artifacts

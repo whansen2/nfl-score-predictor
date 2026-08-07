@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 from urllib.parse import unquote_plus
@@ -12,7 +13,7 @@ from nfl_predictor.utils.constants import (
 )
 
 # Setup logging
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 # S3 client
@@ -38,19 +39,19 @@ def handler(event, context):
         input_key = unquote_plus(record["s3"]["object"]["key"])
         input_bucket = record["s3"]["bucket"]["name"]
         logger.info(
-            f"Triggered by S3 upload - bucket: {input_bucket}, key: {input_key}"
+            "Triggered by S3 upload - bucket: %s, key: %s", input_bucket, input_key
         )
 
         # Download input file to /tmp
         s3.download_file(input_bucket, input_key, INPUT_LOCAL_PATH)
-        logger.info(f"Downloaded input CSV to: {INPUT_LOCAL_PATH}")
+        logger.info("Downloaded input CSV to: %s", INPUT_LOCAL_PATH)
 
         # Run the prediction pipeline
         results = run_predictions(matchups_path=INPUT_LOCAL_PATH)
 
         # Ensure we have valid results before upload
         if results is not None and not results.empty:
-            logger.info(f"Generated {len(results)} predictions")
+            logger.info("Generated %s predictions", len(results))
 
             # Write and upload prediction results.
             results.to_csv(OUTPUT_LOCAL_PATH, index=False)
@@ -61,14 +62,16 @@ def handler(event, context):
                 ExtraArgs={"ContentType": "text/csv"},
             )
             logger.info(
-                f"Uploaded predictions to s3://{OUTPUT_BUCKET}/{OUTPUT_FILE_NAME}"
+                "Uploaded predictions to s3://%s/%s", OUTPUT_BUCKET, OUTPUT_FILE_NAME
             )
 
             response_body = {
                 "status": "success",
                 "message": f"Successfully processed {len(results)} predictions",
                 "output_location": f"s3://{OUTPUT_BUCKET}/{OUTPUT_FILE_NAME}",
-                "sample_predictions": results.head(5).to_dict(orient="records"),
+                "sample_predictions": json.loads(
+                    results.head(5).to_json(orient="records")
+                ),
             }
 
             return response_body

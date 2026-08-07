@@ -109,10 +109,17 @@ def get_injuries_adjustment(
         if not abbr:
             return 0
 
-        team_qb_list = team_injuries.get(abbr, [])
-        qb_info = team_qbs.get(team, (None, "average"))
-        qb_name = qb_info[0] if isinstance(qb_info, (tuple, list)) else qb_info
+        qb_info = team_qbs.get(team)
+        if qb_info is None:
+            return 0
+        if not isinstance(qb_info, (tuple, list)) or len(qb_info) < 2:
+            raise ValueError(
+                f"Invalid team_qbs entry for {team!r}: "
+                f"expected [name, tier], got {qb_info!r}"
+            )
+        qb_name, tier_label = qb_info[0], qb_info[1]
 
+        team_qb_list = team_injuries.get(abbr, [])
         for player in team_qb_list:
             if (
                 player["Pos"] == "QB"
@@ -120,7 +127,7 @@ def get_injuries_adjustment(
                 in ["questionable", "doubtful", "out"]
                 and player["Player"] == qb_name
             ):
-                return qb_tiers.get(qb_info[1], 0)
+                return qb_tiers.get(tier_label, 0)
         return 0
 
     return qb_adjust(home_team), qb_adjust(away_team)

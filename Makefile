@@ -25,7 +25,7 @@ run:
 
 # Run Docker container
 docker-up:
-	docker compose up
+	LOCAL_UID=$$(id -u) LOCAL_GID=$$(id -g) docker compose up
 
 # Stop Docker container
 docker-down:
@@ -53,6 +53,8 @@ all:
 	$(MAKE) venv
 	@echo "📦 Installing dependencies..."
 	$(MAKE) install
+	@echo "🧪 Running tests..."
+	$(MAKE) test
 	@echo "🏈 Running predictions..."
 	$(MAKE) run
 	@echo ""

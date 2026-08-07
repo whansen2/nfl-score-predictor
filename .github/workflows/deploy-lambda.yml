@@ -68,7 +68,10 @@ jobs:
             --region $AWS_REGION
 
       - name: Wait for Lambda to be ready
-        run: sleep 60
+        run: |
+          aws lambda wait function-updated \
+            --function-name $FUNCTION_NAME \
+            --region $AWS_REGION
 
       - name: Upload auto CSV to S3 if it exists
         run: |

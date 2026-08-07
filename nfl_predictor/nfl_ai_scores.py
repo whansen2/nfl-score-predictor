@@ -77,12 +77,8 @@ def _get_int_env(name: str, default: int) -> int:
         return default
 
 
-# Determine working path based on environment
-path = (
-    "/var/task/nfl_predictor/data"
-    if running_in_lambda()
-    else os.path.join(os.path.dirname(__file__), "data")
-)
+# Directory containing team stats, matchups, and injury CSVs
+DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 
 # Control optional logic via .env with defaults from constants
 ENABLE_INJURY_ADJUSTMENTS = (
@@ -104,22 +100,23 @@ WeekModelCacheValue = tuple[LinearRegression, pd.DataFrame, list[str]]
 # Main prediction logic
 def run_predictions(matchups_path: str | None = None) -> pd.DataFrame:
     # Load team and QB properties
-    with open(os.path.join(path, PROPERTIES_FILE_NAME)) as file:
+    with open(os.path.join(DATA_DIR, PROPERTIES_FILE_NAME)) as file:
         nfl_properties: dict[str, Any] = yaml.safe_load(file)
 
     team_abbreviations: dict[str, str] = nfl_properties["team_abbreviations"]
     qb_tiers: dict[str, int] = nfl_properties["qb_tiers"]
-    team_qbs: dict[str, str] = nfl_properties["team_qbs"]
+    team_qbs: dict[str, list[str]] = nfl_properties["team_qbs"]
 
     # Load injuries data (if enabled)
     injuries_df = None
     if ENABLE_INJURY_ADJUSTMENTS:
         try:
-            injuries_df = pd.read_csv(os.path.join(path, INJURIES_FILE_NAME))
+            injuries_df = pd.read_csv(os.path.join(DATA_DIR, INJURIES_FILE_NAME))
             validate_csv_schema(injuries_df, INJURY_REQUIRED_COLUMNS)
         except ValueError as e:
             logger.warning(
-                f"Injury adjustments disabled due to invalid injuries file schema: {e}"
+                "Injury adjustments disabled due to invalid injuries file schema: %s",
+                e,
             )
             injuries_df = None
         except FileNotFoundError:
@@ -127,12 +124,12 @@ def run_predictions(matchups_path: str | None = None) -> pd.DataFrame:
 
     # Matchups CSV path
     if matchups_path is None:
-        matchups_path = os.path.join(path, INPUT_FILE_NAME)
+        matchups_path = os.path.join(DATA_DIR, INPUT_FILE_NAME)
 
     # Load upcoming matchups from CSV - required for operation
     if os.path.exists(matchups_path):
         df_matchups = pd.read_csv(matchups_path)
-        logger.info(f"Loaded {len(df_matchups)} upcoming matchups from CSV")
+        logger.info("Loaded %s upcoming matchups from CSV", len(df_matchups))
         validate_csv_schema(df_matchups, ["Week", "Home", "Visitor", "Date"])
     else:
         msg = (
@@ -141,13 +138,12 @@ def run_predictions(matchups_path: str | None = None) -> pd.DataFrame:
         )
         raise FileNotFoundError(msg)
 
-    printed_weeks: set[int] = (
-        set()
-    )  # Track weeks already printed to avoid duplicate model metrics
-    week_model_cache: dict[
-        WeekModelCacheKey, WeekModelCacheValue
-    ] = {}  # Cache trained models per week/year
-    results: list[list[Any]] = []  # Store final output rows
+    # Track weeks already printed to avoid duplicate model metrics
+    printed_weeks: set[int] = set()
+    # Cache trained models per (week, year)
+    week_model_cache: dict[WeekModelCacheKey, WeekModelCacheValue] = {}
+    # Final output rows
+    results: list[list[Any]] = []
 
     for _, row in df_matchups.iterrows():
         week, training_week = resolve_weeks(row["Week"])
@@ -161,19 +157,19 @@ def run_predictions(matchups_path: str | None = None) -> pd.DataFrame:
             try:
                 df_conversions = pd.read_csv(
                     os.path.join(
-                        path,
+                        DATA_DIR,
                         CONVERSIONS_FILE.format(week=training_week, year=training_year),
                     )
                 )
                 df_offense = pd.read_csv(
                     os.path.join(
-                        path,
+                        DATA_DIR,
                         OFFENSE_FILE.format(week=training_week, year=training_year),
                     )
                 )
                 df_conversions_against = pd.read_csv(
                     os.path.join(
-                        path,
+                        DATA_DIR,
                         CONV_AGAINST_FILE.format(
                             week=training_week, year=training_year
                         ),
@@ -181,12 +177,12 @@ def run_predictions(matchups_path: str | None = None) -> pd.DataFrame:
                 )
                 df_defense = pd.read_csv(
                     os.path.join(
-                        path,
+                        DATA_DIR,
                         DEFENSE_FILE.format(week=training_week, year=training_year),
                     )
                 )
             except FileNotFoundError as e:
-                logger.warning(f"Missing data file for week {training_week}: {e}")
+                logger.warning("Missing data file for week %s: %s", training_week, e)
                 continue
 
             # Merge team stat datasets
@@ -202,7 +198,7 @@ def run_predictions(matchups_path: str | None = None) -> pd.DataFrame:
             # Validate all features exist
             missing_features = [f for f in features if f not in df.columns]
             if missing_features:
-                logger.error(f"Missing required features: {missing_features}")
+                logger.error("Missing required features: %s", missing_features)
                 continue
 
             # Train/test split and model fitting
@@ -219,13 +215,15 @@ def run_predictions(matchups_path: str | None = None) -> pd.DataFrame:
                 y_pred = model.predict(X_test)
                 mae = mean_absolute_error(y_test, y_pred)
                 r2 = r2_score(y_test, y_pred)
-                logger.info(f"Training for week {week} data")
+                logger.info("Training for week %s data", week)
                 logger.info("Mean Absolute Error: %.3f", mae)
                 logger.info("R² Score: %.3f", r2)
                 if r2 < 0.5:
                     logger.warning(
-                        f"Model quality low for week {week} (R²={r2:.3f}), "
-                        "predictions may be unreliable"
+                        "Model quality low for week %s (R²=%.3f), "
+                        "predictions may be unreliable",
+                        week,
+                        r2,
                     )
                 printed_weeks.add(week)
 
@@ -236,14 +234,14 @@ def run_predictions(matchups_path: str | None = None) -> pd.DataFrame:
 
         # Verify teams are in dataset
         if home_team not in df["Tm"].values or away_team not in df["Tm"].values:
-            logger.warning(f"Skipping invalid matchup: {home_team} vs {away_team}")
+            logger.warning("Skipping invalid matchup: %s vs %s", home_team, away_team)
             continue
 
         # Extract features for prediction
         ht_stats = df.loc[df["Tm"] == home_team, features]
         at_stats = df.loc[df["Tm"] == away_team, features]
         if ht_stats.empty or at_stats.empty:
-            logger.warning(f"Missing stats for {home_team} or {away_team}")
+            logger.warning("Missing stats for %s or %s", home_team, away_team)
             continue
 
         # Predict scores (home team gets home field advantage)
@@ -264,7 +262,7 @@ def run_predictions(matchups_path: str | None = None) -> pd.DataFrame:
             )
 
         if VERBOSE_ADJUSTMENTS:
-            logger.info(f"Adjustments - Injury: {ht_adj}/{at_adj}")
+            logger.info("Adjustments - Injury: %s/%s", ht_adj, at_adj)
 
         ht_pred += ht_adj
         at_pred += at_adj
@@ -293,12 +291,12 @@ def run_predictions(matchups_path: str | None = None) -> pd.DataFrame:
 
         # Handle writing based on environment
         if not running_in_lambda():
-            output_path = os.path.join(path, OUTPUT_FILE_NAME)
+            output_path = os.path.join(DATA_DIR, OUTPUT_FILE_NAME)
             df_results.to_csv(output_path, index=False)
-            logger.info(f"Saved output to {output_path}")
+            logger.info("Saved output to %s", output_path)
         else:
             logger.info(
-                f"{OUTPUT_FILE_NAME} generated successfully in Lambda environment."
+                "%s generated successfully in Lambda environment.", OUTPUT_FILE_NAME
             )
 
         return df_results

@@ -4,8 +4,8 @@ services:
       context: .
       dockerfile: Dockerfile.local
     container_name: nfl_score_predictor_container
+    platform: linux/amd64
     user: "${LOCAL_UID:-1000}:${LOCAL_GID:-1000}"
     # All configuration values have defaults in constants.py
     volumes:
       - ./nfl_predictor/data:/app/nfl_predictor/data
-    command: python nfl_predictor/nfl_ai_scores.py

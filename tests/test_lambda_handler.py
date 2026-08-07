@@ -24,7 +24,7 @@ class TestLambdaHandler:
                 {
                     "s3": {
                         "bucket": {"name": "test-input-bucket"},
-                        "object": {"key": "upcoming_matchups.csv"},
+                        "object": {"key": "upcoming_matchups_auto.csv"},
                     }
                 }
             ]

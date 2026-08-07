@@ -8,7 +8,7 @@ Environment variables are optional; these defaults are used when overrides are n
 """
 
 # Base filenames
-INPUT_FILE_NAME = "upcoming_matchups.csv"
+INPUT_FILE_NAME = "upcoming_matchups_auto.csv"
 INJURIES_FILE_NAME = "nfl_injuries_test.csv"
 PROPERTIES_FILE_NAME = "nfl_properties_test.yaml"
 OUTPUT_FILE_NAME = "predicted_matchups_test.csv"
