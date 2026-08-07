@@ -53,6 +53,8 @@ all:
 	$(MAKE) venv
 	@echo "📦 Installing dependencies..."
 	$(MAKE) install
+	@echo "🧪 Running tests..."
+	$(MAKE) test
 	@echo "🏈 Running predictions..."
 	$(MAKE) run
 	@echo ""

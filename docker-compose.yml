@@ -8,4 +8,3 @@ services:
     # All configuration values have defaults in constants.py
     volumes:
       - ./nfl_predictor/data:/app/nfl_predictor/data
-    command: python nfl_predictor/nfl_ai_scores.py

@@ -1,7 +1,6 @@
 # Byte-compiled / optimized / cache
 __pycache__/
 *.py[cod]
-*.pyo
 *.so
 *.egg-info/
 *.egg
