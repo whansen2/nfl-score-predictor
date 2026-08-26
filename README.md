@@ -3,7 +3,7 @@
 ![Pre-Deploy Checks](https://github.com/whansen2/nfl-score-predictor/actions/workflows/pre-deploy.yml/badge.svg)
 ![Deploy Lambda Container](https://github.com/whansen2/nfl-score-predictor/actions/workflows/deploy-lambda.yml/badge.svg)
 
-A production-ready NFL game prediction system that combines machine learning with contextual adjustments to generate accurate score predictions, winner analysis, and over/under estimates.
+An NFL game prediction system that combines machine learning with contextual adjustments to generate accurate score predictions, winner analysis, and over/under estimates.
 
 **🏈 Currently configured for 2025 season data** with matchup-driven week selection from the input CSV.
 
@@ -16,7 +16,7 @@ A production-ready NFL game prediction system that combines machine learning wit
 - **☁️ AWS Lambda Ready**: Containerized deployment with S3 integration
 - **⚙️ Flexible Configuration**: Constants-first approach with environment overrides
 - **📈 Export & Analytics**: CSV output with comprehensive game statistics
-- **🧪 Test Coverage**: Comprehensive tests ensuring production reliability
+- **🧪 Test Coverage**: Comprehensive tests ensuring reliability
 
 ---
 
@@ -54,7 +54,8 @@ nfl-score-predictor/
 │   │   ├── nfl_team_defense_thru_week_{1..18}_25.csv      # Weekly defense stats
 │   │   ├── nfl_conversions_thru_week_{1..18}_25.csv       # Weekly offensive conversions
 │   │   ├── nfl_conversions_against_thru_week_{1..18}_25.csv  # Weekly defensive conversions
-│   │   └── standings_thru_week_{1..18}_25.csv             # Weekly standings snapshots
+│   │   ├── standings_thru_week_{1..18}_25.csv             # Weekly standings snapshots
+│   │   └── standings.csv                                  # Current standings snapshot
 │   └── utils/
 │       ├── __init__.py
 │       ├── constants.py       # All configuration constants and defaults
@@ -74,7 +75,7 @@ nfl-score-predictor/
 
 ### Prerequisites
 
-- Python 3.12+
+- Python 3.12
 
 ### Local Development (Virtual Environment)
 
@@ -158,7 +159,7 @@ ENABLE_INJURY_ADJUSTMENTS=true
 VERBOSE_ADJUSTMENTS=true
 ```
 
-**Note**: These features are thoroughly tested (see `tests/test_injuries.py`) and production-ready.
+**Note**: These features are thoroughly tested (see `tests/test_injuries.py`).
 
 ### Docker Development
 
@@ -174,7 +175,7 @@ VERBOSE_ADJUSTMENTS=true
 
 ### AWS Lambda Deployment
 
-The system is production-ready for serverless deployment:
+The system supports serverless deployment:
 
 1. **Build Lambda container:**
    ```bash
@@ -250,7 +251,7 @@ Note: The model predicts each team's expected scoring independently based on its
 - **Environment Agnostic**: Works locally, in Docker, and on Lambda
 - **Constants-First**: Centralized configuration with environment overrides
 - **Extensible**: Modular design for easy feature additions
-- **Production Tested**: Comprehensive error handling and logging
+- **Error Handling & Logging**: Comprehensive error handling and logging throughout the pipeline
 
 ---
 
