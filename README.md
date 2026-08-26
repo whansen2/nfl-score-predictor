@@ -54,7 +54,8 @@ nfl-score-predictor/
 │   │   ├── nfl_team_defense_thru_week_{1..18}_25.csv      # Weekly defense stats
 │   │   ├── nfl_conversions_thru_week_{1..18}_25.csv       # Weekly offensive conversions
 │   │   ├── nfl_conversions_against_thru_week_{1..18}_25.csv  # Weekly defensive conversions
-│   │   └── standings_thru_week_{1..18}_25.csv             # Weekly standings snapshots
+│   │   ├── standings_thru_week_{1..18}_25.csv             # Weekly standings snapshots
+│   │   └── standings.csv                                  # Current standings snapshot
 │   └── utils/
 │       ├── __init__.py
 │       ├── constants.py       # All configuration constants and defaults
