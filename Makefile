@@ -38,7 +38,7 @@ test:
 # Clean local caches and coverage artifacts
 clean:
 	find . -type d -name "__pycache__" -exec rm -r {} + || true
-	rm -rf .pytest_cache .ruff_cache htmlcov
+	rm -rf .pytest_cache .ruff_cache htmlcov *.egg-info
 	rm -f .coverage .coverage.*
 
 # Complete clean including virtual environment
