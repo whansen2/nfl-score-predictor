@@ -76,14 +76,10 @@ def test_auto_generated_injury_adjustments(
 
 
 def test_unresolved_qb_entries_return_neutral_adjustment(tmp_path) -> None:
-    unresolved = [
-        (team, qb_name, tier_label)
-        for team, (qb_name, tier_label) in team_qbs.items()
-        if qb_name == "TBD" or tier_label == "TBD"
-    ]
-    assert unresolved, "Expected at least one unresolved QB entry in fixture data"
-
-    team_name, qb_name, tier_label = unresolved[0]
+    # Does not rely on the live fixture data
+    # containing a "TBD" placeholder, since real team_qbs entries are
+    # expected to be fully resolved.
+    team_name, qb_name, tier_label = next(iter(team_qbs)), "TBD", "TBD"
     opponent = next(t for t in team_qbs if t != team_name)
 
     df = pd.DataFrame(
