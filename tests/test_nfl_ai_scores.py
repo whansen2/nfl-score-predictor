@@ -225,6 +225,74 @@ def test_run_predictions_uses_default_matchups_path_and_warns_when_injuries_miss
     )
 
 
+def test_run_predictions_warns_when_properties_file_missing(
+    tmp_path, monkeypatch
+) -> None:
+    _write_weekly_stats(tmp_path, week=1, year=DEFAULT_YEAR_ABBR)
+
+    matchups = pd.DataFrame(
+        [
+            {
+                "Week": 2,
+                "Visitor": "AwayTeam",
+                "Home": "HomeTeam",
+                "Date": "2026-09-15",
+            }
+        ]
+    )
+    matchups.to_csv(tmp_path / INPUT_FILE_NAME, index=False)
+
+    monkeypatch.setattr(scores, "DATA_DIR", str(tmp_path))
+    monkeypatch.setattr(scores, "ENABLE_INJURY_ADJUSTMENTS", True)
+    monkeypatch.setattr(scores, "YEAR_ABBR", DEFAULT_YEAR_ABBR)
+
+    with patch.object(scores, "logger") as mock_logger:
+        results = scores.run_predictions()
+
+    assert len(results) == 1
+    mock_logger.warning.assert_any_call(
+        "Injury adjustments enabled but properties file not found."
+    )
+
+
+def test_run_predictions_warns_when_properties_file_malformed(
+    tmp_path, monkeypatch
+) -> None:
+    incomplete_properties = {
+        "team_abbreviations": {"HomeTeam": "HOM", "AwayTeam": "AWY"},
+        "qb_tiers": {"average": -4},
+        # "team_qbs" intentionally omitted to trigger a KeyError
+    }
+    with open(tmp_path / PROPERTIES_FILE_NAME, "w") as f:
+        yaml.safe_dump(incomplete_properties, f)
+    _write_weekly_stats(tmp_path, week=1, year=DEFAULT_YEAR_ABBR)
+
+    matchups = pd.DataFrame(
+        [
+            {
+                "Week": 2,
+                "Visitor": "AwayTeam",
+                "Home": "HomeTeam",
+                "Date": "2026-09-15",
+            }
+        ]
+    )
+    matchups.to_csv(tmp_path / INPUT_FILE_NAME, index=False)
+
+    monkeypatch.setattr(scores, "DATA_DIR", str(tmp_path))
+    monkeypatch.setattr(scores, "ENABLE_INJURY_ADJUSTMENTS", True)
+    monkeypatch.setattr(scores, "YEAR_ABBR", DEFAULT_YEAR_ABBR)
+
+    with patch.object(scores, "logger") as mock_logger:
+        results = scores.run_predictions()
+
+    assert len(results) == 1
+    assert mock_logger.warning.call_args_list[0].args[0] == (
+        "Injury adjustments disabled due to invalid properties file: %s"
+    )
+    assert isinstance(mock_logger.warning.call_args_list[0].args[1], KeyError)
+
+
 def test_run_predictions_accepts_injuries_file_without_injury_comment(
     tmp_path, monkeypatch
 ) -> None:
