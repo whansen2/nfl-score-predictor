@@ -43,7 +43,7 @@ qb_tiers:
 
 team_qbs:
   Arizona Cardinals: ["Jacoby Brissett", "replacement_level"]
-  Atlanta Falcons: ["Michael Penix Jr.", "below_average"]
+  Atlanta Falcons: ["Michael Penix Jr.", "average"]
   Baltimore Ravens: ["Lamar Jackson", "elite"]
   Buffalo Bills: ["Josh Allen", "elite"]
   Carolina Panthers: ["Bryce Young", "average"]
