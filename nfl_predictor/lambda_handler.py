@@ -12,9 +12,8 @@ from nfl_predictor.utils.constants import (
     OUTPUT_FILE_NAME,
 )
 
-# Setup logging
+# Setup logging (level inherited from root config, driven by LOG_LEVEL)
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 # S3 client
 s3 = boto3.client("s3")

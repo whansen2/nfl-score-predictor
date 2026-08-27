@@ -380,6 +380,78 @@ def test_run_predictions_returns_empty_when_weekly_data_missing(
     assert mock_logger.warning.call_args_list[0].args[1] == 1
 
 
+def test_run_predictions_returns_empty_when_base_column_missing(
+    tmp_path, monkeypatch
+) -> None:
+    """Offense CSV missing a base engineering column (PF) must be skipped, not crash."""
+    _write_properties_file(tmp_path)
+    _write_weekly_stats(tmp_path, week=1, year=DEFAULT_YEAR_ABBR)
+
+    matchups = pd.DataFrame(
+        [
+            {
+                "Week": 2,
+                "Visitor": "AwayTeam",
+                "Home": "HomeTeam",
+                "Date": "2026-09-15",
+            }
+        ]
+    )
+    matchups_path = tmp_path / INPUT_FILE_NAME
+    matchups.to_csv(matchups_path, index=False)
+
+    offense_without_pf = pd.DataFrame(
+        [
+            {
+                "Tm": "HomeTeam",
+                "G": 17,
+                "Tot_1stD": 360,
+                "Sc%": 45.0,
+                "Y/P": 6.1,
+                "TO%": 8.0,
+            },
+            {
+                "Tm": "AwayTeam",
+                "G": 17,
+                "Tot_1stD": 340,
+                "Sc%": 42.0,
+                "Y/P": 5.8,
+                "TO%": 10.0,
+            },
+            {
+                "Tm": "ThirdTeam",
+                "G": 17,
+                "Tot_1stD": 350,
+                "Sc%": 44.0,
+                "Y/P": 6.0,
+                "TO%": 9.0,
+            },
+            {
+                "Tm": "FourthTeam",
+                "G": 17,
+                "Tot_1stD": 330,
+                "Sc%": 40.0,
+                "Y/P": 5.6,
+                "TO%": 11.0,
+            },
+        ]
+    )
+    offense_without_pf.to_csv(
+        tmp_path / OFFENSE_FILE.format(week=1, year=DEFAULT_YEAR_ABBR), index=False
+    )
+
+    monkeypatch.setattr(scores, "DATA_DIR", str(tmp_path))
+    monkeypatch.setattr(scores, "ENABLE_INJURY_ADJUSTMENTS", False)
+    monkeypatch.setattr(scores, "YEAR_ABBR", DEFAULT_YEAR_ABBR)
+
+    with patch.object(scores, "logger") as mock_logger:
+        results = scores.run_predictions(matchups_path=str(matchups_path))
+
+    assert results.empty
+    mock_logger.error.assert_called_once()
+    assert "Missing required base columns" in mock_logger.error.call_args.args[0]
+
+
 def test_run_predictions_returns_empty_when_required_feature_missing(
     tmp_path, monkeypatch
 ) -> None:
