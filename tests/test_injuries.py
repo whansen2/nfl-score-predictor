@@ -8,7 +8,7 @@ from nfl_predictor.utils.helpers import get_injuries_adjustment
 
 # Load config from YAML
 base_dir = os.path.dirname(os.path.dirname(__file__))
-yaml_path = os.path.join(base_dir, "nfl_predictor", "data", "nfl_properties_test.yaml")
+yaml_path = os.path.join(base_dir, "nfl_predictor", "data", "nfl_properties.yaml")
 
 with open(yaml_path) as f:
     config = yaml.safe_load(f)

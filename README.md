@@ -47,9 +47,9 @@ nfl-score-predictor/
 │   ├── lambda_handler.py      # AWS Lambda deployment handler
 │   ├── agents/                # Reserved for future AI agents
 │   ├── data/                  # Training data and configuration
-│   │   ├── nfl_properties_test.yaml                       # Team/QB configurations
+│   │   ├── nfl_properties.yaml                             # Team/QB configurations
 │   │   ├── upcoming_matchups_auto.csv                     # Game schedule
-│   │   ├── nfl_injuries_test.csv                          # Injury reports
+│   │   ├── nfl_injuries.csv                               # Injury reports
 │   │   ├── nfl_team_offense_thru_week_{1..18}_25.csv      # Weekly offense stats
 │   │   ├── nfl_team_defense_thru_week_{1..18}_25.csv      # Weekly defense stats
 │   │   ├── nfl_conversions_thru_week_{1..18}_25.csv       # Weekly offensive conversions
