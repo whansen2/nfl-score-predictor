@@ -61,6 +61,7 @@ log_level = os.getenv("LOG_LEVEL", DEFAULT_LOG_LEVEL)
 logging.basicConfig(
     level=getattr(logging, log_level, logging.INFO),
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    force=True,
 )
 logger = logging.getLogger(__name__)
 
