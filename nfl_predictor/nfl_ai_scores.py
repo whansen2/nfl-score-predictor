@@ -99,28 +99,43 @@ WeekModelCacheValue = tuple[LinearRegression, pd.DataFrame, list[str]]
 
 # Main prediction logic
 def run_predictions(matchups_path: str | None = None) -> pd.DataFrame:
-    # Load team and QB properties
-    with open(os.path.join(DATA_DIR, PROPERTIES_FILE_NAME)) as file:
-        nfl_properties: dict[str, Any] = yaml.safe_load(file)
-
-    team_abbreviations: dict[str, str] = nfl_properties["team_abbreviations"]
-    qb_tiers: dict[str, int] = nfl_properties["qb_tiers"]
-    team_qbs: dict[str, list[str]] = nfl_properties["team_qbs"]
-
-    # Load injuries data (if enabled)
+    # Team/QB properties and injuries data are only needed for injury
+    # adjustments, so both are optional and only loaded when that feature
+    # is enabled. Either failing disables the feature for this run rather
+    # than crashing the whole prediction pipeline.
     injuries_df = None
+    team_abbreviations: dict[str, str] = {}
+    qb_tiers: dict[str, int] = {}
+    team_qbs: dict[str, list[str]] = {}
     if ENABLE_INJURY_ADJUSTMENTS:
         try:
-            injuries_df = pd.read_csv(os.path.join(DATA_DIR, INJURIES_FILE_NAME))
-            validate_csv_schema(injuries_df, INJURY_REQUIRED_COLUMNS)
-        except ValueError as e:
-            logger.warning(
-                "Injury adjustments disabled due to invalid injuries file schema: %s",
-                e,
-            )
-            injuries_df = None
+            with open(os.path.join(DATA_DIR, PROPERTIES_FILE_NAME)) as file:
+                nfl_properties: dict[str, Any] = yaml.safe_load(file)
+            team_abbreviations = nfl_properties["team_abbreviations"]
+            qb_tiers = nfl_properties["qb_tiers"]
+            team_qbs = nfl_properties["team_qbs"]
         except FileNotFoundError:
-            logger.warning("Injury adjustments enabled but injuries file not found.")
+            logger.warning("Injury adjustments enabled but properties file not found.")
+        except (yaml.YAMLError, KeyError) as e:
+            logger.warning(
+                "Injury adjustments disabled due to invalid properties file: %s", e
+            )
+
+        if team_abbreviations and qb_tiers and team_qbs:
+            try:
+                injuries_df = pd.read_csv(os.path.join(DATA_DIR, INJURIES_FILE_NAME))
+                validate_csv_schema(injuries_df, INJURY_REQUIRED_COLUMNS)
+            except ValueError as e:
+                logger.warning(
+                    "Injury adjustments disabled due to invalid injuries file "
+                    "schema: %s",
+                    e,
+                )
+                injuries_df = None
+            except FileNotFoundError:
+                logger.warning(
+                    "Injury adjustments enabled but injuries file not found."
+                )
 
     # Matchups CSV path
     if matchups_path is None:
@@ -189,6 +204,18 @@ def run_predictions(matchups_path: str | None = None) -> pd.DataFrame:
             df = pd.merge(df_offense, df_conversions, on="Tm")
             df = pd.merge(df, df_conversions_against, on="Tm")
             df = pd.merge(df, df_defense, on="Tm")
+
+            # Validate base columns needed for feature engineering exist
+            missing_base_columns = [
+                c for c in ("PF", "G", "Tot_1stD") if c not in df.columns
+            ]
+            if missing_base_columns:
+                logger.error(
+                    "Missing required base columns for week %s: %s",
+                    training_week,
+                    missing_base_columns,
+                )
+                continue
 
             # Create engineered features
             df["PPG"] = df["PF"] / df["G"]

@@ -225,6 +225,74 @@ def test_run_predictions_uses_default_matchups_path_and_warns_when_injuries_miss
     )
 
 
+def test_run_predictions_warns_when_properties_file_missing(
+    tmp_path, monkeypatch
+) -> None:
+    _write_weekly_stats(tmp_path, week=1, year=DEFAULT_YEAR_ABBR)
+
+    matchups = pd.DataFrame(
+        [
+            {
+                "Week": 2,
+                "Visitor": "AwayTeam",
+                "Home": "HomeTeam",
+                "Date": "2026-09-15",
+            }
+        ]
+    )
+    matchups.to_csv(tmp_path / INPUT_FILE_NAME, index=False)
+
+    monkeypatch.setattr(scores, "DATA_DIR", str(tmp_path))
+    monkeypatch.setattr(scores, "ENABLE_INJURY_ADJUSTMENTS", True)
+    monkeypatch.setattr(scores, "YEAR_ABBR", DEFAULT_YEAR_ABBR)
+
+    with patch.object(scores, "logger") as mock_logger:
+        results = scores.run_predictions()
+
+    assert len(results) == 1
+    mock_logger.warning.assert_any_call(
+        "Injury adjustments enabled but properties file not found."
+    )
+
+
+def test_run_predictions_warns_when_properties_file_malformed(
+    tmp_path, monkeypatch
+) -> None:
+    incomplete_properties = {
+        "team_abbreviations": {"HomeTeam": "HOM", "AwayTeam": "AWY"},
+        "qb_tiers": {"average": -4},
+        # "team_qbs" intentionally omitted to trigger a KeyError
+    }
+    with open(tmp_path / PROPERTIES_FILE_NAME, "w") as f:
+        yaml.safe_dump(incomplete_properties, f)
+    _write_weekly_stats(tmp_path, week=1, year=DEFAULT_YEAR_ABBR)
+
+    matchups = pd.DataFrame(
+        [
+            {
+                "Week": 2,
+                "Visitor": "AwayTeam",
+                "Home": "HomeTeam",
+                "Date": "2026-09-15",
+            }
+        ]
+    )
+    matchups.to_csv(tmp_path / INPUT_FILE_NAME, index=False)
+
+    monkeypatch.setattr(scores, "DATA_DIR", str(tmp_path))
+    monkeypatch.setattr(scores, "ENABLE_INJURY_ADJUSTMENTS", True)
+    monkeypatch.setattr(scores, "YEAR_ABBR", DEFAULT_YEAR_ABBR)
+
+    with patch.object(scores, "logger") as mock_logger:
+        results = scores.run_predictions()
+
+    assert len(results) == 1
+    assert mock_logger.warning.call_args_list[0].args[0] == (
+        "Injury adjustments disabled due to invalid properties file: %s"
+    )
+    assert isinstance(mock_logger.warning.call_args_list[0].args[1], KeyError)
+
+
 def test_run_predictions_accepts_injuries_file_without_injury_comment(
     tmp_path, monkeypatch
 ) -> None:
@@ -310,6 +378,78 @@ def test_run_predictions_returns_empty_when_weekly_data_missing(
     warning_message = mock_logger.warning.call_args_list[0].args[0]
     assert "Missing data file for week" in warning_message
     assert mock_logger.warning.call_args_list[0].args[1] == 1
+
+
+def test_run_predictions_returns_empty_when_base_column_missing(
+    tmp_path, monkeypatch
+) -> None:
+    """Offense CSV missing a base engineering column (PF) must be skipped, not crash."""
+    _write_properties_file(tmp_path)
+    _write_weekly_stats(tmp_path, week=1, year=DEFAULT_YEAR_ABBR)
+
+    matchups = pd.DataFrame(
+        [
+            {
+                "Week": 2,
+                "Visitor": "AwayTeam",
+                "Home": "HomeTeam",
+                "Date": "2026-09-15",
+            }
+        ]
+    )
+    matchups_path = tmp_path / INPUT_FILE_NAME
+    matchups.to_csv(matchups_path, index=False)
+
+    offense_without_pf = pd.DataFrame(
+        [
+            {
+                "Tm": "HomeTeam",
+                "G": 17,
+                "Tot_1stD": 360,
+                "Sc%": 45.0,
+                "Y/P": 6.1,
+                "TO%": 8.0,
+            },
+            {
+                "Tm": "AwayTeam",
+                "G": 17,
+                "Tot_1stD": 340,
+                "Sc%": 42.0,
+                "Y/P": 5.8,
+                "TO%": 10.0,
+            },
+            {
+                "Tm": "ThirdTeam",
+                "G": 17,
+                "Tot_1stD": 350,
+                "Sc%": 44.0,
+                "Y/P": 6.0,
+                "TO%": 9.0,
+            },
+            {
+                "Tm": "FourthTeam",
+                "G": 17,
+                "Tot_1stD": 330,
+                "Sc%": 40.0,
+                "Y/P": 5.6,
+                "TO%": 11.0,
+            },
+        ]
+    )
+    offense_without_pf.to_csv(
+        tmp_path / OFFENSE_FILE.format(week=1, year=DEFAULT_YEAR_ABBR), index=False
+    )
+
+    monkeypatch.setattr(scores, "DATA_DIR", str(tmp_path))
+    monkeypatch.setattr(scores, "ENABLE_INJURY_ADJUSTMENTS", False)
+    monkeypatch.setattr(scores, "YEAR_ABBR", DEFAULT_YEAR_ABBR)
+
+    with patch.object(scores, "logger") as mock_logger:
+        results = scores.run_predictions(matchups_path=str(matchups_path))
+
+    assert results.empty
+    mock_logger.error.assert_called_once()
+    assert "Missing required base columns" in mock_logger.error.call_args.args[0]
 
 
 def test_run_predictions_returns_empty_when_required_feature_missing(
@@ -425,6 +565,238 @@ def test_run_predictions_applies_verbose_injury_adjustments(
     assert adjusted.iloc[0]["Home Score"] == baseline.iloc[0]["Home Score"] - 4
     assert adjusted.iloc[0]["Away Score"] == baseline.iloc[0]["Away Score"] - 2
     mock_logger.info.assert_any_call("Adjustments - Injury: %s/%s", -4, -2)
+
+
+def test_run_predictions_reuses_cached_model_for_matchups_in_same_week(
+    tmp_path, monkeypatch
+) -> None:
+    """Two matchups sharing a (week, year) cache key must load training data once."""
+    _write_properties_file(tmp_path)
+    _write_weekly_stats(tmp_path, week=1, year=DEFAULT_YEAR_ABBR)
+
+    matchups = pd.DataFrame(
+        [
+            {
+                "Week": 2,
+                "Visitor": "AwayTeam",
+                "Home": "HomeTeam",
+                "Date": "2026-09-15",
+            },
+            {
+                "Week": 2,
+                "Visitor": "FourthTeam",
+                "Home": "ThirdTeam",
+                "Date": "2026-09-15",
+            },
+        ]
+    )
+    matchups_path = tmp_path / INPUT_FILE_NAME
+    matchups.to_csv(matchups_path, index=False)
+
+    monkeypatch.setattr(scores, "DATA_DIR", str(tmp_path))
+    monkeypatch.setattr(scores, "ENABLE_INJURY_ADJUSTMENTS", False)
+    monkeypatch.setattr(scores, "YEAR_ABBR", DEFAULT_YEAR_ABBR)
+
+    offense_file = OFFENSE_FILE.format(week=1, year=DEFAULT_YEAR_ABBR)
+    real_read_csv = pd.read_csv
+
+    with patch.object(pd, "read_csv", side_effect=real_read_csv) as mock_read_csv:
+        results = scores.run_predictions(matchups_path=str(matchups_path))
+
+    assert len(results) == 2
+    offense_load_calls = [
+        call
+        for call in mock_read_csv.call_args_list
+        if str(call.args[0]).endswith(offense_file)
+    ]
+    assert len(offense_load_calls) == 1
+
+
+def test_run_predictions_warns_when_model_quality_is_low(tmp_path, monkeypatch) -> None:
+    _write_properties_file(tmp_path)
+    _write_weekly_stats(tmp_path, week=1, year=DEFAULT_YEAR_ABBR)
+
+    matchups = pd.DataFrame(
+        [
+            {
+                "Week": 2,
+                "Visitor": "AwayTeam",
+                "Home": "HomeTeam",
+                "Date": "2026-09-15",
+            }
+        ]
+    )
+    matchups_path = tmp_path / INPUT_FILE_NAME
+    matchups.to_csv(matchups_path, index=False)
+
+    monkeypatch.setattr(scores, "DATA_DIR", str(tmp_path))
+    monkeypatch.setattr(scores, "ENABLE_INJURY_ADJUSTMENTS", False)
+    monkeypatch.setattr(scores, "YEAR_ABBR", DEFAULT_YEAR_ABBR)
+
+    with (
+        patch.object(scores, "r2_score", return_value=0.1),
+        patch.object(scores, "logger") as mock_logger,
+    ):
+        results = scores.run_predictions(matchups_path=str(matchups_path))
+
+    assert len(results) == 1
+    mock_logger.warning.assert_any_call(
+        "Model quality low for week %s (R²=%.3f), predictions may be unreliable",
+        2,
+        0.1,
+    )
+
+
+def test_run_predictions_does_not_warn_when_model_quality_is_acceptable(
+    tmp_path, monkeypatch
+) -> None:
+    _write_properties_file(tmp_path)
+    _write_weekly_stats(tmp_path, week=1, year=DEFAULT_YEAR_ABBR)
+
+    matchups = pd.DataFrame(
+        [
+            {
+                "Week": 2,
+                "Visitor": "AwayTeam",
+                "Home": "HomeTeam",
+                "Date": "2026-09-15",
+            }
+        ]
+    )
+    matchups_path = tmp_path / INPUT_FILE_NAME
+    matchups.to_csv(matchups_path, index=False)
+
+    monkeypatch.setattr(scores, "DATA_DIR", str(tmp_path))
+    monkeypatch.setattr(scores, "ENABLE_INJURY_ADJUSTMENTS", False)
+    monkeypatch.setattr(scores, "YEAR_ABBR", DEFAULT_YEAR_ABBR)
+
+    with (
+        patch.object(scores, "r2_score", return_value=0.9),
+        patch.object(scores, "logger") as mock_logger,
+    ):
+        results = scores.run_predictions(matchups_path=str(matchups_path))
+
+    assert len(results) == 1
+    low_quality_calls = [
+        call
+        for call in mock_logger.warning.call_args_list
+        if call.args[0]
+        == "Model quality low for week %s (R²=%.3f), predictions may be unreliable"
+    ]
+    assert not low_quality_calls
+
+
+def test_run_predictions_warns_when_injuries_file_schema_invalid(
+    tmp_path, monkeypatch
+) -> None:
+    _write_properties_file(tmp_path)
+    _write_weekly_stats(tmp_path, week=1, year=DEFAULT_YEAR_ABBR)
+
+    matchups = pd.DataFrame(
+        [
+            {
+                "Week": 2,
+                "Visitor": "AwayTeam",
+                "Home": "HomeTeam",
+                "Date": "2026-09-15",
+            }
+        ]
+    )
+    matchups.to_csv(tmp_path / INPUT_FILE_NAME, index=False)
+
+    # Missing the required "Status" column
+    pd.DataFrame([{"Player": "Home QB", "Tm": "HOM", "Pos": "QB"}]).to_csv(
+        tmp_path / INJURIES_FILE_NAME, index=False
+    )
+
+    monkeypatch.setattr(scores, "DATA_DIR", str(tmp_path))
+    monkeypatch.setattr(scores, "ENABLE_INJURY_ADJUSTMENTS", True)
+    monkeypatch.setattr(scores, "YEAR_ABBR", DEFAULT_YEAR_ABBR)
+
+    with patch.object(scores, "logger") as mock_logger:
+        results = scores.run_predictions()
+
+    assert len(results) == 1
+    assert mock_logger.warning.call_args_list[0].args[0] == (
+        "Injury adjustments disabled due to invalid injuries file schema: %s"
+    )
+    assert isinstance(mock_logger.warning.call_args_list[0].args[1], ValueError)
+
+
+def test_run_predictions_computes_win_result_and_over_under_total(
+    tmp_path, monkeypatch
+) -> None:
+    """Result must report the correct winner/margin, Over/Under the correct total."""
+    _write_properties_file(tmp_path)
+    _write_weekly_stats(tmp_path, week=1, year=DEFAULT_YEAR_ABBR)
+
+    matchups = pd.DataFrame(
+        [{"Week": 2, "Visitor": "AwayTeam", "Home": "HomeTeam", "Date": "2026-09-15"}]
+    )
+    matchups_path = tmp_path / INPUT_FILE_NAME
+    matchups.to_csv(matchups_path, index=False)
+
+    monkeypatch.setattr(scores, "DATA_DIR", str(tmp_path))
+    monkeypatch.setattr(scores, "ENABLE_INJURY_ADJUSTMENTS", False)
+    monkeypatch.setattr(scores, "YEAR_ABBR", DEFAULT_YEAR_ABBR)
+
+    call_count = {"n": 0}
+
+    def fake_predict(X):
+        call_count["n"] += 1
+        if call_count["n"] == 1:
+            return [20.0] * len(X)  # dummy R²/MAE evaluation predictions
+        if call_count["n"] == 2:
+            return [24.0]  # home team: +1 home-field advantage => 25
+        return [17.0]  # away team => 17
+
+    with patch.object(scores.LinearRegression, "predict", side_effect=fake_predict):
+        results = scores.run_predictions(matchups_path=str(matchups_path))
+
+    assert len(results) == 1
+    row = results.iloc[0]
+    assert row["Home Score"] == 25
+    assert row["Away Score"] == 17
+    assert row["Result"] == "HomeTeam win by 8"
+    assert row["Over/Under"] == 42
+
+
+def test_run_predictions_computes_tie_result_and_over_under_total(
+    tmp_path, monkeypatch
+) -> None:
+    """Equal predicted scores must produce a "Tie" Result, not a false winner."""
+    _write_properties_file(tmp_path)
+    _write_weekly_stats(tmp_path, week=1, year=DEFAULT_YEAR_ABBR)
+
+    matchups = pd.DataFrame(
+        [{"Week": 2, "Visitor": "AwayTeam", "Home": "HomeTeam", "Date": "2026-09-15"}]
+    )
+    matchups_path = tmp_path / INPUT_FILE_NAME
+    matchups.to_csv(matchups_path, index=False)
+
+    monkeypatch.setattr(scores, "DATA_DIR", str(tmp_path))
+    monkeypatch.setattr(scores, "ENABLE_INJURY_ADJUSTMENTS", False)
+    monkeypatch.setattr(scores, "YEAR_ABBR", DEFAULT_YEAR_ABBR)
+
+    call_count = {"n": 0}
+
+    def fake_predict(X):
+        call_count["n"] += 1
+        if call_count["n"] == 1:
+            return [20.0] * len(X)  # dummy R²/MAE evaluation predictions
+        if call_count["n"] == 2:
+            return [19.0]  # home team: +1 home-field advantage => 20
+        return [20.0]  # away team => 20, forcing a tie
+
+    with patch.object(scores.LinearRegression, "predict", side_effect=fake_predict):
+        results = scores.run_predictions(matchups_path=str(matchups_path))
+
+    assert len(results) == 1
+    row = results.iloc[0]
+    assert row["Home Score"] == 20
+    assert row["Away Score"] == 20
+    assert row["Result"] == "Tie"
+    assert row["Over/Under"] == 40
 
 
 def test_run_predictions_logs_generated_files_in_lambda_environment(

@@ -47,9 +47,9 @@ nfl-score-predictor/
 │   ├── lambda_handler.py      # AWS Lambda deployment handler
 │   ├── agents/                # Reserved for future AI agents
 │   ├── data/                  # Training data and configuration
-│   │   ├── nfl_properties_test.yaml                       # Team/QB configurations
+│   │   ├── nfl_properties.yaml                             # Team/QB configurations
 │   │   ├── upcoming_matchups_auto.csv                     # Game schedule
-│   │   ├── nfl_injuries_test.csv                          # Injury reports
+│   │   ├── nfl_injuries.csv                               # Injury reports
 │   │   ├── nfl_team_offense_thru_week_{1..18}_25.csv      # Weekly offense stats
 │   │   ├── nfl_team_defense_thru_week_{1..18}_25.csv      # Weekly defense stats
 │   │   ├── nfl_conversions_thru_week_{1..18}_25.csv       # Weekly offensive conversions
@@ -184,7 +184,7 @@ The system supports serverless deployment:
 
 2. **Deploy via AWS CLI or GitHub Actions** (see `.github/workflows/deploy-lambda.yml`)
 
-3. **Configure S3 buckets** for input/output files as defined in `constants.py`
+3. **Configure the output S3 bucket** via `OUTPUT_BUCKET` (defaults to `DEFAULT_OUTPUT_BUCKET` in `constants.py`)
 
 ---
 

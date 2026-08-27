@@ -8,7 +8,7 @@ from nfl_predictor.utils.helpers import get_injuries_adjustment
 
 # Load config from YAML
 base_dir = os.path.dirname(os.path.dirname(__file__))
-yaml_path = os.path.join(base_dir, "nfl_predictor", "data", "nfl_properties_test.yaml")
+yaml_path = os.path.join(base_dir, "nfl_predictor", "data", "nfl_properties.yaml")
 
 with open(yaml_path) as f:
     config = yaml.safe_load(f)
@@ -29,6 +29,8 @@ for team, (qb_name, tier_label) in team_qbs.items():
         continue
     expected_adjustment = qb_tiers[tier_label]
     test_cases.append((team, qb_name, tier_label, expected_adjustment))
+
+assert test_cases, "no resolved QB entries found in nfl_properties.yaml"
 
 
 @pytest.mark.parametrize(
@@ -120,6 +122,95 @@ def test_team_qb_entries_are_resolved_or_fully_tbd() -> None:
         invalid_entries.append((team, qb_name, tier_label))
 
     assert not invalid_entries, f"Invalid QB entry shape(s): {invalid_entries}"
+
+
+def test_get_injuries_adjustment_returns_neutral_for_empty_injuries_df() -> None:
+    adjustment_home, adjustment_away = get_injuries_adjustment(
+        pd.DataFrame(),
+        home_team="HomeTeam",
+        away_team="AwayTeam",
+        team_abbreviations={"HomeTeam": "HOM", "AwayTeam": "AWY"},
+        qb_tiers={"average": -4},
+        team_qbs={
+            "HomeTeam": ["Home QB", "average"],
+            "AwayTeam": ["Away QB", "average"],
+        },
+    )
+    assert (adjustment_home, adjustment_away) == (0, 0)
+
+
+def test_get_injuries_adjustment_returns_neutral_when_team_missing_abbreviation(
+    tmp_path,
+) -> None:
+    df = pd.DataFrame(
+        [{"Player": "Home QB", "Tm": "HOM", "Pos": "QB", "Status": "Out"}]
+    )
+    injury_file = tmp_path / "injuries_no_abbr.csv"
+    df.to_csv(injury_file, index=False)
+    df_loaded = pd.read_csv(injury_file)
+
+    adjustment_home, adjustment_away = get_injuries_adjustment(
+        df_loaded,
+        home_team="HomeTeam",
+        away_team="AwayTeam",
+        team_abbreviations={"AwayTeam": "AWY"},  # HomeTeam intentionally omitted
+        qb_tiers={"average": -4},
+        team_qbs={
+            "HomeTeam": ["Home QB", "average"],
+            "AwayTeam": ["Away QB", "average"],
+        },
+    )
+    assert adjustment_home == 0
+    assert adjustment_away == 0
+
+
+def test_get_injuries_adjustment_returns_neutral_when_team_missing_from_team_qbs(
+    tmp_path,
+) -> None:
+    df = pd.DataFrame(
+        [{"Player": "Home QB", "Tm": "HOM", "Pos": "QB", "Status": "Out"}]
+    )
+    injury_file = tmp_path / "injuries_no_team_qbs.csv"
+    df.to_csv(injury_file, index=False)
+    df_loaded = pd.read_csv(injury_file)
+
+    adjustment_home, adjustment_away = get_injuries_adjustment(
+        df_loaded,
+        home_team="HomeTeam",
+        away_team="AwayTeam",
+        team_abbreviations={"HomeTeam": "HOM", "AwayTeam": "AWY"},
+        qb_tiers={"average": -4},
+        team_qbs={"AwayTeam": ["Away QB", "average"]},  # HomeTeam intentionally omitted
+    )
+    assert adjustment_home == 0
+    assert adjustment_away == 0
+
+
+def test_get_injuries_adjustment_returns_neutral_when_no_matching_injury_entry(
+    tmp_path,
+) -> None:
+    # HomeTeam has an injury report entry, but the status doesn't qualify
+    # as out/doubtful, so the loop should exhaust without a match.
+    df = pd.DataFrame(
+        [{"Player": "Home QB", "Tm": "HOM", "Pos": "QB", "Status": "Questionable"}]
+    )
+    injury_file = tmp_path / "injuries_no_match.csv"
+    df.to_csv(injury_file, index=False)
+    df_loaded = pd.read_csv(injury_file)
+
+    adjustment_home, adjustment_away = get_injuries_adjustment(
+        df_loaded,
+        home_team="HomeTeam",
+        away_team="AwayTeam",
+        team_abbreviations={"HomeTeam": "HOM", "AwayTeam": "AWY"},
+        qb_tiers={"average": -4},
+        team_qbs={
+            "HomeTeam": ["Home QB", "average"],
+            "AwayTeam": ["Away QB", "average"],
+        },
+    )
+    assert adjustment_home == 0
+    assert adjustment_away == 0
 
 
 def test_get_injuries_adjustment_raises_on_malformed_team_qbs_entry(tmp_path) -> None:
