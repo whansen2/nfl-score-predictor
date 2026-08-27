@@ -7,13 +7,15 @@ import boto3
 
 from nfl_predictor.nfl_ai_scores import run_predictions
 from nfl_predictor.utils.constants import (
+    DEFAULT_LOG_LEVEL,
     DEFAULT_OUTPUT_BUCKET,
     INPUT_FILE_NAME,
     OUTPUT_FILE_NAME,
 )
 
-# Setup logging (level inherited from root config, driven by LOG_LEVEL)
+# Setup logging
 logger = logging.getLogger(__name__)
+logger.setLevel(os.getenv("LOG_LEVEL", DEFAULT_LOG_LEVEL))
 
 # S3 client
 s3 = boto3.client("s3")
