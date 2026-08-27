@@ -498,7 +498,7 @@ def test_run_predictions_applies_verbose_injury_adjustments(
 def test_run_predictions_reuses_cached_model_for_matchups_in_same_week(
     tmp_path, monkeypatch
 ) -> None:
-    """Two matchups sharing a (week, year) cache key must train the model once."""
+    """Two matchups sharing a (week, year) cache key must load training data once."""
     _write_properties_file(tmp_path)
     _write_weekly_stats(tmp_path, week=1, year=DEFAULT_YEAR_ABBR)
 
@@ -525,16 +525,19 @@ def test_run_predictions_reuses_cached_model_for_matchups_in_same_week(
     monkeypatch.setattr(scores, "ENABLE_INJURY_ADJUSTMENTS", False)
     monkeypatch.setattr(scores, "YEAR_ABBR", DEFAULT_YEAR_ABBR)
 
-    with patch.object(scores, "logger") as mock_logger:
+    offense_file = OFFENSE_FILE.format(week=1, year=DEFAULT_YEAR_ABBR)
+    real_read_csv = pd.read_csv
+
+    with patch.object(pd, "read_csv", side_effect=real_read_csv) as mock_read_csv:
         results = scores.run_predictions(matchups_path=str(matchups_path))
 
     assert len(results) == 2
-    training_log_calls = [
+    offense_load_calls = [
         call
-        for call in mock_logger.info.call_args_list
-        if call.args[0] == "Training for week %s data"
+        for call in mock_read_csv.call_args_list
+        if str(call.args[0]).endswith(offense_file)
     ]
-    assert len(training_log_calls) == 1
+    assert len(offense_load_calls) == 1
 
 
 def test_run_predictions_warns_when_model_quality_is_low(tmp_path, monkeypatch) -> None:
@@ -646,6 +649,82 @@ def test_run_predictions_warns_when_injuries_file_schema_invalid(
         "Injury adjustments disabled due to invalid injuries file schema: %s"
     )
     assert isinstance(mock_logger.warning.call_args_list[0].args[1], ValueError)
+
+
+def test_run_predictions_computes_win_result_and_over_under_total(
+    tmp_path, monkeypatch
+) -> None:
+    """Result must report the correct winner/margin, Over/Under the correct total."""
+    _write_properties_file(tmp_path)
+    _write_weekly_stats(tmp_path, week=1, year=DEFAULT_YEAR_ABBR)
+
+    matchups = pd.DataFrame(
+        [{"Week": 2, "Visitor": "AwayTeam", "Home": "HomeTeam", "Date": "2026-09-15"}]
+    )
+    matchups_path = tmp_path / INPUT_FILE_NAME
+    matchups.to_csv(matchups_path, index=False)
+
+    monkeypatch.setattr(scores, "DATA_DIR", str(tmp_path))
+    monkeypatch.setattr(scores, "ENABLE_INJURY_ADJUSTMENTS", False)
+    monkeypatch.setattr(scores, "YEAR_ABBR", DEFAULT_YEAR_ABBR)
+
+    call_count = {"n": 0}
+
+    def fake_predict(X):
+        call_count["n"] += 1
+        if call_count["n"] == 1:
+            return [20.0] * len(X)  # dummy R²/MAE evaluation predictions
+        if call_count["n"] == 2:
+            return [24.0]  # home team: +1 home-field advantage => 25
+        return [17.0]  # away team => 17
+
+    with patch.object(scores.LinearRegression, "predict", side_effect=fake_predict):
+        results = scores.run_predictions(matchups_path=str(matchups_path))
+
+    assert len(results) == 1
+    row = results.iloc[0]
+    assert row["Home Score"] == 25
+    assert row["Away Score"] == 17
+    assert row["Result"] == "HomeTeam win by 8"
+    assert row["Over/Under"] == 42
+
+
+def test_run_predictions_computes_tie_result_and_over_under_total(
+    tmp_path, monkeypatch
+) -> None:
+    """Equal predicted scores must produce a "Tie" Result, not a false winner."""
+    _write_properties_file(tmp_path)
+    _write_weekly_stats(tmp_path, week=1, year=DEFAULT_YEAR_ABBR)
+
+    matchups = pd.DataFrame(
+        [{"Week": 2, "Visitor": "AwayTeam", "Home": "HomeTeam", "Date": "2026-09-15"}]
+    )
+    matchups_path = tmp_path / INPUT_FILE_NAME
+    matchups.to_csv(matchups_path, index=False)
+
+    monkeypatch.setattr(scores, "DATA_DIR", str(tmp_path))
+    monkeypatch.setattr(scores, "ENABLE_INJURY_ADJUSTMENTS", False)
+    monkeypatch.setattr(scores, "YEAR_ABBR", DEFAULT_YEAR_ABBR)
+
+    call_count = {"n": 0}
+
+    def fake_predict(X):
+        call_count["n"] += 1
+        if call_count["n"] == 1:
+            return [20.0] * len(X)  # dummy R²/MAE evaluation predictions
+        if call_count["n"] == 2:
+            return [19.0]  # home team: +1 home-field advantage => 20
+        return [20.0]  # away team => 20, forcing a tie
+
+    with patch.object(scores.LinearRegression, "predict", side_effect=fake_predict):
+        results = scores.run_predictions(matchups_path=str(matchups_path))
+
+    assert len(results) == 1
+    row = results.iloc[0]
+    assert row["Home Score"] == 20
+    assert row["Away Score"] == 20
+    assert row["Result"] == "Tie"
+    assert row["Over/Under"] == 40
 
 
 def test_run_predictions_logs_generated_files_in_lambda_environment(

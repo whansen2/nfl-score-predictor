@@ -30,6 +30,8 @@ for team, (qb_name, tier_label) in team_qbs.items():
     expected_adjustment = qb_tiers[tier_label]
     test_cases.append((team, qb_name, tier_label, expected_adjustment))
 
+assert test_cases, "no resolved QB entries found in nfl_properties.yaml"
+
 
 @pytest.mark.parametrize(
     "team_name, qb_name, tier_label, expected_adjustment", test_cases
