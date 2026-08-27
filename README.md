@@ -184,7 +184,7 @@ The system supports serverless deployment:
 
 2. **Deploy via AWS CLI or GitHub Actions** (see `.github/workflows/deploy-lambda.yml`)
 
-3. **Configure S3 buckets** for input/output files as defined in `constants.py`
+3. **Configure the output S3 bucket** via `OUTPUT_BUCKET` (defaults to `DEFAULT_OUTPUT_BUCKET` in `constants.py`)
 
 ---
 
