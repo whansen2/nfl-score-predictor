@@ -5,7 +5,7 @@
 
 An NFL game prediction system that combines machine learning with contextual adjustments to generate accurate score predictions, winner analysis, and over/under estimates.
 
-**🏈 Currently configured for 2025 season data** with matchup-driven week selection from the input CSV.
+**🏈 Currently configured for the 2026 season** with matchup-driven week selection from the input CSV.
 
 ---
 
@@ -139,7 +139,7 @@ This project uses a **constants-first architecture** for maximum flexibility:
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `ENABLE_INJURY_ADJUSTMENTS` | `false` | QB injury impact scoring adjustments |
-| `YEAR_ABBR` | `25` | Season year (2025 data) |
+| `YEAR_ABBR` | `26` | Season year (2026 season) |
 | `VERBOSE_ADJUSTMENTS` | `false` | Detailed adjustment logging |
 | `LOG_LEVEL` | `INFO` | Application logging level |
 | `OUTPUT_BUCKET` | `nfl-score-predictor-test-output` | Lambda output bucket override |
