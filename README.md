@@ -50,11 +50,11 @@ nfl-score-predictor/
 │   │   ├── nfl_properties.yaml                             # Team/QB configurations
 │   │   ├── upcoming_matchups_auto.csv                     # Game schedule
 │   │   ├── nfl_injuries.csv                               # Injury reports
-│   │   ├── nfl_team_offense_thru_week_{1..18}_25.csv      # Weekly offense stats
-│   │   ├── nfl_team_defense_thru_week_{1..18}_25.csv      # Weekly defense stats
-│   │   ├── nfl_conversions_thru_week_{1..18}_25.csv       # Weekly offensive conversions
-│   │   ├── nfl_conversions_against_thru_week_{1..18}_25.csv  # Weekly defensive conversions
-│   │   ├── standings_thru_week_{1..18}_25.csv             # Weekly standings snapshots
+│   │   ├── nfl_team_offense_thru_week_{1..18}_YY.csv      # Weekly offense stats
+│   │   ├── nfl_team_defense_thru_week_{1..18}_YY.csv      # Weekly defense stats
+│   │   ├── nfl_conversions_thru_week_{1..18}_YY.csv       # Weekly offensive conversions
+│   │   ├── nfl_conversions_against_thru_week_{1..18}_YY.csv  # Weekly defensive conversions
+│   │   ├── standings_thru_week_{1..18}_YY.csv             # Weekly standings snapshots
 │   │   └── standings.csv                                  # Current standings snapshot
 │   └── utils/
 │       ├── __init__.py
