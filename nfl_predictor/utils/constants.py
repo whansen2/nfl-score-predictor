@@ -29,7 +29,7 @@ RANDOM_STATE = 42
 DEFAULT_OUTPUT_BUCKET = "nfl-score-predictor-test-output"
 
 # Prediction defaults
-DEFAULT_YEAR_ABBR = 25  # 2025 season
+DEFAULT_YEAR_ABBR = 26  # 2026 season
 
 # Feature flags defaults
 DEFAULT_LOG_LEVEL = "INFO"

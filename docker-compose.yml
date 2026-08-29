@@ -12,7 +12,7 @@ services:
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - ENABLE_INJURY_ADJUSTMENTS=${ENABLE_INJURY_ADJUSTMENTS:-false}
       - VERBOSE_ADJUSTMENTS=${VERBOSE_ADJUSTMENTS:-false}
-      - YEAR_ABBR=${YEAR_ABBR:-25}
+      - YEAR_ABBR=${YEAR_ABBR:-26}
       - OUTPUT_BUCKET=${OUTPUT_BUCKET:-nfl-score-predictor-test-output}
     volumes:
       - ./nfl_predictor/data:/app/nfl_predictor/data

@@ -5,7 +5,7 @@
 
 An NFL game prediction system that combines machine learning with contextual adjustments to generate accurate score predictions, winner analysis, and over/under estimates.
 
-**🏈 Currently configured for 2025 season data** with matchup-driven week selection from the input CSV.
+**🏈 Currently configured for the 2026 season** with matchup-driven week selection from the input CSV.
 
 ---
 
@@ -50,11 +50,11 @@ nfl-score-predictor/
 │   │   ├── nfl_properties.yaml                             # Team/QB configurations
 │   │   ├── upcoming_matchups_auto.csv                     # Game schedule
 │   │   ├── nfl_injuries.csv                               # Injury reports
-│   │   ├── nfl_team_offense_thru_week_{1..18}_25.csv      # Weekly offense stats
-│   │   ├── nfl_team_defense_thru_week_{1..18}_25.csv      # Weekly defense stats
-│   │   ├── nfl_conversions_thru_week_{1..18}_25.csv       # Weekly offensive conversions
-│   │   ├── nfl_conversions_against_thru_week_{1..18}_25.csv  # Weekly defensive conversions
-│   │   ├── standings_thru_week_{1..18}_25.csv             # Weekly standings snapshots
+│   │   ├── nfl_team_offense_thru_week_{1..18}_YY.csv      # Weekly offense stats
+│   │   ├── nfl_team_defense_thru_week_{1..18}_YY.csv      # Weekly defense stats
+│   │   ├── nfl_conversions_thru_week_{1..18}_YY.csv       # Weekly offensive conversions
+│   │   ├── nfl_conversions_against_thru_week_{1..18}_YY.csv  # Weekly defensive conversions
+│   │   ├── standings_thru_week_{1..18}_YY.csv             # Weekly standings snapshots
 │   │   └── standings.csv                                  # Current standings snapshot
 │   └── utils/
 │       ├── __init__.py
@@ -139,7 +139,7 @@ This project uses a **constants-first architecture** for maximum flexibility:
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `ENABLE_INJURY_ADJUSTMENTS` | `false` | QB injury impact scoring adjustments |
-| `YEAR_ABBR` | `25` | Season year (2025 data) |
+| `YEAR_ABBR` | `26` | Season year (2026 season) |
 | `VERBOSE_ADJUSTMENTS` | `false` | Detailed adjustment logging |
 | `LOG_LEVEL` | `INFO` | Application logging level |
 | `OUTPUT_BUCKET` | `nfl-score-predictor-test-output` | Lambda output bucket override |
