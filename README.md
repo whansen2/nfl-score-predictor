@@ -46,16 +46,18 @@ nfl-score-predictor/
 │   ├── nfl_ai_scores.py       # Core prediction script
 │   ├── lambda_handler.py      # AWS Lambda deployment handler
 │   ├── agents/                # Reserved for future AI agents
-│   ├── data/                  # Training data and configuration
+│   ├── data/                  # Current-season data and configuration
 │   │   ├── nfl_properties.yaml                             # Team/QB configurations
 │   │   ├── upcoming_matchups_auto.csv                     # Game schedule
 │   │   ├── nfl_injuries.csv                               # Injury reports
-│   │   ├── nfl_team_offense_thru_week_{1..18}_YY.csv      # Weekly offense stats
-│   │   ├── nfl_team_defense_thru_week_{1..18}_YY.csv      # Weekly defense stats
-│   │   ├── nfl_conversions_thru_week_{1..18}_YY.csv       # Weekly offensive conversions
-│   │   ├── nfl_conversions_against_thru_week_{1..18}_YY.csv  # Weekly defensive conversions
-│   │   ├── standings_thru_week_{1..18}_YY.csv             # Weekly standings snapshots
-│   │   └── standings.csv                                  # Current standings snapshot
+│   │   ├── nfl_team_offense_thru_week_{1..18}_YY.csv      # Weekly offense stats (current season)
+│   │   ├── nfl_team_defense_thru_week_{1..18}_YY.csv      # Weekly defense stats (current season)
+│   │   ├── nfl_conversions_thru_week_{1..18}_YY.csv       # Weekly offensive conversions (current season)
+│   │   ├── nfl_conversions_against_thru_week_{1..18}_YY.csv  # Weekly defensive conversions (current season)
+│   │   ├── standings.csv                                  # Current standings snapshot
+│   │   └── season_YY/                                     # Archived prior-season data
+│   │       ├── nfl_team_offense_thru_week_{1..18}_YY.csv     # (offense/defense/conversions per week)
+│   │       └── standings_thru_week_{1..18}_YY.csv            # Weekly standings snapshots
 │   └── utils/
 │       ├── __init__.py
 │       ├── constants.py       # All configuration constants and defaults
