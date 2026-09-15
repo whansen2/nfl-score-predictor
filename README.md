@@ -140,7 +140,7 @@ This project uses a **constants-first architecture** for maximum flexibility:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `ENABLE_INJURY_ADJUSTMENTS` | `false` | QB injury impact scoring adjustments |
+| `ENABLE_INJURY_ADJUSTMENTS` | `true` | QB injury impact scoring adjustments |
 | `YEAR_ABBR` | `26` | Season year (2026 season) |
 | `VERBOSE_ADJUSTMENTS` | `false` | Detailed adjustment logging |
 | `LOG_LEVEL` | `INFO` | Application logging level |
@@ -154,10 +154,10 @@ For week 1 matchups, the pipeline automatically trains from prior-season week 18
 The system includes battle-tested optional features:
 
 ```bash
-# Enable injury adjustments (5-tier QB rating system)
-ENABLE_INJURY_ADJUSTMENTS=true
+# Injury adjustments are ON by default; set false to disable
+ENABLE_INJURY_ADJUSTMENTS=false
 
-# Enable verbose logging for adjustments
+# Enable verbose logging for adjustments (off by default)
 VERBOSE_ADJUSTMENTS=true
 ```
 
