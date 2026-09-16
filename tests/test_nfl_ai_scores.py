@@ -473,10 +473,10 @@ def test_run_predictions_returns_empty_when_required_feature_missing(
 
     defense_without_scoring_pct = pd.DataFrame(
         [
-            {"Tm": "HomeTeam", "Y/P": 5.0, "TO%": 12.0},
-            {"Tm": "AwayTeam", "Y/P": 5.3, "TO%": 11.0},
-            {"Tm": "ThirdTeam", "Y/P": 5.1, "TO%": 10.0},
-            {"Tm": "FourthTeam", "Y/P": 5.4, "TO%": 9.0},
+            {"Tm": "HomeTeam", "PA": 300, "Y/P": 5.0, "TO%": 12.0},
+            {"Tm": "AwayTeam", "PA": 330, "Y/P": 5.3, "TO%": 11.0},
+            {"Tm": "ThirdTeam", "PA": 310, "Y/P": 5.1, "TO%": 10.0},
+            {"Tm": "FourthTeam", "PA": 340, "Y/P": 5.4, "TO%": 9.0},
         ]
     )
     defense_without_scoring_pct.to_csv(
