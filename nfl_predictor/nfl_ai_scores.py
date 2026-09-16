@@ -207,9 +207,10 @@ def run_predictions(matchups_path: str | None = None) -> pd.DataFrame:
             df = pd.merge(df, df_conversions_against, on="Tm")
             df = pd.merge(df, df_defense, on="Tm")
 
-            # Validate base columns needed for feature engineering exist
+            # Validate base columns needed for feature engineering and the
+            # opponent-defense blend (PA) exist
             missing_base_columns = [
-                c for c in ("PF", "G", "Tot_1stD") if c not in df.columns
+                c for c in ("PF", "G", "PA", "Tot_1stD") if c not in df.columns
             ]
             if missing_base_columns:
                 logger.error(
