@@ -11,7 +11,7 @@ An NFL game prediction system that combines machine learning with contextual adj
 
 ## ✨ Features
 
-- **📊 Machine Learning Predictions**: scikit-learn Linear Regression using 6 key statistical features
+- **📊 Machine Learning Predictions**: scikit-learn Linear Regression using 5 key statistical features
 - **🏥 Injury Impact Modeling**: Quarterback tier-based scoring adjustments (5-tier system)
 - **☁️ AWS Lambda Ready**: Containerized deployment with S3 integration
 - **⚙️ Flexible Configuration**: Constants-first approach with environment overrides
@@ -46,16 +46,18 @@ nfl-score-predictor/
 │   ├── nfl_ai_scores.py       # Core prediction script
 │   ├── lambda_handler.py      # AWS Lambda deployment handler
 │   ├── agents/                # Reserved for future AI agents
-│   ├── data/                  # Training data and configuration
+│   ├── data/                  # Current-season data and configuration
 │   │   ├── nfl_properties.yaml                             # Team/QB configurations
 │   │   ├── upcoming_matchups_auto.csv                     # Game schedule
 │   │   ├── nfl_injuries.csv                               # Injury reports
-│   │   ├── nfl_team_offense_thru_week_{1..18}_YY.csv      # Weekly offense stats
-│   │   ├── nfl_team_defense_thru_week_{1..18}_YY.csv      # Weekly defense stats
-│   │   ├── nfl_conversions_thru_week_{1..18}_YY.csv       # Weekly offensive conversions
-│   │   ├── nfl_conversions_against_thru_week_{1..18}_YY.csv  # Weekly defensive conversions
-│   │   ├── standings_thru_week_{1..18}_YY.csv             # Weekly standings snapshots
-│   │   └── standings.csv                                  # Current standings snapshot
+│   │   ├── nfl_team_offense_thru_week_{1..18}_YY.csv      # Weekly offense stats (current season)
+│   │   ├── nfl_team_defense_thru_week_{1..18}_YY.csv      # Weekly defense stats (current season)
+│   │   ├── nfl_conversions_thru_week_{1..18}_YY.csv       # Weekly offensive conversions (current season)
+│   │   ├── nfl_conversions_against_thru_week_{1..18}_YY.csv  # Weekly defensive conversions (current season)
+│   │   ├── standings.csv                                  # Current standings snapshot
+│   │   └── season_YY/                                     # Archived prior-season data
+│   │       ├── nfl_team_offense_thru_week_{1..18}_YY.csv     # (offense/defense/conversions per week)
+│   │       └── standings_thru_week_{1..18}_YY.csv            # Weekly standings snapshots
 │   └── utils/
 │       ├── __init__.py
 │       ├── constants.py       # All configuration constants and defaults
@@ -138,7 +140,7 @@ This project uses a **constants-first architecture** for maximum flexibility:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `ENABLE_INJURY_ADJUSTMENTS` | `false` | QB injury impact scoring adjustments |
+| `ENABLE_INJURY_ADJUSTMENTS` | `true` | QB injury impact scoring adjustments |
 | `YEAR_ABBR` | `26` | Season year (2026 season) |
 | `VERBOSE_ADJUSTMENTS` | `false` | Detailed adjustment logging |
 | `LOG_LEVEL` | `INFO` | Application logging level |
@@ -152,10 +154,10 @@ For week 1 matchups, the pipeline automatically trains from prior-season week 18
 The system includes battle-tested optional features:
 
 ```bash
-# Enable injury adjustments (5-tier QB rating system)
-ENABLE_INJURY_ADJUSTMENTS=true
+# Injury adjustments are ON by default; set false to disable
+ENABLE_INJURY_ADJUSTMENTS=false
 
-# Enable verbose logging for adjustments
+# Enable verbose logging for adjustments (off by default)
 VERBOSE_ADJUSTMENTS=true
 ```
 
@@ -221,21 +223,20 @@ make run
 
 ### Core Statistical Features
 
-The Linear Regression model uses 6 key performance indicators (all team-aggregate, not matchup-specific):
+The Linear Regression model uses 5 key performance indicators:
 
-1. **Sc%_x**: Team offensive scoring percentage
-2. **Tot_1stD/G**: Total first downs per game
-3. **Y/P_x**: Yards per play (team offense)
-4. **RZPct_x**: Red zone conversion percentage
-5. **TO%_x**: Turnover differential percentage
-6. **Sc%_y**: Team defensive scoring percentage
+1. **Tot_1stD/G**: Total first downs per game
+2. **Y/P_x**: Yards per play (team offense)
+3. **RZPct_x**: Red zone conversion percentage
+4. **TO%_x**: Turnover differential percentage
+5. **Sc%_y**: Team defensive scoring percentage
 
-Note: The model predicts each team's expected scoring independently based on its season stats; opponent identity does not affect the prediction. Predictions reflect each team's aggregate offensive/defensive efficiency.
+Note: The base model estimates each team's expected scoring from its own season stats. A matchup-aware opponent-defense blend then shifts each team's score by `0.30 × (opponent points-allowed/game − league average)`, so the opponent's defensive strength does factor into the final prediction.
 
 ### Optional Adjustments
 
 - **Injury Adjustments**: 5-tier QB rating system (-6 to -2 point penalties)
-- **Home Field Advantage**: +1 point boost for home teams
+- **Home Field Advantage**: +2 point boost for home teams
 
 ## 📌 Data Sources & Architecture
 

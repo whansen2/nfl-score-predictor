@@ -60,6 +60,13 @@ def get_training_year(week_value: Any, current_year_abbr: int) -> int:
 
     Week 1 uses the prior season's week 18 data. Other regular-season and
     postseason matchups use the current season year.
+
+    NOTE: the engine resolves every training file flat in ``DATA_DIR`` (e.g.
+    ``nfl_team_offense_thru_week_18_{prior_year}.csv``); it does NOT look inside
+    the ``season_YY/`` archive subfolder. So for a Week 1 matchup to train, the
+    prior-season week 18 files must live at the top level of ``DATA_DIR``, not
+    only in ``season_YY/``. Weeks 2+ train on the current season and are
+    unaffected.
     """
     try:
         week = int(week_value)
