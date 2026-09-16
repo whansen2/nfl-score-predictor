@@ -91,10 +91,10 @@ def _write_weekly_stats(tmp_path, week: int, year: int) -> None:
     )
     defense = pd.DataFrame(
         [
-            {"Tm": "HomeTeam", "Sc%": 35.0, "Y/P": 5.0, "TO%": 12.0},
-            {"Tm": "AwayTeam", "Sc%": 38.0, "Y/P": 5.3, "TO%": 11.0},
-            {"Tm": "ThirdTeam", "Sc%": 36.0, "Y/P": 5.1, "TO%": 10.0},
-            {"Tm": "FourthTeam", "Sc%": 39.0, "Y/P": 5.4, "TO%": 9.0},
+            {"Tm": "HomeTeam", "PA": 300, "Sc%": 35.0, "Y/P": 5.0, "TO%": 12.0},
+            {"Tm": "AwayTeam", "PA": 330, "Sc%": 38.0, "Y/P": 5.3, "TO%": 11.0},
+            {"Tm": "ThirdTeam", "PA": 310, "Sc%": 36.0, "Y/P": 5.1, "TO%": 10.0},
+            {"Tm": "FourthTeam", "PA": 340, "Sc%": 39.0, "Y/P": 5.4, "TO%": 9.0},
         ]
     )
 
@@ -747,18 +747,18 @@ def test_run_predictions_computes_win_result_and_over_under_total(
         if call_count["n"] == 1:
             return [20.0] * len(X)  # dummy R²/MAE evaluation predictions
         if call_count["n"] == 2:
-            return [24.0]  # home team: +1 home-field advantage => 25
-        return [17.0]  # away team => 17
+            return [24.0]  # home: +0.18 opp-blend, +2 home-field advantage => 26
+        return [17.0]  # away: -0.35 opp-blend => 17
 
     with patch.object(scores.LinearRegression, "predict", side_effect=fake_predict):
         results = scores.run_predictions(matchups_path=str(matchups_path))
 
     assert len(results) == 1
     row = results.iloc[0]
-    assert row["Home Score"] == 25
+    assert row["Home Score"] == 26
     assert row["Away Score"] == 17
-    assert row["Result"] == "HomeTeam win by 8"
-    assert row["Over/Under"] == 42
+    assert row["Result"] == "HomeTeam win by 9"
+    assert row["Over/Under"] == 43
 
 
 def test_run_predictions_computes_tie_result_and_over_under_total(
@@ -785,8 +785,8 @@ def test_run_predictions_computes_tie_result_and_over_under_total(
         if call_count["n"] == 1:
             return [20.0] * len(X)  # dummy R²/MAE evaluation predictions
         if call_count["n"] == 2:
-            return [19.0]  # home team: +1 home-field advantage => 20
-        return [20.0]  # away team => 20, forcing a tie
+            return [18.0]  # home: +0.18 opp-blend, +2 home-field advantage => 20
+        return [20.0]  # away: -0.35 opp-blend => 20, forcing a tie
 
     with patch.object(scores.LinearRegression, "predict", side_effect=fake_predict):
         results = scores.run_predictions(matchups_path=str(matchups_path))

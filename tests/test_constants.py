@@ -32,7 +32,6 @@ class TestModelConstants:
     def test_default_features_structure(self) -> None:
         """Feature list order matters — it must match merged column names."""
         expected_features = [
-            "Sc%_x",
             "Tot_1stD/G",
             "Y/P_x",
             "RZPct_x",

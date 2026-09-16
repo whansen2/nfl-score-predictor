@@ -6,7 +6,7 @@ adjustments for injuries. All configuration is managed
 through constants.py with optional .env overrides.
 
 Key Features:
-- 6-feature Linear Regression model using team performance statistics
+- 5-feature Linear Regression model using team performance statistics
 - Optional injury adjustments based on QB tier ratings
 - AWS Lambda deployment support
 
@@ -40,6 +40,7 @@ from nfl_predictor.utils.constants import (
     INJURIES_FILE_NAME,
     INPUT_FILE_NAME,
     OFFENSE_FILE,
+    OPPONENT_BLEND_WEIGHT,
     OUTPUT_FILE_NAME,
     PROPERTIES_FILE_NAME,
     RANDOM_STATE,
@@ -272,9 +273,19 @@ def run_predictions(matchups_path: str | None = None) -> pd.DataFrame:
             logger.warning("Missing stats for %s or %s", home_team, away_team)
             continue
 
-        # Predict scores (home team gets home field advantage)
-        ht_pred = round(model.predict(ht_stats)[0]) + HOME_FIELD_ADVANTAGE
-        at_pred = round(model.predict(at_stats)[0])
+        # Blend the opponent's defensive leakiness (PA/G vs league) into each raw
+        # prediction BEFORE rounding, then add home-field advantage to the home team.
+        league_pa_pg = (df["PA"] / df["G"]).mean()
+        opp_pa_pg = df.set_index("Tm")["PA"] / df.set_index("Tm")["G"]
+
+        ht_base = model.predict(ht_stats)[0] + OPPONENT_BLEND_WEIGHT * (
+            opp_pa_pg[away_team] - league_pa_pg
+        )
+        at_base = model.predict(at_stats)[0] + OPPONENT_BLEND_WEIGHT * (
+            opp_pa_pg[home_team] - league_pa_pg
+        )
+        ht_pred = round(ht_base) + HOME_FIELD_ADVANTAGE
+        at_pred = round(at_base)
 
         # Apply adjustments
         ht_adj, at_adj = 0, 0

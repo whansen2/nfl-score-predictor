@@ -11,7 +11,7 @@ An NFL game prediction system that combines machine learning with contextual adj
 
 ## ✨ Features
 
-- **📊 Machine Learning Predictions**: scikit-learn Linear Regression using 6 key statistical features
+- **📊 Machine Learning Predictions**: scikit-learn Linear Regression using 5 key statistical features
 - **🏥 Injury Impact Modeling**: Quarterback tier-based scoring adjustments (5-tier system)
 - **☁️ AWS Lambda Ready**: Containerized deployment with S3 integration
 - **⚙️ Flexible Configuration**: Constants-first approach with environment overrides
@@ -223,21 +223,20 @@ make run
 
 ### Core Statistical Features
 
-The Linear Regression model uses 6 key performance indicators (all team-aggregate, not matchup-specific):
+The Linear Regression model uses 5 key performance indicators:
 
-1. **Sc%_x**: Team offensive scoring percentage
-2. **Tot_1stD/G**: Total first downs per game
-3. **Y/P_x**: Yards per play (team offense)
-4. **RZPct_x**: Red zone conversion percentage
-5. **TO%_x**: Turnover differential percentage
-6. **Sc%_y**: Team defensive scoring percentage
+1. **Tot_1stD/G**: Total first downs per game
+2. **Y/P_x**: Yards per play (team offense)
+3. **RZPct_x**: Red zone conversion percentage
+4. **TO%_x**: Turnover differential percentage
+5. **Sc%_y**: Team defensive scoring percentage
 
-Note: The model predicts each team's expected scoring independently based on its season stats; opponent identity does not affect the prediction. Predictions reflect each team's aggregate offensive/defensive efficiency.
+Note: The base model estimates each team's expected scoring from its own season stats. A matchup-aware opponent-defense blend then shifts each team's score by `0.30 × (opponent points-allowed/game − league average)`, so the opponent's defensive strength does factor into the final prediction.
 
 ### Optional Adjustments
 
 - **Injury Adjustments**: 5-tier QB rating system (-6 to -2 point penalties)
-- **Home Field Advantage**: +1 point boost for home teams
+- **Home Field Advantage**: +2 point boost for home teams
 
 ## 📌 Data Sources & Architecture
 

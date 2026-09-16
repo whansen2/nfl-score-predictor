@@ -20,8 +20,11 @@ OFFENSE_FILE = "nfl_team_offense_thru_week_{week}_{year}.csv"
 DEFENSE_FILE = "nfl_team_defense_thru_week_{week}_{year}.csv"
 
 # Model configuration constants
-DEFAULT_FEATURES = ["Sc%_x", "Tot_1stD/G", "Y/P_x", "RZPct_x", "TO%_x", "Sc%_y"]
-HOME_FIELD_ADVANTAGE = 1
+DEFAULT_FEATURES = ["Tot_1stD/G", "Y/P_x", "RZPct_x", "TO%_x", "Sc%_y"]
+HOME_FIELD_ADVANTAGE = 2
+# Opponent-defense blend: shift each score by weight * (opp PA/G - league PA/G)
+# to make the (otherwise opponent-blind) prediction matchup-aware.
+OPPONENT_BLEND_WEIGHT = 0.30
 TRAIN_TEST_SPLIT_RATIO = 0.33
 RANDOM_STATE = 42
 
