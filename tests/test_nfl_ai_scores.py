@@ -799,6 +799,61 @@ def test_run_predictions_computes_tie_result_and_over_under_total(
     assert row["Over/Under"] == 40
 
 
+def test_run_predictions_opponent_blend_shifts_toward_opponent_defense(
+    tmp_path, monkeypatch
+) -> None:
+    """The opponent-defense blend must move each score toward how leaky the
+    OPPONENT's defense is, using the correct team->opponent mapping.
+
+    The AwayTeam is given a very leaky defense (40 PA/G) and the HomeTeam a stingy
+    one (1 PA/G); league average is 20.25 PA/G. With both raw predictions pinned to
+    20.0, the home score (facing the leaky AWAY defense) is pulled UP and the away
+    score (facing the stingy HOME defense) is pulled DOWN -- a gap far larger than
+    the +2 home-field advantage alone. The spread is deliberately large so the
+    shift survives rounding, unlike the incidental sub-point blend in the win/tie
+    tests; this pins the blend's SIGN and its team->opponent mapping.
+    """
+    _write_properties_file(tmp_path)
+    _write_weekly_stats(tmp_path, week=1, year=DEFAULT_YEAR_ABBR)
+
+    # Overwrite the defense file with an extreme, sign-detectable PA spread while
+    # keeping the feature columns (Sc%/Y/P/TO%) the merged frame needs. G=17 comes
+    # from the offense fixture, so PA/G = PA/17: Home 1.0, Away 40.0, others 20.0.
+    defense = pd.DataFrame(
+        [
+            {"Tm": "HomeTeam", "PA": 17, "Sc%": 35.0, "Y/P": 5.0, "TO%": 12.0},
+            {"Tm": "AwayTeam", "PA": 680, "Sc%": 38.0, "Y/P": 5.3, "TO%": 11.0},
+            {"Tm": "ThirdTeam", "PA": 340, "Sc%": 36.0, "Y/P": 5.1, "TO%": 10.0},
+            {"Tm": "FourthTeam", "PA": 340, "Sc%": 39.0, "Y/P": 5.4, "TO%": 9.0},
+        ]
+    )
+    defense.to_csv(
+        tmp_path / DEFENSE_FILE.format(week=1, year=DEFAULT_YEAR_ABBR), index=False
+    )
+
+    matchups = pd.DataFrame(
+        [{"Week": 2, "Visitor": "AwayTeam", "Home": "HomeTeam", "Date": "2026-09-15"}]
+    )
+    matchups_path = tmp_path / INPUT_FILE_NAME
+    matchups.to_csv(matchups_path, index=False)
+
+    monkeypatch.setattr(scores, "DATA_DIR", str(tmp_path))
+    monkeypatch.setattr(scores, "ENABLE_INJURY_ADJUSTMENTS", False)
+    monkeypatch.setattr(scores, "YEAR_ABBR", DEFAULT_YEAR_ABBR)
+
+    # Pin every raw prediction to 20.0 so the blend is the ONLY differentiator.
+    with patch.object(
+        scores.LinearRegression, "predict", side_effect=lambda X: [20.0] * len(X)
+    ):
+        results = scores.run_predictions(matchups_path=str(matchups_path))
+
+    # home: round(20 + 0.30*(40.0 - 20.25)) + 2 = round(25.925) + 2 = 28
+    # away: round(20 + 0.30*(1.0  - 20.25))      = round(14.225)      = 14
+    row = results.iloc[0]
+    assert row["Home Score"] == 28
+    assert row["Away Score"] == 14
+
+
 def test_run_predictions_logs_generated_files_in_lambda_environment(
     tmp_path, monkeypatch
 ) -> None:
