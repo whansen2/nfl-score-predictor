@@ -58,7 +58,7 @@ team_qbs:
   Indianapolis Colts: ["Daniel Jones", "average"]
   Jacksonville Jaguars: ["Trevor Lawrence", "above_average"]
   Kansas City Chiefs: ["Patrick Mahomes", "elite"]
-  Las Vegas Raiders: ["Kirk Cousins", "below_average"]
+  Las Vegas Raiders: ["Kirk Cousins", "average"]
   Los Angeles Chargers: ["Justin Herbert", "above_average"]
   Los Angeles Rams: ["Matthew Stafford", "elite"]
   Miami Dolphins: ["Malik Willis", "replacement_level"]
