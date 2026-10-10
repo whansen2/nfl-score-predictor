@@ -48,13 +48,20 @@ different game set from Round 1, so the production numbers differ):
 | Elo | 9.89 | 11.88 | 10.05 | 9.97 | 10.33 |
 | home+2 | 11.17 | 12.49 | 10.85 | 10.06 | 11.03 |
 
+- **2025:** the production results are counterfactual reconstructions with no
+  QB injury adjustment, because no 2025 injury history exists. The 2025
+  prior-season values are approximate, because 2024 has no `Sc%_y`.
+- **2026:** week 1 is also counterfactual. Weeks 2–4 reproduce the published
+  production predictions exactly.
+
 ## Findings
 - **Production's clearest observed weakness is early-season forecasting
   (weeks 1–4).** Each week's regression is fit on 32 teams with only 1–3
   games each. From week 5 on, it was competitive with every alternative
   tested.
-- **More features and more flexible models hurt.** Gains came from carrying
-  information across seasons, not from the choice of algorithm.
+- **Additional features and more flexible models did not improve accuracy**
+  in the configurations tested. Gains came from carrying information across
+  seasons, not from the choice of algorithm.
 - **The QB injury adjustment** changed 8 games in 2026, and 7 got worse. That
   sample is too small to act on. Keep it and re-check at season end.
 - **Power is the limit.** Paired 95% CIs over about 420 pooled games had
@@ -70,7 +77,8 @@ different game set from Round 1, so the production numbers differ):
   - prior = league + r·(last season − league)
   - value = (G·current + k·prior) / (G + k)
 - **Week 1:** the result is league + r·(last − league).
-- **Parameters:** k = 1, r = 2/3, fixed a priori.
+- **Parameters:** k = 1 (selected during development) and r = 2/3 (the
+  published Elo default). Both were frozen before the full-engine evaluation.
 - **Effect:** −0.48 overall [−0.89, −0.15], −2.1 in 2026 wks 2–4, and about
   +0.06 (null) from week 5 on.
 - **Implementation:** about 60 lines. When turned off, it was bit-identical
