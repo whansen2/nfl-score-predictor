@@ -54,8 +54,9 @@ SNAP_DIR = REPO_ROOT / "nfl_predictor" / "data" / "season_25"
 PRED_DIR = "/Users/whansen/Desktop/Data Science/nfl_stats/season_25_26"
 WEEKS = range(3, 19)
 
-# These mirror the deployed nfl_ai_scores.py config -- keep them in sync so the
-# walk-forward engine reproduces the shipped model as its baseline.
+# These mirror the model that shipped in 2025 (6 features, HFA 1), so the
+# walk-forward baseline reproduces those predictions. They are intentionally
+# NOT the current nfl_ai_scores.py config, which these experiments led to.
 DEFAULT_FEATURES = ["Sc%_x", "Tot_1stD/G", "Y/P_x", "RZPct_x", "TO%_x", "Sc%_y"]
 HOME_FIELD_ADVANTAGE = 1
 TRAIN_TEST_SPLIT_RATIO = 0.33
