@@ -42,7 +42,7 @@ qb_tiers:
   replacement_level: -2  # Backups or struggling QBs, minimal impact
 
 team_qbs:
-  Arizona Cardinals: ["Jacoby Brissett", "replacement_level"]
+  Arizona Cardinals: ["Gardner Minshew", "replacement_level"]
   Atlanta Falcons: ["Michael Penix Jr.", "average"]
   Baltimore Ravens: ["Lamar Jackson", "elite"]
   Buffalo Bills: ["Josh Allen", "elite"]
